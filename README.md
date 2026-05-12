@@ -54,6 +54,20 @@ java -Xmx4G -Xms2G -jar server.jar nogui
 
 ---
 
+## ✍️ 撰寫 Skript 腳本（`.sk` 插件）
+
+將腳本檔案放入以下路徑：
+
+​```plugins/Skript/scripts/```
+
+放入後在遊戲或控制台執行以下指令載入：
+
+​```/skript reload all          # 重載全部腳本​```
+
+​```/skript reload <腳本檔名>   # 只重載單一腳本​```
+
+---
+
 ## 🧩 插件清單
 
 下載後放入`plugins`資料夾中
@@ -83,20 +97,6 @@ java -Xmx4G -Xms2G -jar server.jar nogui
 | spark | 1.10.172 | [下載](https://spark.lucko.me) |
 | WorldEdit | 7.4.3 | [下載](https://enginehub.org/worldedit) |
 | WorldGuard | 7.0.16 | [下載](https://enginehub.org/worldguard) |
-
----
-
-## ✍️ 撰寫 Skript 腳本（`.sk` 插件）
-
-將腳本檔案放入以下路徑：
-
-​```plugins/Skript/scripts/```
-
-放入後在遊戲或控制台執行以下指令載入：
-
-​```/skript reload all          # 重載全部腳本​```
-
-​```/skript reload <腳本檔名>   # 只重載單一腳本​```
 
 ---
 
