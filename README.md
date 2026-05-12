@@ -30,7 +30,7 @@
 
 | | |
 |---|---|
-| 框架 | [PaperMC](https://papermc.io) |
+| 框架 | [PaperMC](https://fill-ui.papermc.io/projects/paper/family/1.21) |
 | 版本 | 1.21.1 |
 
 ---
