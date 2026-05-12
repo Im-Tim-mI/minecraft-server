@@ -1,0 +1,98 @@
+# ============================================
+# 傳送倒數顯示系統（側載版）
+# 每秒顯示倒數，移動則停止
+# ============================================
+
+options:
+    prefix: &e[&6傳送&e]
+
+# ============================================
+# 監聽 /home 指令
+# ============================================
+on command "home":
+    if {countdown::%uuid of player%} is true:
+        stop
+    
+    start_countdown_display(player)
+
+# ============================================
+# 監聽 /spawn 指令
+# ============================================
+on command "spawn":
+    if {countdown::%uuid of player%} is true:
+        stop
+    
+    start_countdown_display(player)
+
+# ============================================
+# 倒數顯示函數
+# ============================================
+function start_countdown_display(p: player):
+    set {_uuid} to uuid of {_p}
+    
+    set {countdown::%{_uuid}%} to true
+    set {countdown.loc::%{_uuid}%} to location of {_p}
+    
+    loop 30 times:
+        if {countdown::%{_uuid}%} is not true:
+            stop
+        
+        if {_p} is not online:
+            delete {countdown::%{_uuid}%}
+            delete {countdown.loc::%{_uuid}%}
+            stop
+        
+        # 檢查移動
+        set {_current} to location of {_p}
+        set {_start} to {countdown.loc::%{_uuid}%}
+        set {_dx} to x-coordinate of {_current} - x-coordinate of {_start}
+        set {_dz} to z-coordinate of {_current} - z-coordinate of {_start}
+        set {_dist} to sqrt({_dx} * {_dx} + {_dz} * {_dz})
+        
+        if {_dist} > 0.3:
+            delete {countdown::%{_uuid}%}
+            delete {countdown.loc::%{_uuid}%}
+            stop
+        
+        set {_remaining} to 30 - loop-number + 1
+        
+        # 進度條
+        set {_progress} to ""
+        set {_filled} to ({_remaining} / 30) * 20
+        loop 20 times:
+            if loop-number-2 <= {_filled}:
+                set {_progress} to "%{_progress}%&a|"
+            else:
+                set {_progress} to "%{_progress}%&7|"
+        
+        # 每秒顯示
+        send action bar "&e(非同步倒數)傳送倒數&c&l%{_remaining}% &e秒 %{_progress}%" to {_p}
+        
+        # 最後 5 秒音效
+        if {_remaining} <= 5:
+            play sound "BLOCK_NOTE_BLOCK_PLING" with volume 0.3 with pitch 1.5 to {_p}
+        
+        wait 0.8 second
+    
+    if {countdown::%{_uuid}%} is true:
+        send action bar "&a&l✓ 傳送中..." to {_p}
+        play sound "ENTITY_ENDERMAN_TELEPORT" with volume 0.5 to {_p}
+    
+    delete {countdown::%{_uuid}%}
+    delete {countdown.loc::%{_uuid}%}
+
+# ============================================
+# 玩家受傷停止
+# ============================================
+on damage of player:
+    if {countdown::%uuid of victim%} is true:
+        send action bar "&c&l✗ 被攻擊傳送已取消" to victim
+        delete {countdown::%uuid of victim%}
+        delete {countdown.loc::%uuid of victim%}
+
+# ============================================
+# 玩家離開清理
+# ============================================
+on quit:
+    delete {countdown::%uuid of player%}
+    delete {countdown.loc::%uuid of player%}

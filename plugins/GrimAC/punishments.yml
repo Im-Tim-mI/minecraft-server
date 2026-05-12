@@ -1,0 +1,199 @@
+# ============================================
+# GrimAC 懲罰配置文件（完整懲罰版）
+# ============================================
+#
+# 懲罰流程：警報 → 廣播 → 踢出 → 封禁30分鐘 → 永久封禁
+#
+# 可用佔位符：
+# %check_name%   - 檢測名稱
+# %description%  - 檢測描述
+# %vl%           - 違規次數
+# %verbose%      - 額外資訊
+# %player%       - 玩家名稱
+#
+# 特殊命令：
+# [alert]   - 向管理員發送警報
+# [log]     - 記錄到歷史記錄
+# [webhook] - 發送到 Discord Webhook
+# [proxy]   - 發送到代理連接的其他伺服器
+#
+# ============================================
+
+Punishments:
+
+  # ============================================
+  # 模擬檢測（移動作弊）
+  # 檢測：速度、飛行、地面欺騙、計時器等
+  # ============================================
+  Simulation:
+    remove-violations-after: 300
+    checks:
+      - "!Vehicle"            # 排除：載具移動
+      - "!VehicleTimer"       # 排除：載具計時器
+      - "!VehiclePrediction"  # 排除：載具預測
+      - "!Simulation"      # 模擬檢測（速度/飛行作弊）VR
+      - "GroundSpoof"     # 地面欺騙
+      - "!Timer"           # 計時器（加速）VR
+      - "TimerLimit"      # 計時器限制
+      - "NoFall"          # 無摔落傷害
+    commands:
+      - "100:40 [alert]"
+      - "100:40 [log]"
+      - "150:0 broadcast &c&l[反作弊] &f%player% &c疑似使用移動作弊 &7(違規: %vl%)"
+      - "200:0 kick %player% &c檢測到異常移動，請勿使用作弊"
+      - "300:0 tempban %player% 30m &c移動作弊 - 暫時封禁30分鐘"
+      - "500:0 ban %player% &c多次使用移動作弊 - 永久封禁"
+
+  # ============================================
+  # 擊退檢測（反擊退作弊）
+  # ============================================
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"   # 反擊退
+      - "Explosion"   # 爆炸擊退
+    commands:
+      - "5:5 [alert]"
+      - "5:5 [log]"
+      - "20:0 broadcast &c&l[反作弊] &f%player% &c疑似使用反擊退 &7(違規: %vl%)"
+      - "30:0 kick %player% &c檢測到反擊退，請勿使用作弊"
+      - "50:0 tempban %player% 30m &c反擊退作弊 - 暫時封禁30分鐘"
+      - "80:0 ban %player% &c多次使用反擊退 - 永久封禁"
+
+  # ============================================
+  # Post 檢測（封包時序作弊）
+  # ============================================
+  Post:
+    remove-violations-after: 300
+    checks:
+      - "Post"
+    commands:
+      - "20:20 [alert]"
+      - "20:20 [log]"
+      - "50:0 broadcast &c&l[反作弊] &f%player% &c疑似使用作弊客戶端 &7(違規: %vl%)"
+      - "80:0 kick %player% &c封包異常，請勿使用作弊"
+      - "120:0 tempban %player% 30m &c封包作弊 - 暫時封禁30分鐘"
+      - "200:0 ban %player% &c多次封包異常 - 永久封禁"
+
+  # ============================================
+  # 非法封包檢測
+  # ============================================
+  BadPackets:
+    remove-violations-after: 300
+    checks:
+      - "BadPackets"    # 非法封包
+      - "PacketOrder"   # 封包順序異常
+      - "Crash"         # 崩潰攻擊
+    commands:
+      - "20:20 [alert]"
+      - "20:20 [log]"
+      - "50:0 broadcast &c&l[反作弊] &f%player% &c發送異常封包 &7(違規: %vl%)"
+      - "80:0 kick %player% &c非法封包，請勿使用作弊"
+      - "120:0 tempban %player% 30m &c非法封包 - 暫時封禁30分鐘"
+      - "200:0 ban %player% &c惡意封包攻擊 - 永久封禁"
+
+  # ============================================
+  # 觸及距離檢測（Reach 作弊）
+  # ============================================
+  Reach:
+    remove-violations-after: 300
+    checks:
+      - "Reach"
+    commands:
+      - "1:1 [alert]"
+      - "1:1 [log]"
+      - "10:0 broadcast &c&l[反作弊] &f%player% &c疑似使用 Reach 作弊 &7(違規: %vl%)"
+      - "15:0 kick %player% &c攻擊距離異常，請勿使用作弊"
+      - "25:0 tempban %player% 30m &cReach 作弊 - 暫時封禁30分鐘"
+      - "40:0 ban %player% &c多次使用 Reach - 永久封禁"
+
+  # ============================================
+  # 碰撞箱檢測（Hitbox 作弊）
+  # ============================================
+  Hitboxes:
+    remove-violations-after: 300
+    checks:
+      - "Hitboxes"
+    commands:
+      - "5:3 [alert]"
+      - "5:3 [log]"
+      - "15:0 broadcast &c&l[反作弊] &f%player% &c疑似使用 Hitbox 作弊 &7(違規: %vl%)"
+      - "25:0 kick %player% &c碰撞箱異常，請勿使用作弊"
+      - "40:0 tempban %player% 30m &cHitbox 作弊 - 暫時封禁30分鐘"
+      - "60:0 ban %player% &c多次使用 Hitbox - 永久封禁"
+
+  # ============================================
+  # 雜項檢測
+  # ============================================
+  Misc:
+    remove-violations-after: 300
+    checks:
+      - "Vehicle"           # 載具作弊
+      - "NoSlow"            # 使用物品不減速
+      - "Sprint"            # 衝刺異常
+      - "MultiActions"      # 多重動作
+      - "Place"             # 放置異常
+      - "Baritone"          # Baritone 機器人
+      - "!AirLiquidBreak"   # ← 排除 AirLiquidBreak
+      - "Break"             # 破壞異常
+      - "TransactionOrder"  # 交易順序異常
+      - "Elytra"            # 鞘翅作弊
+      - "Chat"              # 聊天異常
+      - "Exploit"           # 漏洞利用
+    commands:
+      - "10:5 [alert]"
+      - "10:5 [log]"
+      - "30:0 broadcast &c&l[反作弊] &f%player% &c疑似作弊 &7(違規: %vl%)"
+      - "50:0 kick %player% &c檢測到異常行為，請勿使用作弊"
+      - "80:0 tempban %player% 30m &c作弊行為 - 暫時封禁30分鐘"
+      - "120:0 ban %player% &c多次作弊 - 永久封禁"
+
+  # ============================================
+  # 戰鬥檢測
+  # ============================================
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Interact"    # 互動異常
+      - "Aim"         # Aimbot 自動瞄準
+    commands:
+      - "20:40 [alert]"
+      - "20:40 [log]"
+      - "60:0 broadcast &c&l[反作弊] &f%player% &c疑似使用戰鬥作弊 &7(違規: %vl%)"
+      - "100:0 kick %player% &c戰鬥異常，請勿使用作弊"
+      - "150:0 tempban %player% 30m &c戰鬥作弊 - 暫時封禁30分鐘"
+      - "250:0 ban %player% &c多次使用戰鬥作弊 - 永久封禁"
+
+  # ============================================
+  # 自動點擊檢測（未來功能）
+  # ============================================
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"
+    commands:
+      - "20:40 [alert]"
+      - "20:40 [log]"
+      - "60:0 broadcast &c&l[反作弊] &f%player% &c疑似使用自動點擊 &7(違規: %vl%)"
+      - "100:0 kick %player% &c點擊異常，請勿使用作弊"
+      - "150:0 tempban %player% 30m &c自動點擊 - 暫時封禁30分鐘"
+      - "250:0 ban %player% &c多次使用自動點擊 - 永久封禁"
+
+
+# ============================================
+# 懲罰閾值總覽
+# ============================================
+#
+# 檢測類型        | 廣播 | 踢出 | 暫封30分 | 永久封禁
+# ----------------|------|------|----------|----------
+# Simulation      | 150  | 200  | 300      | 500
+# Knockback       | 20   | 30   | 50       | 80
+# Post            | 50   | 80   | 120      | 200
+# BadPackets      | 50   | 80   | 120      | 200
+# Reach           | 10   | 15   | 25       | 40
+# Hitboxes        | 15   | 25   | 40       | 60
+# Misc            | 30   | 50   | 80       | 120
+# Combat          | 60   | 100  | 150      | 250
+# Autoclicker     | 60   | 100  | 150      | 250
+#
+# ============================================

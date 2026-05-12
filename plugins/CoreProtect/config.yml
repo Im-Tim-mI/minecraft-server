@@ -1,0 +1,148 @@
+# CoreProtect 配置
+
+# CoreProtect 为捐赠软件。请在 coreprotect.net/donate/ 获取捐赠密钥。
+donation-key: 
+
+# MySQL 为可选项，非必需。
+# 如果你更倾向于使用 MySQL，请启用以下选项并填写相应字段。
+use-mysql: false
+table-prefix: co_
+mysql-host: 127.0.0.1
+mysql-port: 3306
+mysql-database: database
+mysql-username: root
+mysql-password: 
+
+# 如进行修改，系统将自动尝试翻译语言短语。
+# 语言代码列表: https://coreprotect.net/languages/
+language: zh-TW
+
+# 如启用，CoreProtect 将在服务器启动时检查更新。
+# 若有可用更新，将通过服务器控制台通知。
+check-updates: true
+
+# 如启用，其他插件将能够使用 CoreProtect API。
+api-enabled: true
+
+# 如启用，回滚和恢复期间将显示额外数据。
+# 可通过在回滚指令中添加 "#verbose" 手动触发。
+verbose: true
+
+# 如果在回滚或恢复时未指定半径，此值将被
+# 用作半径。设置为 "0" 可禁用自动添加半径。
+default-radius: 10
+
+# 命令中可使用的最大半径。设置为 "0" 可禁用。
+# 若要在没有半径的情况下运行回滚或恢复，可使用 "r:#global"。
+max-radius: 100
+
+# 如启用，容器（等）中取出的物品将会包含在回滚中。
+rollback-items: true
+
+# 如启用，实体（例如被杀死的动物）将会包含在回滚中。
+rollback-entities: true
+
+# 如启用，将不会记录通用数据，例如僵尸在白天被烧伤。
+skip-generic-data: true
+
+# 记录玩家放置的方块。
+block-place: true
+
+# 记录玩家破坏的方块。
+block-break: true
+
+# 记录从其他方块脱落的方块；例如，标牌或火把
+# 从玩家破坏的泥土块上掉落的情况。这对于
+# 床/门的正确回滚是必需的。
+natural-break: true
+
+# 正确追踪方块移动，例如沙子或砾石下落。
+block-movement: true
+
+# 正确追踪活塞移动的方块。
+pistons: true
+
+# 记录被火焰燃烧的方块。
+block-burn: true
+
+# 记录方块自然点燃的情况，例如火焰蔓延导致的点燃。
+block-ignite: true
+
+# 记录爆炸，例如 TNT 和爬行者。
+explosions: true
+
+# 追踪实体改变方块的情况，例如末影人破坏方块。
+entity-change: true
+
+# 记录被杀死的实体，例如被杀死的牛和末影人。
+entity-kills: true
+
+# 记录告示牌上的文字。若禁用，回滚后告示牌将为空白。
+sign-text: true
+
+# 记录玩家使用桶放置/移除的岩浆和水源。
+buckets: true
+
+# 记录自然的树叶凋落。
+leaf-decay: true
+
+# 记录树木生长。树木与种植树苗的玩家关联。
+tree-growth: true
+
+# 记录蘑菇生长。
+mushroom-growth: true
+
+# 记录自然藤蔓生长。
+vine-growth: true
+
+# 记录潜声方块从潜声催化剂的蔓延。
+sculk-spread: true
+
+# 记录诸如下界传送门等自然生成的传送门。
+portals: true
+
+# 记录水流。若水破坏其他方块，例如火把，
+# 这使得回滚时能够正确恢复。
+water-flow: true
+
+# 记录岩浆流动。若岩浆破坏其他方块，例如火把，
+# 这使得回滚时能够正确恢复。
+lava-flow: true
+
+# 允许液体被正确追踪并关联至玩家。
+# 例如，玩家放置水导致流动并破坏火把，
+# 通过回滚该玩家即可正确恢复所有影响。
+liquid-tracking: true
+
+# 追踪物品交易，例如玩家从
+# 箱子、熔炉或发射器中取出物品时。
+item-transactions: true
+
+# 记录玩家掉落的物品。
+item-drops: true
+
+# 记录玩家拾取的物品。
+item-pickups: true
+
+# 追踪所有漏斗交易，例如漏斗从
+# 箱子、熔炉或发射器中移除物品时。
+hopper-transactions: true
+
+# 追踪玩家交互，例如玩家打开门、按下
+# 按钮或打开箱子。玩家交互无法回滚。
+player-interactions: true
+
+# 记录玩家在聊天中发送的消息。
+player-messages: true
+
+# 记录玩家使用的所有指令。
+player-commands: true
+
+# 记录玩家的登录和退出。
+player-sessions: true
+
+# 记录玩家更改 Minecraft 用户名的情况。
+username-changes: true
+
+# 若服务器使用插件 "WorldEdit"，记录其所做的更改。
+worldedit: true

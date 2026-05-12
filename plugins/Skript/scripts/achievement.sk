@@ -1,0 +1,98 @@
+# ============================================
+# 自訂成就系統
+# ============================================
+
+# ============================================
+# 成就顯示函數
+# ============================================
+function showAchievement(p: player, title: text, desc: text):
+    # 全服玩家都看到畫面標題
+    loop all players:
+        send title "&6&l🏆 成就達成！" with subtitle "&e%{_p}% &7獲得 &e%{_title}%" to loop-player for 3 seconds
+        play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 with pitch 1 to loop-player
+    
+    # 聊天室廣播
+    broadcast "&6&l══════════════════"
+    broadcast "&6&l🏆 %{_p}% &e達成成就！"
+    broadcast "&e%{_title}%"
+    broadcast "&7%{_desc}%"
+    broadcast "&6&l══════════════════"
+
+    # 發送到 Discord
+    execute console command "discord broadcast 🏆 **%{_p}%** 達成成就！**%{_title}%** - %{_desc}%"
+
+# ============================================
+# 獲得跑酷能手
+# ============================================
+on inventory click:
+    if event-item is compass:
+        if name of event-item is "§b跑酷能手":
+            if {achievement.parkour.beginner::%uuid of player%} is not set:
+                set {achievement.parkour.beginner::%uuid of player%} to true
+                showAchievement(player, "跑酷新手", "獲得了「跑酷能手」指南針！")
+
+# ============================================
+# 獲得跑酷高手
+# ============================================
+on inventory click:
+    if event-item is nether star:
+        if name of event-item is "§b跑酷高手":
+            if {achievement.parkour.master::%uuid of player%} is not set:
+                set {achievement.parkour.master::%uuid of player%} to true
+                showAchievement(player, "跑酷大師", "獲得了「跑酷高手」地獄之星！")
+
+# ============================================
+# 查看成就指令
+# ============================================
+command /成就:
+    aliases: /achievement
+    trigger:
+        send "&6&l══════ 我的成就 ══════" to player
+        
+        # 跑酷成就
+        send "&e【跑酷系列】" to player
+        if {achievement.parkour.beginner::%uuid of player%} is true:
+            send "&a  ✔ 跑酷新手 - 獲得「跑酷能手」" to player
+        else:
+            send "&7  ✘ 跑酷新手 - ???" to player
+        
+        if {achievement.parkour.master::%uuid of player%} is true:
+            send "&a  ✔ 跑酷大師 - 獲得「跑酷高手」" to player
+        else:
+            send "&7  ✘ 跑酷大師 - ???" to player
+        
+        send "&6&l════════════════════" to player
+
+# ============================================
+# 管理員：重置玩家成就
+# ============================================
+command /重置成就 [<player>]:
+    permission: op
+    trigger:
+        if arg-1 is set:
+            delete {achievement.parkour.beginner::%uuid of arg-1%}
+            delete {achievement.parkour.master::%uuid of arg-1%}
+            send "&a已重置 %arg-1% 的所有成就！" to player
+        else:
+            send "&c用法：/重置成就 <玩家>" to player
+
+# ============================================
+# 管理員：給予成就
+# ============================================
+command /給予成就 [<player>] [<text>]:
+    permission: op
+    trigger:
+        if arg-1 is not set:
+            send "&c用法：/給予成就 <玩家> <成就ID>" to player
+            send "&7可用成就：parkour.beginner, parkour.master" to player
+            stop
+        
+        if arg-2 is "parkour.beginner":
+            set {achievement.parkour.beginner::%uuid of arg-1%} to true
+            showAchievement(arg-1, "跑酷新手", "獲得了「跑酷能手」指南針！")
+            send "&a已給予 %arg-1% 成就：跑酷新手" to player
+        
+        if arg-2 is "parkour.master":
+            set {achievement.parkour.master::%uuid of arg-1%} to true
+            showAchievement(arg-1, "跑酷大師", "獲得了「跑酷高手」地獄之星！")
+            send "&a已給予 %arg-1% 成就：跑酷大師" to player

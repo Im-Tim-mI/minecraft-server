@@ -1,0 +1,40 @@
+# 1. 取得木斧
+//wand
+
+# 2. 左鍵點 A 點，右鍵點 B 點
+
+# 3. 垂直擴展
+//expand vert
+
+# 4. 確認選區大小
+//size
+
+# 5. 重新生成地形
+//regen
+
+# -------------------------------------------
+
+# 查看已保存的 schematic 檔案
+//schematic list
+# 或簡寫：
+//schem list
+
+# 載入並還原 Schematic
+//schematic load spawn_backup_3_5.schem
+# 或簡寫：
+//schem load spawn_backup_3_5
+
+# 貼上到原始位置
+//paste -o
+
+# -------------------------------------------
+# 保存
+# -------------------------------------------
+# 1. 用木斧選取區域（左鍵 pos1，右鍵 pos2）
+//wand
+
+# 2. 複製選區
+//copy
+
+# 3. 保存到檔案
+//schematic save <檔案名稱>

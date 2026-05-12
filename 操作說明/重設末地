@@ -1,0 +1,4 @@
+/mv unload world_the_end --remove-players
+/mv delete world_the_end
+/mv confirm
+/mv create world_the_end THE_END

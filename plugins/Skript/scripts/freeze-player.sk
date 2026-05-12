@@ -1,0 +1,502 @@
+# ============================================
+# 玩家限制系統 v9 - 完整版
+# 支援基岩版玩家（.開頭）
+# 阻止所有交互
+# ============================================
+
+options:
+    prefix: &c[限制系統]
+
+# ============================================
+# 函數：透過名稱查找玩家
+# ============================================
+function findPlayer(name: text) :: offlineplayer:
+    loop all offline players:
+        if name of loop-value is {_name}:
+            return loop-value
+    loop all players:
+        if name of loop-value is {_name}:
+            return loop-value
+    return {_null}
+
+# ============================================
+# 限制玩家指令
+# ============================================
+command /限制 <text> <text>:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法：/限制 <玩家名稱> <限制原因>
+    trigger:
+        set {_name} to arg-1
+        set {_reason} to arg-2
+        set {_executor} to "%player%"
+        
+        set {_player} to findPlayer({_name})
+        
+        if {_player} is not set:
+            send "{@prefix} &c找不到玩家 %{_name}%！"
+            send "{@prefix} &e提示：可以直接使用 UUID"
+            send "{@prefix} &e用 /seen %{_name}% 查詢 UUID"
+            stop
+        
+        set {_uuid} to uuid of {_player}
+        
+        if {_uuid} is not set:
+            send "{@prefix} &c無法取得玩家 UUID！"
+            stop
+        
+        # 檢查是否已被限制
+        if {freeze.reason.%{_uuid}%} is set:
+            send "{@prefix} &c&l⚠ 警告：數據庫已有此人封禁紀錄！"
+            send "{@prefix} &e玩家：&f%{_name}%"
+            send "{@prefix} &e原因：&f%{freeze.reason.%{_uuid}%}%"
+            send "{@prefix} &e執行者：&f%{freeze.by.%{_uuid}%}%"
+            send "{@prefix} &e時間：&f%{freeze.time.%{_uuid}%}%"
+            send "{@prefix} &7如需更新原因，請先使用 /解除限制 再重新限制"
+            stop
+        
+        set {freeze.reason.%{_uuid}%} to {_reason}
+        set {freeze.by.%{_uuid}%} to {_executor}
+        set {freeze.time.%{_uuid}%} to now
+        set {freeze.name.%{_uuid}%} to {_name}
+        
+        add "%{_uuid}%" to {freeze.list::*}
+        
+        execute console command "lp user %{_uuid}% parent add frozen"
+        
+        # 全服廣播
+        broadcast ""
+        broadcast "&c&l⚠ 封禁玩家 ⚠"
+        broadcast "&c玩家：&e&l%{_name}%"
+        broadcast "&c執行者：&f%{_executor}%"
+        broadcast "&c封禁原因：&f%{_reason}%"
+        broadcast ""
+
+        send "{@prefix} &a已限制玩家 &e%{_name}%"
+        send "{@prefix} &aUUID: &f%{_uuid}%"
+        send "{@prefix} &a原因: &f%{_reason}%"
+        
+        if {_player} is online:
+            send "{@prefix} &c&l你已被限制！" to {_player}
+            send "{@prefix} &c原因：&f%{_reason}%" to {_player}
+            send "{@prefix} &c你現在無法進行任何交互！" to {_player}
+
+# ============================================
+# 用 UUID 限制玩家
+# ============================================
+command /限制uuid <text> <text>:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法：/限制uuid <UUID> <限制原因>
+    trigger:
+        set {_uuid} to arg-1
+        set {_reason} to arg-2
+        set {_executor} to "%player%"
+        
+        # 檢查是否已被限制
+        if {freeze.reason.%{_uuid}%} is set:
+            send "{@prefix} &c&l⚠ 警告：數據庫已有此 UUID 封禁紀錄！"
+            send "{@prefix} &e玩家：&f%{freeze.name.%{_uuid}%}%"
+            send "{@prefix} &e原因：&f%{freeze.reason.%{_uuid}%}%"
+            send "{@prefix} &e執行者：&f%{freeze.by.%{_uuid}%}%"
+            send "{@prefix} &e時間：&f%{freeze.time.%{_uuid}%}%"
+            send "{@prefix} &7如需更新原因，請先使用 /解除限制uuid 再重新限制"
+            stop
+        
+        set {freeze.reason.%{_uuid}%} to {_reason}
+        set {freeze.by.%{_uuid}%} to {_executor}
+        set {freeze.time.%{_uuid}%} to now
+        set {freeze.name.%{_uuid}%} to {_uuid}
+        
+        add "%{_uuid}%" to {freeze.list::*}
+        
+        execute console command "lp user %{_uuid}% parent add frozen"
+        
+        # 全服廣播
+        broadcast ""
+        broadcast "&c&l⚠ 封禁玩家 ⚠"
+        broadcast "&c玩家 UUID：&e&l%{_uuid}%"
+        broadcast "&c執行者：&f%{_executor}%"
+        broadcast "&c封禁原因：&f%{_reason}%"
+        broadcast ""
+
+        send "{@prefix} &a已限制 UUID: &e%{_uuid}%"
+        send "{@prefix} &a原因: &f%{_reason}%"
+
+# ============================================
+# 解除限制指令
+# ============================================
+command /解除限制 <text>:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法：/解除限制 <玩家名稱>
+    trigger:
+        set {_name} to arg-1
+        set {_executor} to "%player%"
+        
+        set {_player} to findPlayer({_name})
+        
+        if {_player} is not set:
+            send "{@prefix} &c找不到玩家 %{_name}%！"
+            send "{@prefix} &e提示：可以用 /解除限制uuid <UUID>"
+            stop
+        
+        set {_uuid} to uuid of {_player}
+        
+        if {_uuid} is not set:
+            send "{@prefix} &c無法取得玩家 UUID！"
+            stop
+        
+        if {freeze.reason.%{_uuid}%} is not set:
+            send "{@prefix} &c該玩家沒有被限制！"
+            stop
+        
+        # 先廣播，再刪除
+        broadcast ""
+        broadcast "&a&l⚠ 解封玩家 ⚠"
+        broadcast "&a玩家：&e&l%{_name}%"
+        broadcast "&a執行者：&f%{_executor}%"
+        broadcast ""
+        
+        delete {freeze.reason.%{_uuid}%}
+        delete {freeze.by.%{_uuid}%}
+        delete {freeze.time.%{_uuid}%}
+        delete {freeze.name.%{_uuid}%}
+        
+        remove "%{_uuid}%" from {freeze.list::*}
+        
+        execute console command "lp user %{_uuid}% parent remove frozen"
+
+        send "{@prefix} &a已解除玩家 &e%{_name}% &a的限制"
+        
+        if {_player} is online:
+            send "{@prefix} &a&l你的限制已被解除！" to {_player}
+            send "{@prefix} &a你現在可以正常遊玩了。" to {_player}
+
+# ============================================
+# 用 UUID 解除限制
+# ============================================
+command /解除限制uuid <text>:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法：/解除限制uuid <UUID>
+    trigger:
+        set {_uuid} to arg-1
+        set {_executor} to "%player%"
+        
+        if {freeze.reason.%{_uuid}%} is not set:
+            send "{@prefix} &c該 UUID 沒有被限制！"
+            stop
+        
+        # 先保存玩家名稱
+        set {_savedname} to {freeze.name.%{_uuid}%}
+        
+        # 先廣播，再刪除
+        broadcast ""
+        broadcast "&a&l⚠ 解封玩家 ⚠"
+        broadcast "&a玩家：&e&l%{_savedname}%"
+        broadcast "&a執行者：&f%{_executor}%"
+        broadcast ""
+
+        delete {freeze.reason.%{_uuid}%}
+        delete {freeze.by.%{_uuid}%}
+        delete {freeze.time.%{_uuid}%}
+        delete {freeze.name.%{_uuid}%}
+        
+        remove "%{_uuid}%" from {freeze.list::*}
+        
+        execute console command "lp user %{_uuid}% parent remove frozen"
+        
+        send "{@prefix} &a已解除 UUID: &e%{_uuid}% &a的限制"
+
+# ============================================
+# 查看限制狀態
+# ============================================
+command /限制狀態 <text>:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法：/限制狀態 <玩家名稱或UUID>
+    trigger:
+        set {_input} to arg-1
+        
+        set {_player} to findPlayer({_input})
+        
+        if {_player} is set:
+            set {_uuid} to uuid of {_player}
+        else:
+            set {_uuid} to {_input}
+        
+        if {freeze.reason.%{_uuid}%} is not set:
+            send "{@prefix} &a該玩家沒有被限制。"
+            stop
+        
+        send "{@prefix} &e===== 限制資訊 ====="
+        send "{@prefix} &e玩家：&f%{freeze.name.%{_uuid}%}%"
+        send "{@prefix} &e UUID：&f%{_uuid}%"
+        send "{@prefix} &e原因：&f%{freeze.reason.%{_uuid}%}%"
+        send "{@prefix} &e執行者：&f%{freeze.by.%{_uuid}%}%"
+        send "{@prefix} &e時間：&f%{freeze.time.%{_uuid}%}%"
+
+# ============================================
+# 查看所有被限制的玩家
+# ============================================
+command /限制列表:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    trigger:
+        send "{@prefix} &e===== 被限制的玩家 ====="
+        
+        if size of {freeze.list::*} = 0:
+            send "{@prefix} &a目前沒有被限制的玩家。"
+            stop
+        
+        set {_count} to 0
+        loop {freeze.list::*}:
+            set {_uuid} to loop-value
+            add 1 to {_count}
+            set {_displayname} to {freeze.name.%{_uuid}%}
+            if {_displayname} is not set:
+                set {_displayname} to {_uuid}
+            send "&e%{_count}%. &f%{_displayname}%"
+            send "   &7UUID：%{_uuid}%"
+            send "   &7原因：%{freeze.reason.%{_uuid}%}%"
+        
+        send "{@prefix} &e共 &f%{_count}% &e位玩家被限制。"
+
+# ============================================
+# 清理無效數據
+# ============================================
+command /限制清理:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    trigger:
+        send "{@prefix} &e開始清理無效數據..."
+        
+        set {_removed} to 0
+        set {_cleaned} to 0
+        
+        # 建立新的乾淨列表
+        set {_newlist::*} to ""
+        delete {_newlist::*}
+        
+        loop {freeze.list::*}:
+            set {_uuid} to loop-value
+            
+            # 檢查是否有效（有原因）
+            if {freeze.reason.%{_uuid}%} is set:
+                # 檢查是否已在新列表中（去重）
+                if {_newlist::*} does not contain "%{_uuid}%":
+                    add "%{_uuid}%" to {_newlist::*}
+                else:
+                    add 1 to {_removed}
+                    send "{@prefix} &7移除重複：%{freeze.name.%{_uuid}%}%"
+            else:
+                add 1 to {_cleaned}
+                send "{@prefix} &7清理無效：%{_uuid}%"
+                # 清理殘留變數
+                delete {freeze.reason.%{_uuid}%}
+                delete {freeze.by.%{_uuid}%}
+                delete {freeze.time.%{_uuid}%}
+                delete {freeze.name.%{_uuid}%}
+                # 從 LuckPerms 移除
+                execute console command "lp user %{_uuid}% parent remove frozen"
+        
+        # 替換為新列表
+        delete {freeze.list::*}
+        loop {_newlist::*}:
+            add "%loop-value%" to {freeze.list::*}
+        
+        send "{@prefix} &a清理完成！"
+        send "{@prefix} &a移除重複：&f%{_removed}% 筆"
+        send "{@prefix} &a清理無效：&f%{_cleaned}% 筆"
+        send "{@prefix} &a目前有效：&f%size of {freeze.list::*}% 筆"
+
+# ============================================
+# 強制移除指定 UUID
+# ============================================
+command /強制移除 <text>:
+    permission: op
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法：/強制移除 <UUID>
+    trigger:
+        set {_uuid} to arg-1
+        
+        # 從列表移除所有匹配項
+        loop {freeze.list::*}:
+            if loop-value is {_uuid}:
+                remove loop-value from {freeze.list::*}
+        
+        # 清理所有相關變數
+        delete {freeze.reason.%{_uuid}%}
+        delete {freeze.by.%{_uuid}%}
+        delete {freeze.time.%{_uuid}%}
+        delete {freeze.name.%{_uuid}%}
+        
+        # 從 LuckPerms 移除
+        execute console command "lp user %{_uuid}% parent remove frozen"
+        
+        send "{@prefix} &a已強制移除 UUID: &e%{_uuid}%"
+
+# ============================================
+# 玩家加入時檢查限制
+# ============================================
+on join:
+    set {_uuid} to uuid of player
+    
+    if {freeze.reason.%{_uuid}%} is set:
+        # 全服廣播
+        wait 5 ticks
+        broadcast ""
+        broadcast "&c&l⚠ 警告 ⚠"
+        broadcast "&c限制玩家 &e&l%player% &c已加入伺服器"
+        broadcast "&c封禁原因：&f%{freeze.reason.%{_uuid}%}%"
+        broadcast ""
+
+        # 私訊該玩家
+        wait 1 second
+        send "" to player
+        send "&c&l========================================" to player
+        send "&c&l           ⚠ 帳號已被限制 ⚠" to player
+        send "&c&l========================================" to player
+        send "" to player
+        send "&c限制原因：&f%{freeze.reason.%{_uuid}%}%" to player
+        send "" to player
+        send "&c執行者：&f%{freeze.by.%{_uuid}%}%" to player
+        send "&c限制時間：&f%{freeze.time.%{_uuid}%}%" to player
+        send "" to player
+        send "&e你目前無法進行以下操作：" to player
+        send "&7- 放置/破壞方塊" to player
+        send "&7- 開啟箱子" to player
+        send "&7- 與物品互動" to player
+        send "&7- 使用傳送指令" to player
+        send "" to player
+        send "&e如有疑問，請聯繫管理員。" to player
+        send "&e群眾投票封禁道歉取得諒解方可解封！！" to player
+        send "&c&l========================================" to player
+        send "" to player
+
+# ============================================
+# 阻止被限制玩家的所有交互
+# ============================================
+
+# 阻止放置方塊
+on block place:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法放置方塊" to player
+
+# 阻止破壞方塊
+on block break:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法破壞方塊" to player
+
+# 阻止點擊（左鍵右鍵都包含）
+on click:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法交互" to player
+
+# 阻止攻擊實體
+on damage:
+    attacker is a player
+    set {_uuid} to uuid of attacker
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法攻擊" to attacker
+
+# 阻止丟棄物品
+on drop:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法丟棄物品" to player
+
+# 阻止撿起物品
+on pickup:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+
+# 阻止開啟容器（箱子、木桶、界伏盒等）
+on inventory open:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        if event-inventory is not player's inventory:
+            cancel event
+            send action bar "&c&l⚠ 你已被限制，無法開啟容器" to player
+
+# 阻止射箭
+on shoot:
+    shooter is a player
+    set {_uuid} to uuid of shooter
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法射擊" to shooter
+
+# 阻止騎乘
+on vehicle enter:
+    player is event-entity
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法騎乘" to player
+
+# 阻止使用床
+on bed enter:
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send action bar "&c&l⚠ 你已被限制，無法使用床" to player
+
+# 阻止使用指令
+on command "tp":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "tpa":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "tpaccept":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "home":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "sethome":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "spawn":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "warp":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player
+
+on command "back":
+    set {_uuid} to uuid of player
+    if {freeze.reason.%{_uuid}%} is set:
+        cancel event
+        send "{@prefix} &c你已被限制，無法使用指令！" to player

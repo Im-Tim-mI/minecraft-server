@@ -1,0 +1,16 @@
+&6Welcome, {PLAYER}&6!
+&6Type &c/help&6 for a list of commands.
+&6Type &c/list&6 to see who else is online.
+&6Players online:&c {ONLINE} &6- World time:&c {WORLDTIME12}
+&e========== 歡迎來到伺服器 ==========
+&f
+&a【常用指令】
+&f/home &7- 回到你的家
+&f/sethome &7- 設定家的位置
+&f/spawn &7- 回到出生點
+&f/tpa <玩家> &7- 請求傳送到玩家
+&f/bal &7- 查看餘額
+&f/pay <玩家> <金額> &7- 轉帳
+&f/help &7- 查看所有可用指令
+&f
+&e=====================================

@@ -1,0 +1,416 @@
+# ============================================
+# 派對模式
+# 末地狂歡打怪派對！
+# 難度：簡單 / 普通 / 困難
+# ============================================
+
+options:
+    prefix: &d[&5派對模式&d]
+    party_world: world_the_end
+    party_tp_x: 100
+    party_tp_y: 50
+    party_tp_z: 0
+
+# ============================================
+# 怪物列表
+# ============================================
+on script load:
+    # 簡單怪物（弱）
+    set {party.mobs.easy::*} to "zombie" and "skeleton" and "spider" and "cave_spider" and "silverfish" and "slime" and "endermite" and "phantom"
+    
+    # 普通怪物（中）
+    set {party.mobs.normal::*} to "creeper" and "witch" and "pillager" and "vindicator" and "zombified_piglin" and "piglin" and "blaze" and "hoglin" and "enderman" and "stray" and "husk"
+    
+    # 困難怪物（強）
+    set {party.mobs.hard::*} to "evoker" and "ravager" and "piglin_brute" and "zoglin" and "wither_skeleton" and "ghast" and "magma_cube" and "shulker" and "guardian" and "elder_guardian"
+    
+    # Boss
+    set {party.mobs.boss::*} to "warden" and "wither" and "ender_dragon"
+    
+    send "{@prefix} &a怪物列表已載入！" to console
+
+# ============================================
+# 開始派對（定時）
+# ============================================
+command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
+    permission: op
+    aliases: /partystart
+    trigger:
+        if {party.active} is true:
+            send "{@prefix} &c派對已經在進行中！" to player
+            send "{@prefix} &7使用 /派對停止 來結束" to player
+            stop
+        
+        # 檢查難度
+        set {_diff} to arg-1
+        if {_diff} is not "簡單" or "普通" or "困難":
+            if {_diff} is "easy":
+                set {_diff} to "簡單"
+            else if {_diff} is "normal":
+                set {_diff} to "普通"
+            else if {_diff} is "hard":
+                set {_diff} to "困難"
+            else:
+                set {_diff} to "普通"
+        
+        set {party.active} to true
+        set {party.difficulty} to {_diff}
+        set {party.duration} to arg-2
+        set {party.interval} to arg-3
+        set {party.remaining} to arg-2 * 60
+        set {party.warned.1min} to false
+        
+        # 設定難度參數
+        if {_diff} is "簡單":
+            set {party.min.mobs} to 2
+            set {party.max.mobs} to 4
+            set {party.easy.chance} to 70
+            set {party.normal.chance} to 25
+            set {party.hard.chance} to 5
+            set {party.boss.chance} to 0
+            set {_color} to "&a"
+        else if {_diff} is "普通":
+            set {party.min.mobs} to 3
+            set {party.max.mobs} to 6
+            set {party.easy.chance} to 40
+            set {party.normal.chance} to 40
+            set {party.hard.chance} to 18
+            set {party.boss.chance} to 2
+            set {_color} to "&e"
+        else if {_diff} is "困難":
+            set {party.min.mobs} to 5
+            set {party.max.mobs} to 10
+            set {party.easy.chance} to 15
+            set {party.normal.chance} to 35
+            set {party.hard.chance} to 40
+            set {party.boss.chance} to 10
+            set {_color} to "&c"
+        
+        # 開啟末地防噴（PvP 關閉）
+        execute console command "rg flag -w world_the_end __global__ pvp deny"
+        broadcast "{@prefix} &a末地 PvP 已關閉，請專心打怪！"
+        
+        # 全螢幕標題 - 開始
+        send title "&d&l🎉 派對模式開始！" with subtitle "&e難度：%{_diff}% &7- &e時間：%arg-2% 分鐘" to all players for 4 seconds with fade in 0.5 seconds and fade out 1 seconds
+        play sound "ENTITY_ENDER_DRAGON_GROWL" with volume 0.5 to all players
+        
+        # 廣播開始
+        broadcast ""
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast "&5&l     🎉 派對模式開始！ 🎉"
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast ""
+        broadcast "&7難度：%{_color}%%{_diff}%"
+        broadcast "&7時間：&e%arg-2% 分鐘"
+        broadcast "&7間隔：&e每 %arg-3% 秒刷怪"
+        broadcast "&7地點：&c末地"
+        broadcast "&7防噴：&a已開啟"
+        if {_diff} is "困難":
+            broadcast ""
+            broadcast "&c&l⚠ 警告：困難模式可能出現末影龍！"
+        broadcast ""
+        broadcast "&e前往末地參加派對吧！"
+        broadcast "&e可以使用 /前往派對現場 前往"
+        broadcast ""
+        
+        # 開始刷怪循環
+        while {party.active} is true:
+            spawnPartyMobs()
+            wait "%{party.interval}% seconds" parsed as timespan
+            remove {party.interval} from {party.remaining}
+            
+            # 一分鐘提醒
+            if {party.remaining} <= 60:
+                if {party.warned.1min} is false:
+                    set {party.warned.1min} to true
+                    send title "&e&l⏰ 派對即將結束！" with subtitle "&7剩餘時間：1 分鐘" to all players for 3 seconds
+                    broadcast ""
+                    broadcast "{@prefix} &e⏰ 派對即將結束！剩餘時間：&c1 分鐘"
+                    broadcast "{@prefix} &7請把握最後的時間！"
+                    broadcast ""
+                    play sound "BLOCK_NOTE_BLOCK_BELL" with volume 1 to all players
+            
+            if {party.remaining} <= 0:
+                set {party.active} to false
+        
+        # 自動清除末地怪物
+        partyCleanup()
+        
+        # 全螢幕標題 - 結束
+        send title "&d&l🎉 派對結束！" with subtitle "&e感謝參與！下次再見！" to all players for 4 seconds with fade in 0.5 seconds and fade out 1 seconds
+        play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 to all players
+        
+        # 廣播結束
+        broadcast ""
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast "&5&l     🎉 派對結束！ 🎉"
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast ""
+        broadcast "&e感謝參與！下次再見！"
+        broadcast "&7末地 PvP 已恢復開啟"
+        broadcast ""
+        
+        
+        wait 5 seconds
+        # 關閉末地防噴（PvP 開啟）
+        execute console command "rg flag -w world_the_end __global__ pvp allow"
+        
+
+# ============================================
+# 玩家前往派對現場（只在派對期間開放）
+# ============================================
+command /前往派對現場:
+    aliases: /partygo, /派對現場
+    trigger:
+        if {party.active} is not true:
+            send "{@prefix} &c目前沒有進行中的派對，傳送指令暫時關閉。" to player
+            stop
+
+        set {_world} to world "{@party_world}"
+        if {_world} is not set:
+            send "{@prefix} &c找不到派對世界：{@party_world}，請通知管理員檢查設定。" to player
+            stop
+
+        set {_loc} to location({@party_tp_x}, {@party_tp_y}, {@party_tp_z}, {_world})
+        teleport player to {_loc}
+        play sound "ENTITY_ENDERMAN_TELEPORT" with volume 1 and pitch 1 to player
+        send "{@prefix} &a已傳送到派對現場！" to player
+
+# ============================================
+# 手動刷一波怪物
+# ============================================
+command /派對刷怪 [<text=普通>] [<integer=10>]:
+    permission: op
+    aliases: /partyspawn
+    trigger:
+        set {_diff} to arg-1
+        set {_count} to arg-2
+        
+        if {_count} > 100:
+            set {_count} to 100
+            send "{@prefix} &c單次最多 100 隻，已自動調整" to player
+        
+        # 檢查難度
+        if {_diff} is not "簡單" or "普通" or "困難":
+            if {_diff} is "easy":
+                set {_diff} to "簡單"
+            else if {_diff} is "normal":
+                set {_diff} to "普通"
+            else if {_diff} is "hard":
+                set {_diff} to "困難"
+            else:
+                set {_diff} to "普通"
+        
+        # 臨時設定難度
+        if {_diff} is "簡單":
+            set {party.easy.chance} to 70
+            set {party.normal.chance} to 25
+            set {party.hard.chance} to 5
+            set {party.boss.chance} to 0
+        else if {_diff} is "普通":
+            set {party.easy.chance} to 40
+            set {party.normal.chance} to 40
+            set {party.hard.chance} to 18
+            set {party.boss.chance} to 2
+        else if {_diff} is "困難":
+            set {party.easy.chance} to 15
+            set {party.normal.chance} to 35
+            set {party.hard.chance} to 40
+            set {party.boss.chance} to 10
+        
+        set {_spawned} to 0
+        loop {_count} times:
+            if spawnRandomPartyMob() is true:
+                add 1 to {_spawned}
+        
+        broadcast "{@prefix} &a已刷出 &e%{_spawned}% &a隻怪物！難度：&e%{_diff}%"
+        broadcast "{@prefix} &7快去末地打怪吧！"
+
+# ============================================
+# 停止派對
+# ============================================
+command /派對停止:
+    permission: op
+    aliases: /partystop
+    trigger:
+        if {party.active} is not true:
+            send "{@prefix} &c目前沒有進行中的派對" to player
+            stop
+        
+        set {party.active} to false
+        
+        # 自動清除末地怪物
+        partyCleanup()
+        
+        # 全螢幕標題 - 停止
+        send title "&c&l派對已停止" with subtitle "&7管理員已結束活動" to all players for 3 seconds
+        play sound "ENTITY_ENDER_DRAGON_HURT" with volume 0.5 to all players
+        
+        broadcast "{@prefix} &c派對已被管理員停止！"
+        broadcast "{@prefix} &7末地 PvP 已恢復開啟"
+        
+        wait 5 seconds
+        
+        # 關閉末地防噴（PvP 開啟）
+        execute console command "rg flag -w world_the_end __global__ pvp allow"
+
+# ============================================
+# 清除末地所有怪物
+# ============================================
+command /派對清除:
+    permission: op
+    aliases: /partyclear
+    trigger:
+        partyCleanup()
+        send "{@prefix} &a已執行清除！" to player
+
+# ============================================
+# 清除函數
+# ============================================
+function partyCleanup():
+    set {_count} to 0
+    loop all entities in world "world_the_end":
+        if loop-entity is not a player:
+            kill loop-entity
+            add 1 to {_count}
+    
+    broadcast "{@prefix} &c已清除末地 &e%{_count}% &c隻實體！"
+
+# ============================================
+# 查看派對狀態
+# ============================================
+command /派對狀態:
+    permission: op
+    aliases: /partystatus
+    trigger:
+        send "{@prefix} &e═══ 派對狀態 ═══" to player
+        if {party.active} is true:
+            send "&7狀態：&a進行中" to player
+            send "&7難度：&e%{party.difficulty}%" to player
+            set {_min} to floor({party.remaining} / 60)
+            set {_sec} to mod({party.remaining}, 60)
+            send "&7剩餘：&e%{_min}% 分 %{_sec}% 秒" to player
+            send "&7間隔：&e%{party.interval}% 秒" to player
+            send "&7每人刷怪：&e%{party.min.mobs}%-%{party.max.mobs}% 隻" to player
+            send "&7防噴：&a已開啟" to player
+        else:
+            send "&7狀態：&c未啟動" to player
+            send "&7防噴：&c已關閉" to player
+        
+        # 計算末地怪物數量
+        set {_count} to 0
+        loop all entities in world "world_the_end":
+            if loop-entity is not a player:
+                add 1 to {_count}
+        send "&7末地怪物：&e%{_count}% 隻" to player
+
+# ============================================
+# 刷怪函數（多隻）
+# ============================================
+function spawnPartyMobs():
+    set {_players::*} to all players in world "world_the_end"
+    if size of {_players::*} is 0:
+        stop
+    
+    # 每個玩家附近刷怪
+    loop {_players::*}:
+        set {_amount} to random integer between {party.min.mobs} and {party.max.mobs}
+        loop {_amount} times:
+            spawnMobNearPartyPlayer(loop-value-1)
+
+# ============================================
+# 在玩家附近刷怪
+# ============================================
+function spawnMobNearPartyPlayer(p: player):
+    # 根據難度機率選擇怪物
+    set {_rand} to random integer between 1 and 100
+    
+    # 計算累積機率
+    set {_easy.max} to {party.easy.chance}
+    set {_normal.max} to {_easy.max} + {party.normal.chance}
+    set {_hard.max} to {_normal.max} + {party.hard.chance}
+    
+    if {_rand} <= {_easy.max}:
+        set {_mob} to random element of {party.mobs.easy::*}
+    else if {_rand} <= {_normal.max}:
+        set {_mob} to random element of {party.mobs.normal::*}
+    else if {_rand} <= {_hard.max}:
+        set {_mob} to random element of {party.mobs.hard::*}
+    else:
+        set {_mob} to random element of {party.mobs.boss::*}
+        # Boss 特別廣播
+        if {_mob} is "ender_dragon":
+            broadcast "&c&l⚠ 末影龍出現了！！！"
+            play sound "ENTITY_ENDER_DRAGON_GROWL" with volume 1 to all players
+        else if {_mob} is "wither":
+            broadcast "&c&l⚠ 凋零出現了！！！"
+            play sound "ENTITY_WITHER_SPAWN" with volume 1 to all players
+        else if {_mob} is "warden":
+            broadcast "&c&l⚠ 守望者出現了！！！"
+            play sound "ENTITY_WARDEN_ROAR" with volume 1 to all players
+    
+    # 隨機偏移位置
+    set {_x} to random integer between -20 and 20
+    set {_z} to random integer between -20 and 20
+    
+    set {_loc} to location of {_p}
+    add {_x} to x-coordinate of {_loc}
+    add {_z} to z-coordinate of {_loc}
+    
+    # 確保在地面上
+    set {_loc} to highest block at {_loc}
+    add 1 to y-coordinate of {_loc}
+    
+    # 刷出怪物
+    if {_mob} is "ender_dragon":
+        execute console command "execute at %{_p}% in minecraft:the_end run summon minecraft:ender_dragon ~ ~10 ~ {DragonPhase:0}"
+        #broadcast "--=-=-=-=-=-=-=-=-=-"
+    else:
+        spawn 1 of {_mob} parsed as entity type at {_loc}
+
+# ============================================
+# 刷出單隻隨機怪物（手動用）
+# ============================================
+function spawnRandomPartyMob() :: boolean:
+    set {_players::*} to all players in world "world_the_end"
+    if size of {_players::*} is 0:
+        return false
+    
+    set {_p} to random element of {_players::*}
+    spawnMobNearPartyPlayer({_p})
+    return true
+
+# ============================================
+# 說明指令
+# ============================================
+command /派對:
+    aliases: /party
+    trigger:
+        send "&d&l✦═══ 派對模式說明 ═══✦" to player
+        send "" to player
+        send "&e在末地開啟狂歡打怪派對！" to player
+        send "&7派對期間可輸入 &f/前往派對現場 &7傳送到末地。" to player
+        send "&7派對期間末地 PvP 將關閉。" to player
+        send "" to player
+        send "&7難度說明：" to player
+        send "&a  簡單 &7- 弱怪多，無 Boss" to player
+        send "&e  普通 &7- 混合怪物，2%% Boss" to player
+        send "&c  困難 &7- 強怪多，10%% Boss 含末影龍" to player
+        send "" to player
+        if player has permission "op":
+            send "&7管理員指令：" to player
+            send "&f  /派對開始 [難度] [分鐘] [間隔]" to player
+            send "&7    難度：簡單/普通/困難" to player
+            send "&7    範例：/派對開始 困難 30 5" to player
+            send "" to player
+            send "&f  /派對刷怪 [難度] [數量]" to player
+            send "&7    手動刷怪，最多 100 隻" to player
+            send "" to player
+            send "&f  /派對停止 &7- 停止派對" to player
+            send "&f  /派對清除 &7- 清除末地怪物" to player
+            send "&f  /派對狀態 &7- 查看狀態" to player
+            send "&f  /前往派對現場 &7- 派對期間傳送到末地" to player
+        else:
+            send "&7派對期間輸入 &f/前往派對現場 &7參加派對吧！" to player
+        send "" to player
+        send "&d&l✦═══════════════════════✦" to player

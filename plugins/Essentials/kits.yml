@@ -1,0 +1,93 @@
+# EssentialsX 套件配置文件。
+# 若此文件中未定義任何套件，插件將嘗試從 'config.yml' 複製套件。
+
+# 所有物品後面【必須】加上數量。
+# 套件名稱應為小寫，權限和費用中也會以小寫處理。
+# 格式：- 物品[:耐久度] 數量 [附魔:等級]... [物品屬性:值]...
+# 物品屬性的詳細資訊請參考：https://wiki.ess3.net/wiki/Item_Meta
+#
+# 若要讓套件執行指令，請在物品清單中加入 '/<指令>'。使用 {USERNAME} 代表領取套件的玩家帳號名稱。
+# 使用 {PLAYER} 代表玩家的顯示名稱。
+# 'delay' 是指每次使用套件之間的冷卻時間（秒）。設為 -1 表示一次性套件（只能領取一次）。
+#
+# 您也可以將套件整理到 'kits' 子目錄中的個別文件。
+# Essentials 會將子目錄中所有 '.yml' 文件視為有效的套件文件，並與此處的套件一起載入。
+# 'kits' 子目錄中的每個文件必須使用與此文件相同的格式。
+#
+# 更多資訊請參考：https://wiki.ess3.net/wiki/Kits
+
+kits:
+  # ============================================
+  # 基礎工具套件
+  # ============================================
+  new:
+    delay: -1
+    items:
+      - stonesword 1 name:&e新手禮包：石劍              # 石劍 x1
+      - stoneshovel 1 name:&e新手禮包：石鏟            # 石鏟 x1
+      - stonepickaxe 1 name:&e新手禮包：石鎬           # 石鎬 x1
+      - stoneaxe 1 name:&e新手禮包：石斧               # 石斧 x1
+
+  # # ============================================
+  # # 鑽石工具套件（附魔）
+  # # ============================================
+  # dtools:
+  #   delay: 600                   # 冷卻時間：600 秒（10 分鐘）
+  #   items:
+  #     - dpickaxe 1 efficiency:1 durability:1 fortune:1 name:&4Gigadrill lore:The_drill_that_&npierces|the_heavens
+  #       # 鑽石鎬 x1，附魔：效率 I、耐久 I、幸運 I
+  #       # 名稱：Gigadrill（紅色）
+  #       # 說明：The drill that pierces the heavens（穿透天際的鑽頭）
+  #     - dshovel 1 digspeed:3 name:Dwarf lore:Diggy|Diggy|Hole
+  #       # 鑽石鏟 x1，附魔：效率 III
+  #       # 名稱：Dwarf（矮人）
+  #       # 說明：Diggy Diggy Hole（挖挖挖）
+  #     - lhelm 1 color:255,255,255 name:Top_Hat lore:Good_day,_Good_day
+  #       # 皮革頭盔 x1，顏色：白色 (255,255,255)
+  #       # 名稱：Top Hat（禮帽）
+  #       # 說明：Good day, Good day（日安，日安）
+  #     - daxe:780 1
+  #       # 鑽石斧 x1，耐久度剩餘 780
+  #     - /broadcast {USERNAME} just got some fancy tools!
+  #       # 執行指令：廣播「{玩家名} 剛剛獲得了一些精美工具！」
+
+  # # ============================================
+  # # Notch 頭顱套件
+  # # ============================================
+  # notch:
+  #   delay: 6000                  # 冷卻時間：6000 秒（100 分鐘）
+  #   items:
+  #     - playerhead 1 player:Notch
+  #       # 玩家頭顱 x1（Notch 的頭）
+
+  # # ============================================
+  # # 彩色書籍套件
+  # # ============================================
+  # color:
+  #   delay: 6000                  # 冷卻時間：6000 秒（100 分鐘）
+  #   items:
+  #     - writtenbook 1 title:&4Book_&9o_&6Colors author:KHobbits lore:Ingame_color_codes book:Colors
+  #       # 成書 x1
+  #       # 標題：Book o Colors（彩色之書，多色顯示）
+  #       # 作者：KHobbits
+  #       # 說明：Ingame color codes（遊戲內顏色代碼）
+  #       # 內容：Colors（來自 books/Colors.txt）
+
+  # # ============================================
+  # # 煙火套件
+  # # ============================================
+  # firework:
+  #   delay: 6000                  # 冷卻時間：6000 秒（100 分鐘）
+  #   items:
+  #     - fireworkrocket 1 name:Angry_Creeper color:red fade:green type:creeper power:1
+  #       # 煙火火箭 x1
+  #       # 名稱：Angry Creeper（憤怒的苦力怕）
+  #       # 顏色：紅色，漸變：綠色，形狀：苦力怕臉，飛行時間：1
+  #     - fireworkrocket 1 name:Starry_Night color:yellow,orange fade:blue type:star effect:trail,twinkle power:1
+  #       # 煙火火箭 x1
+  #       # 名稱：Starry Night（星夜）
+  #       # 顏色：黃/橙，漸變：藍色，形狀：星形，效果：軌跡+閃爍，飛行時間：1
+  #     - fireworkrocket 2 name:Solar_Wind color:yellow,orange fade:red shape:large effect:twinkle color:yellow,orange fade:red shape:ball effect:trail color:red,purple fade:pink shape:star effect:trail power:1
+  #       # 煙火火箭 x2
+  #       # 名稱：Solar Wind（太陽風）
+  #       # 多層效果煙火，飛行時間：1

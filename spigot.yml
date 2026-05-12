@@ -1,0 +1,427 @@
+# This is the Spigot configuration file for Paper.
+# As you can see, there's tons to configure. Some options may impact gameplay, so use
+# with caution, and make sure you know what each option does before configuring.
+#
+# If you need help with the configuration or have any questions related to Paper,
+# join us in our Discord or check the docs page.
+#
+# File Reference: https://docs.papermc.io/paper/reference/spigot-configuration/
+# Docs: https://docs.papermc.io/
+# Discord: https://discord.gg/papermc
+# Website: https://papermc.io/
+
+# ============================================
+# 訊息設定
+# ============================================
+messages:
+  # 不在白名單中的訊息
+  whitelist: 你不在此伺服器的白名單中！
+  # 未知指令訊息
+  unknown-command: 未知指令。輸入 "/help" 獲取幫助
+  # 伺服器已滿訊息
+  server-full: 伺服器已滿！
+  # 客戶端版本過舊訊息
+  outdated-client: 客戶端版本過舊！請使用 {0}
+  # 伺服器版本過舊訊息
+  outdated-server: 伺服器版本過舊！目前版本為 {0}
+  # 伺服器重啟訊息
+  restart: 伺服器正在重啟
+
+# ============================================
+# 基本設定
+# ============================================
+settings:
+  timeout-time: 60
+  # 是否啟用 BungeeCord 支援
+  bungeecord: false
+  
+  # 是否只在停止時儲存用戶快取
+  save-user-cache-on-stop-only: false
+  
+  # 伺服器列表顯示的玩家數量樣本
+  sample-count: 12
+  
+  # 玩家隨機排序（0 = 禁用）
+  player-shuffle: 0
+  
+  # 用戶快取大小
+  user-cache-size: 1000
+  
+  # ============================================
+  # 移動檢測設定（已禁用，由 GrimAC 處理）
+  # ============================================
+  # 移動錯誤閾值（設為超大值 = 禁用檢測）
+  moved-wrongly-threshold: 100000.0
+  
+  # 移動過快倍數（設為超大值 = 禁用檢測）
+  moved-too-quickly-multiplier: 100000.0
+  
+  # 崩潰時是否自動重啟
+  restart-on-crash: true
+  
+  # 重啟腳本路徑
+  restart-script: ./start.sh
+  
+  # Netty 執行緒數量
+  netty-threads: 4
+  
+  # ============================================
+  # 屬性限制設定
+  # ============================================
+  attribute:
+    # 最大吸收傷害（黃心）上限
+    maxAbsorption:
+      max: 2048.0
+    # 最大生命值上限
+    maxHealth:
+      max: 1024.0
+    # 移動速度上限
+    movementSpeed:
+      max: 1024.0
+    # 攻擊傷害上限
+    attackDamage:
+      max: 2048.0
+  
+  # 是否記錄村民死亡
+  log-villager-deaths: true
+  
+  # 是否記錄有名稱的實體死亡
+  log-named-deaths: true
+  
+  # 除錯模式
+  debug: false
+
+# ============================================
+# 成就設定
+# ============================================
+advancements:
+  # 禁用成就儲存
+  disable-saving: false
+  
+  # 禁用的成就列表
+  disabled:
+  - minecraft:story/disabled
+
+# ============================================
+# 世界設定
+# ============================================
+world-settings:
+  # 預設世界設定（適用於所有世界）
+  default:
+    # 在現有區塊中生成零以下地形
+    below-zero-generation-in-existing-chunks: true
+    
+    # 視野距離（default = 使用 server.properties 的值）
+    view-distance: default
+    
+    # 模擬距離（default = 使用 server.properties 的值）
+    simulation-distance: default
+    
+    # 打雷機率（100000 = 正常）
+    thunder-chance: 100000
+    
+    # ============================================
+    # 合併半徑設定
+    # ============================================
+    merge-radius:
+      # 物品合併半徑（方塊）
+      item: 8
+      # 經驗球合併半徑（-1 = 禁用）
+      exp: 8
+    
+    # 怪物生成範圍（區塊）
+    mob-spawn-range: 8
+    
+    # ============================================
+    # 消失時間設定（遊戲刻，20刻=1秒）
+    # ============================================
+    # 物品消失時間（6000刻 = 5分鐘）
+    item-despawn-rate: 6000
+    
+    # 箭矢消失時間（1200刻 = 1分鐘）
+    arrow-despawn-rate: 1200
+    
+    # 三叉戟消失時間
+    trident-despawn-rate: 1200
+    
+    # 殭屍是否會攻擊村民
+    zombie-aggressive-towards-villager: true
+    
+    # 是否削弱刷怪籠生成的怪物
+    nerf-spawner-mobs: false
+    
+    # 是否啟用豬人從地獄門生成
+    enable-zombie-pigmen-portal-spawns: true
+    
+    # 凋零王生成音效半徑（0 = 無限制）
+    wither-spawn-sound-radius: 0
+    
+    # 終界傳送門音效半徑
+    end-portal-sound-radius: 0
+    
+    # 懸掛物（畫、物品展示框）檢測頻率
+    hanging-tick-frequency: 100
+    
+    # 是否卸載凍結的區塊
+    unload-frozen-chunks: false
+    
+    # ============================================
+    # 植物生長速度修正（百分比）
+    # 100 = 正常速度，200 = 2倍速度
+    # ============================================
+    growth:
+      cactus-modifier: 100 # 仙人掌
+      cane-modifier: 100 # 甘蔗
+      melon-modifier: 100 # 西瓜
+      mushroom-modifier: 100 # 蘑菇
+      pumpkin-modifier: 100 # 南瓜
+      sapling-modifier: 100 # 樹苗
+      beetroot-modifier: 100 # 甜菜根
+      carrot-modifier: 100 # 胡蘿蔔
+      potato-modifier: 100 # 馬鈴薯
+      torchflower-modifier: 100 # 火把花
+      wheat-modifier: 100 # 小麥
+      netherwart-modifier: 100 # 乾地獄乾疙瘩
+      vine-modifier: 100 # 藤蔓
+      cocoa-modifier: 100 # 可可豆
+      bamboo-modifier: 100 # 竹子
+      sweetberry-modifier: 100 # 甜莓
+      kelp-modifier: 100 # 海帶
+      twistingvines-modifier: 100 # 扭曲藤蔓
+      weepingvines-modifier: 100 # 垂泣藤蔓
+      cavevines-modifier: 100 # 洞穴藤蔓
+      glowberry-modifier: 100 # 發光莓
+      pitcherplant-modifier: 100 # 瓶子草
+    
+    # ============================================
+    # 實體啟動範圍設定
+    # ============================================
+    # 這是伺服器效能優化的關鍵設定！
+    #
+    # 原理：超出範圍的實體會進入「休眠」狀態，暫停 AI 計算
+    # 範圍越小 = 效能越好，但實體行為越不自然
+    # 範圍越大 = 效能越差，但實體行為越正常
+    #
+    # 單位：方塊（格）
+    # ============================================
+    # 實體啟動範圍（方塊）
+    # 超出範圍的實體會進入休眠狀態以節省效能
+    # ============================================
+    entity-activation-range:
+      # 動物（牛、羊、雞、豬等）
+      # 超出此範圍的動物會停止：隨機走動、尋找食物、繁殖
+      # 建議值：16-32（農場多可調低）
+      # 預設值 32
+      animals: 16 # 動物
+      
+      # 怪物（殭屍、骷髏、苦力怕等）
+      # 超出此範圍的怪物會停止：追蹤玩家、攻擊、尋路
+      # 設太低可能導致怪物「突然出現」在玩家面前
+      # 建議值：24-32
+      # 預設值 32
+      monsters: 14 # 怪物
+      
+      # 掠奪者（掠奪者、乾癟者、喚魔者等）
+      # 突襲事件的敵人，需要較大範圍才能正常運作
+      # 建議值：48-64
+      raiders: 48 # 掠奪者
+      
+      # 雜項實體（礦車、船、盔甲架、掉落物等）
+      # 建議值：8-16
+      misc: 8 # 雜項
+      
+      # 水生生物（魚、海豚、烏賊等）
+      # 建議值：8-16
+      # 預設值 16
+      water: 8 # 水生生物
+      
+      # 村民
+      # ⚠️ 村民是最吃效能的實體！
+      # 村民 AI 包含：尋找工作站、尋找床、補貨、社交、逃跑、尋路
+      # 設太低：村民可能無法正常工作/交易
+      # 設太高：大量村民會嚴重拖慢伺服器
+      # 建議值：16-32（村民多建議調低到 16）
+      # 預設值 32
+      villagers: 16 # 村民
+      
+      # 飛行怪物（乾願影、乾鬼等）
+      # 因為會飛，需要較大範圍
+      # 建議值：32-48
+      # 預設值 32
+      flying-monsters: 32 # 飛行怪物
+      
+      # 喚醒休眠實體設定
+      wake-up-inactive:
+        animals-max-per-tick: 4 # 每刻最多喚醒動物數
+        animals-every: 1200 # 每多少刻喚醒一次
+        animals-for: 100 # 喚醒持續多少刻
+        monsters-max-per-tick: 8 # 每刻最多喚醒怪物數
+        monsters-every: 400
+        monsters-for: 100
+        villagers-max-per-tick: 4 # 每刻最多喚醒村民數
+        villagers-every: 600
+        villagers-for: 100
+        flying-monsters-max-per-tick: 8
+        flying-monsters-every: 200
+        flying-monsters-for: 100
+      
+      # 村民工作豁免設定
+      # 村民工作後多少 tick 獲得豁免
+      # 100 tick = 5 秒
+      villagers-work-immunity-after: 100 # 工作後豁免時間
+      
+      # 豁免持續多少 tick
+      # 20 tick = 1 秒
+      villagers-work-immunity-for: 20 # 豁免持續時間
+      
+      # 村民恐慌時（被攻擊、看到殭屍）是否保持活躍
+      # true = 村民會正常逃跑
+      # false = 村民可能傻站著被打
+      villagers-active-for-panic: true # 恐慌時保持活躍
+      
+      # ⚠️ 關鍵設定！是否處理休眠中的村民
+      # true = 所有村民每 tick 都執行 AI（吃效能）
+      # false = 遠離玩家的村民暫停 AI（省效能）
+      #
+      # 如果村民數量多（>50），強烈建議設為 false
+      # 設為 false 不影響玩家附近的村民交易和工作
+      tick-inactive-villagers: false # 是否處理休眠村民
+      
+      # 是否忽略旁觀模式的玩家
+      # true = 旁觀者附近的實體會休眠
+      # false = 旁觀者也會讓附近實體保持活躍
+      ignore-spectators: true # 是否忽略旁觀者
+    
+    # ============================================
+    # 實體追蹤範圍（方塊）
+    # 超出此範圍的實體不會發送給玩家
+    # ============================================
+    entity-tracking-range:
+      players: 128 # 玩家
+      animals: 96 # 動物
+      monsters: 96 # 怪物
+      misc: 96 # 雜項
+      display: 128 # 展示實體
+      other: 64 # 其他
+    
+    # ============================================
+    # 漏斗設定
+    # ============================================
+    ticks-per:
+      hopper-transfer: 8 # 漏斗傳輸間隔（刻）
+      hopper-check: 1 # 漏斗檢查間隔（刻）
+    
+    # 漏斗每次傳輸數量
+    hopper-amount: 1
+    
+    # 漏斗是否可以載入區塊
+    hopper-can-load-chunks: false
+    
+    # 龍死亡音效半徑
+    dragon-death-sound-radius: 0
+    
+    # ============================================
+    # 結構種子設定
+    # 用於生成世界結構的種子
+    # ============================================
+    seed-village: 10387312 # 村莊
+    seed-desert: 14357617 # 沙漠神殿
+    seed-igloo: 14357618 # 雪屋
+    seed-jungle: 14357619 # 乾林神殿
+    seed-swamp: 14357620 # 沼澤小屋
+    seed-monument: 10387313 # 海底神殿
+    seed-shipwreck: 165745295 # 沉船
+    seed-ocean: 14357621 # 海洋遺跡
+    seed-outpost: 165745296 # 掠奪者前哨站
+    seed-endcity: 10387313 # 終界城
+    seed-slime: 987234911 # 史萊姆區塊
+    seed-nether: 30084232 # 地獄結構
+    seed-mansion: 10387319 # 林地府邸
+    seed-fossil: 14357921 # 化石
+    seed-portal: 34222645 # 廢棄傳送門
+    seed-ancientcity: 20083232 # 遠古城市
+    seed-trailruins: 83469867 # 古蹟廢墟
+    seed-trialchambers: 94251327 # 試煉密室
+    seed-buriedtreasure: 10387320 # 埋藏的寶藏
+    seed-mineshaft: default # 廢棄礦坑
+    seed-stronghold: default # 要塞
+    
+    # ============================================
+    # 飢餓消耗設定
+    # ============================================
+    hunger:
+      jump-walk-exhaustion: 0.05 # 走路跳躍消耗
+      jump-sprint-exhaustion: 0.2 # 衝刺跳躍消耗
+      combat-exhaustion: 0.1 # 戰鬥消耗
+      regen-exhaustion: 6.0 # 回血消耗
+      swim-multiplier: 0.01 # 游泳消耗倍數
+      sprint-multiplier: 0.1 # 衝刺消耗倍數
+      other-multiplier: 0.0 # 其他消耗倍數
+    
+    # 每刻最大 TNT 處理數量
+    max-tnt-per-tick: 100
+    
+    # ============================================
+    # 最大處理時間（毫秒）
+    # 超過此時間會跳過處理以維持 TPS
+    # ============================================
+    max-tick-time:
+      tile: 50 # 方塊實體（箱子、漏斗等）
+      entity: 50 # 實體
+    
+    # 詳細日誌輸出
+    verbose: false
+  
+  # WorldEdit 重生成臨時世界設定
+  worldeditregentempworld:
+    verbose: false
+
+# ============================================
+# 玩家設定
+# ============================================
+players:
+  # 禁用玩家數據儲存
+  disable-saving: false
+
+# 配置版本（請勿修改）
+config-version: 12
+
+# ============================================
+# 統計設定
+# ============================================
+stats:
+  # 禁用統計儲存
+  disable-saving: false
+  
+  # 強制統計值
+  forced-stats: {}
+
+# ============================================
+# 指令設定
+# ============================================
+commands:
+  # 是否記錄指令
+  log: true
+  
+  # Tab 自動完成設定（0 = 禁用）
+  tab-complete: 0
+  
+  # 是否發送命名空間指令
+  send-namespaced: true
+  
+  # 垃圾郵件排除的指令
+  spam-exclusions:
+  - /skill
+  
+  # 命令方塊控制台是否靜音
+  silent-commandblock-console: false
+  
+  # 替換的指令
+  replace-commands:
+  - setblock
+  - summon
+  - testforblock
+  - tellraw
+  
+  # 是否啟用垃圾郵件排除
+  enable-spam-exclusions: false

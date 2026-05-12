@@ -1,0 +1,58 @@
+# --- 翻譯函式：將英文 ID 轉為中文 ---
+function translate(item: item) :: text:
+    set {_type} to "%{_item}%"
+    if {_type} contains "barrier":
+        return "屏障 (Barrier)"
+    else if {_type} contains "bedrock":
+        return "基岩"
+    else if {_type} contains "structure block":
+        return "結構方塊"
+    else if {_type} contains "command block":
+        return "脈衝型命令方塊"
+    else if {_type} contains "repeating command block":
+        return "循環型命令方塊"
+    else if {_type} contains "chain command block":
+        return "連鎖型命令方塊"
+    else if {_type} contains "jigsaw":
+        return "拼圖方塊"
+    else if {_type} contains "spawner":
+        return "生怪磚"
+    else if {_type} contains "end portal frame":
+        return "末地傳送門框架"
+    else if {_type} contains "light":
+        return "光源方塊"
+    return "未知違禁品 (%{_type}%)"
+
+on join:
+    wait 2 seconds # 等待玩家完全進入
+    
+    # 定義違禁品清單 (Skript 識別用)
+    set {_illegals::*} to barrier, bedrock, structure block, command block, repeating command block, chain command block, jigsaw block, spawner, end portal frame and light
+    
+    # 遍歷玩家背包（含快捷列、裝備欄、副手）
+    loop all items in player's inventory:
+        # 檢查該格物品是否在違禁清單中
+        if {_illegals::*} contains type of loop-item:
+            
+            # 取得中文名稱
+            set {_cn_name} to translate(loop-item)
+            
+            # 1. 寫入 Log 檔案 (plugins/Skript/logs/confiscate.log)
+            log "「%player%」擁有「%{_cn_name}%」" to "confiscate.log"
+            
+            # 2. 刪除該物品
+            remove loop-item from player's inventory
+            
+            # 3. 紀錄刪除成功的 Log 並通知後台
+            log "「%player%」擁有「%{_cn_name}%」已刪除" to "confiscate.log"
+            send "§c[系統] 已沒收並刪除 %player% 的 %{_cn_name}%" to console
+            
+            # 4. 私訊告知玩家 (選填)
+            send "§c[警告] 偵測到違禁品：%{_cn_name}%，系統已自動沒收。" to player
+
+    # 額外檢查副手 (某些版本 loop all items 不包含 offhand)
+    if {_illegals::*} contains type of player's offhand tool:
+        set {_cn_name} to translate(player's offhand tool)
+        log "「%player%」擁有「%{_cn_name}%」" to "confiscate.log"
+        set player's offhand tool to air
+        log "「%player%」擁有「%{_cn_name}%」已刪除" to "confiscate.log"

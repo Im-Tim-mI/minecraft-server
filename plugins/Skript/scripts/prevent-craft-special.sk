@@ -1,0 +1,65 @@
+# ============================================
+# 封鎖特殊物品
+# 禁止合成 & 禁止命名 & 禁止重新命名
+# ============================================
+
+# ============================================
+# 禁止關鍵字列表（在此新增/修改）
+# ============================================
+on script load:
+    set {banned.keywords::*} to "跑酷", "獎杯", "獎狀", "成就", "獎勵", "紀念", "限定", "活動", "傳說", "史詩", "稀有", "神器", "專屬", "週年", "聖誕", "新年", "萬聖", "春節", "VIP", "尊貴", "管理", "測試", "綁定", "不可交易", "靈魂", "測試"
+
+# ============================================
+# 檢查函數
+# ============================================
+function containsBannedKeyword(item: item) :: boolean:
+    if name of {_item} is not set:
+        return false
+    loop {banned.keywords::*}:
+        if name of {_item} contains loop-value:
+            return true
+    return false
+
+# ============================================
+# 禁止帶有特殊名稱的物品合成
+# ============================================
+on craft:
+    loop all items in event-inventory:
+        if containsBannedKeyword(loop-item) is true:
+            cancel event
+            send "&c無法使用特殊道具進行合成！" to player
+            send action bar "&c無法使用特殊道具進行合成！" to player
+            play sound "ENTITY_ENDERMAN_TELEPORT" with volume 0.5 with pitch 0.5 to player
+            stop
+
+# ============================================
+# 禁止在鐵砧：命名成特殊名稱 / 放入特殊物品
+# ============================================
+on inventory click:
+    if event-inventory is anvil inventory:
+        # 禁止取出命名成特殊名稱的物品
+        if index of event-slot is 2:
+            if event-item is not air:
+                if containsBannedKeyword(event-item) is true:
+                    cancel event
+                    send "&c禁止將物品命名為「%name of event-item%」！" to player
+                    send action bar "&c禁止將物品命名為「%name of event-item%」！" to player
+                    play sound "ENTITY_ENDERMAN_TELEPORT" with volume 0.5 with pitch 0.5 to player
+        
+        # 禁止把特殊物品放入鐵砧（一般點擊）
+        if index of event-slot is 0:
+            if cursor slot of player is not air:
+                if containsBannedKeyword(cursor slot of player) is true:
+                    cancel event
+                    send "&c無法重新命名特殊道具！" to player
+                    send action bar "&c無法重新命名特殊道具！" to player
+                    play sound "ENTITY_ENDERMAN_TELEPORT" with volume 0.5 with pitch 0.5 to player
+
+        # 禁止 Shift 點擊特殊物品進入鐵砧
+        if player is sneaking:
+            if event-item is not air:
+                if containsBannedKeyword(event-item) is true:
+                    cancel event
+                    send "&c無法重新命名特殊道具！" to player
+                    send action bar "&c無法重新命名特殊道具！" to player
+                    play sound "ENTITY_ENDERMAN_TELEPORT" with volume 0.5 with pitch 0.5 to player

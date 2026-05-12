@@ -1,0 +1,15 @@
+# 每 60 秒自動執行一次檢查與填充
+every 60 seconds:
+    # 定義箱子座標與世界名稱 (請確認世界名稱是否為 "world")
+    set {_loc} to location(-982, 77, -1177, world "world")
+    
+    # 檢查該位置是否為箱子或木桶
+    if block at {_loc} is a chest or barrel:
+        
+        # 遍歷箱子內的所有格子 (大箱子最多 54 格)
+        loop 54 times:
+            set {_slot} to loop-number - 1
+            
+            # 如果該格子是空的 (air)，就補入一疊橡木告示牌
+            if slot {_slot} of block at {_loc} is air:
+                set slot {_slot} of block at {_loc} to 16 oak sign

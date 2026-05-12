@@ -1,0 +1,68 @@
+# ==========================================
+# Minecraft 服務器指令速查表
+# ==========================================
+
+# 基本操作
+啟動服務器         sudo systemctl start minecraft
+停止服務器         sudo systemctl stop minecraft
+重啟服務器         sudo systemctl restart minecraft
+查看狀態          sudo systemctl status minecraft
+
+# 開機自啟動
+恢復開機自啟動     sudo systemctl enable minecraft
+取消開機自啟動     sudo systemctl disable minecraft
+
+# 日誌
+即時查看日誌       sudo journalctl -u minecraft -f
+查看最近100行      sudo journalctl -u minecraft -n 100
+
+# 控制台（不需要 sudo）
+進入控制台         screen -r minecraft
+離開控制台         Ctrl+A 然後 D
+# 注意：確保在進入控制台前已啟動服務器
+
+# 管理員設置 進入控制台 screen -r minecraft
+添加管理員        op 玩家名稱
+移除管理員        deop 玩家名稱
+踢人            kick 玩家名稱 [原因]
+封禁玩家        ban 玩家名稱 [原因]
+解除封禁玩家      pardon 玩家名稱
+查看在線玩家名單    list
+遊戲中 查看在線玩家名單    /list 
+# 其他
+殺死某玩家        /kill 玩家名稱
+「異常」傳送到世界出生點  /tp 玩家名稱 world spawn 
+傳送玩家         /tp 玩家名稱 X Y Z
+/tp 509 66 502
+
+
+# 移除服務
+完全移除服務       sudo rm /etc/systemd/system/minecraft.service && sudo systemctl daemon-reload
+
+# ============================================
+# 隱藏特定玩家的登入/登出訊息
+# ============================================
+# 
+# 功能：讓該玩家加入或離開時，不會在聊天室顯示訊息
+# 需要：EssentialsX 插件 + LuckPerms 插件
+#
+# ============================================
+
+# 在線查詢 UUID 完整資料
+/whois <玩家名稱>
+/whois .Tim901038
+# 離線查詢 UUID：
+/seen  <玩家名稱>
+/seen .Tim901038
+# 隱藏加入訊息
+# 效果：該玩家登入時，其他玩家不會看到「XXX 加入了遊戲」
+/lp user <玩家名稱> permission set essentials.silentjoin true
+/lp user <UUID> permission set essentials.silentjoin true
+/lp user 00000000-0000-0000-0009-01fa89cf83cc permission set essentials.silentjoin true
+
+# 隱藏離開訊息
+# 效果：該玩家離開時，其他玩家不會看到「XXX 離開了遊戲」
+/lp user <玩家名稱> permission set essentials.silentquit true
+/lp user <UUID> permission set essentials.silentquit true
+/lp user 00000000-0000-0000-0009-01fa89cf83cc permission set essentials.silentquit true
+

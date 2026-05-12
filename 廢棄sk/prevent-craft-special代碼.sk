@@ -1,0 +1,40 @@
+# ============================================
+# 防止特殊物品被合成
+# 阻止有自訂名稱的物品作為合成材料
+# ============================================
+
+# ============================================
+# 方法 1：阻止所有有自訂名稱的物品被合成
+# ============================================
+on craft:
+    loop items in crafting inventory of player:
+        if name of loop-item is set:
+            cancel event
+            send "&c無法使用特殊物品進行合成！" to player
+            play sound "ENTITY_VILLAGER_NO" with volume 0.5 to player
+            stop
+
+# ============================================
+# 方法 2：阻止特定名稱的物品被合成（可選用）
+# ============================================
+# on craft:
+#     loop items in crafting inventory of player:
+#         if name of loop-item is "§b跑酷能手":
+#             cancel event
+#             send "&c無法使用「&b跑酷能手&c」進行合成！" to player
+#             stop
+#         if name of loop-item contains "跑酷":
+#             cancel event
+#             send "&c無法使用跑酷道具進行合成！" to player
+#             stop
+
+# ============================================
+# 方法 3：阻止特定物品類型 + 名稱（可選用）
+# ============================================
+# on craft:
+#     loop items in crafting inventory of player:
+#         if loop-item is compass:
+#             if name of loop-item is set:
+#                 cancel event
+#                 send "&c無法使用特殊指南針進行合成！" to player
+#                 stop

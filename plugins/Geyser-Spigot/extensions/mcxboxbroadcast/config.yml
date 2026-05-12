@@ -1,0 +1,89 @@
+# ============================================
+# Geyser Xbox 好友同步配置
+# 繁體中文翻譯版
+# ============================================
+
+# 核心連線設定
+session:
+  # 要廣播的 IP 地址
+  # 你可能需要將此改為你的伺服器公開 IP
+  remote-address: auto
+
+  # 要廣播的端口
+  # 除非你使用網路規則或反向代理來操作端口，否則應保持為 auto
+  remote-port: auto
+
+  # 更新連線資訊的時間間隔（秒）
+  # 警告：由於 Xbox 速率限制，此值不能低於 20
+  update-interval: 30
+
+# 好友/追蹤者列表同步設定
+friend-sync:
+  # 更新好友資訊的時間間隔（秒）
+  # 警告：由於 Xbox 速率限制，此值不能低於 20
+  update-interval: 60
+
+  # 是否自動追蹤那些追蹤我們的人
+  auto-follow: true
+
+  # 是否自動取消追蹤那些不再追蹤我們的人
+  auto-unfollow: true
+
+  # 當新增好友時，是否自動發送邀請
+  initial-invite: true
+
+  # 好友過期設定
+  expiry:
+    # 是否取消追蹤長時間未加入伺服器的玩家
+    enabled: false
+
+    # 多少天後將好友視為過期
+    days: 15
+
+    # 檢查過期好友的時間間隔（秒）
+    check: 1800
+
+# 通知設定（例如：Slack/Discord Webhook）
+notifications:
+  # 是否在連線更新時發送訊息到 Slack Webhook
+  enabled: false
+
+  # 發送訊息的 Webhook 網址
+  # 如果你使用 Discord，請在 Webhook 網址末端加上 "/slack"
+  webhook-url: ''
+
+  # 當連線過期需要更新時發送的訊息
+  # %s 會被替換為登入連結和驗證碼
+  session-expired-message: |-
+    <!here> Xbox 連線已過期，請重新登入以更新。
+
+    使用以下連結登入：%s
+    輸入驗證碼：%s
+
+  # 當好友有限制設定導致無法成為我們帳號的好友時發送的訊息
+  # 第一個 %s = 玩家名稱，第二個 %s = 玩家 ID
+  friend-restriction-message: '%s（%s）有限制設定，導致無法成為我們帳號的好友。'
+
+# 請勿更改！
+config-version: 2
+
+# ============================================
+# 設定說明
+# ============================================
+#
+# 【session 連線設定】
+# - remote-address: 通常設為 auto，除非你有特殊網路配置
+# - remote-port: 保持 auto 即可
+# - update-interval: 建議保持 30 秒（最低 20 秒）
+#
+# 【friend-sync 好友同步】
+# - auto-follow: 建議開啟，自動互相追蹤
+# - auto-unfollow: 建議開啟，自動清理單向追蹤
+# - initial-invite: 建議開啟，新好友自動收到邀請
+# - expiry.days: 15 天未上線就自動移除好友
+#
+# 【notifications 通知】
+# - 可連接 Discord Webhook 接收通知
+# - Discord Webhook 格式：https://discord.com/api/webhooks/xxx/slack
+#
+# ============================================

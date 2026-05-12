@@ -1,0 +1,412 @@
+# ============================================
+# Paper 世界預設配置文件（繁體中文翻譯版）
+# ============================================
+# 這是 Paper 服務器的世界預設配置文件。
+# 如你所見，有很多可以配置的選項。某些選項可能會影響遊戲體驗，
+# 請謹慎使用，並確保你了解每個選項的作用後再進行配置。
+#
+# 如果你需要配置方面的幫助或有任何關於 Paper 的問題，
+# 請加入我們的 Discord 或查看文檔頁面。
+#
+# 這裡的配置選項適用於所有世界，除非你在每個世界資料夾內的
+# 世界專屬配置文件中指定覆蓋設定。
+#
+# 文件參考：https://docs.papermc.io/paper/reference/world-configuration/
+# 文檔：https://docs.papermc.io/
+# Discord：https://discord.gg/papermc
+# 網站：https://papermc.io/
+
+_version: 31
+
+# ============================================
+# 反作弊設定
+# ============================================
+anticheat:
+  # 反透視（Anti-Xray）- 防止玩家使用透視材質包看到礦物
+  anti-xray:
+    enabled: true                    # 是否啟用反透視（true=啟用，false=關閉）
+    engine-mode: 1                    # 引擎模式（1=隱藏礦物，2=混淆所有方塊）
+                                      # 模式1：將礦物偽裝成石頭，較省資源
+                                      # 模式2：將所有方塊隨機混淆，更安全但更耗資源
+    hidden-blocks:                    # 要隱藏的方塊列表
+    - copper_ore                      # 銅礦
+    - deepslate_copper_ore            # 深層銅礦
+    - raw_copper_block                # 粗銅塊
+    - gold_ore                        # 金礦
+    - deepslate_gold_ore              # 深層金礦
+    - iron_ore                        # 鐵礦
+    - deepslate_iron_ore              # 深層鐵礦
+    - raw_iron_block                  # 粗鐵塊
+    - coal_ore                        # 煤礦
+    - deepslate_coal_ore              # 深層煤礦
+    - lapis_ore                       # 青金石礦
+    - deepslate_lapis_ore             # 深層青金石礦
+    - mossy_cobblestone               # 苔石
+    - obsidian                        # 黑曜石
+    - chest                           # 箱子
+    - diamond_ore                     # 鑽石礦
+    - deepslate_diamond_ore           # 深層鑽石礦
+    - redstone_ore                    # 紅石礦
+    - deepslate_redstone_ore          # 深層紅石礦
+    - clay                            # �ite土
+    - emerald_ore                     # 綠寶石礦
+    - deepslate_emerald_ore           # 深層綠寶石礦
+    - ender_chest                     # 乾旱使者箱
+    lava-obscures: false              # 岩漿是否遮擋方塊（用於地獄）
+    max-block-height: 64              # 反透視作用的最大高度
+    replacement-blocks:               # 用於替換/混淆的方塊
+    - stone                           # 石頭
+    - oak_planks                      # 橡木木板
+    - deepslate                       # 深板岩
+    update-radius: 1                  # 更新半徑（玩家破壞方塊後顯示真實方塊的範圍）
+    use-permission: false             # 是否使用權限節點來豁免玩家
+
+# ============================================
+# 區塊設定
+# ============================================
+chunks:
+  auto-save-interval: default         # 自動儲存間隔（default=使用全局設定）
+  delay-chunk-unloads-by: 10s         # 延遲卸載區塊的時間（防止頻繁載入/卸載）
+  entity-per-chunk-save-limit:        # 每區塊實體儲存限制（-1=無限制）
+    arrow: -1                         # 箭
+    ender_pearl: -1                   # 乾旱使者珍珠
+    experience_orb: -1                # 經驗球
+    fireball: -1                      # 火球
+    small_fireball: -1                # 小火球
+    snowball: -1                      # 雪球
+  fixed-chunk-inhabited-time: -1      # 固定區塊居住時間（-1=正常計算）
+                                      # 影響怪物生成難度和戰利品
+  flush-regions-on-save: false        # 儲存時刷新區域（啟用可防止數據損壞，但更耗資源）
+  max-auto-save-chunks-per-tick: 24   # 每 tick 最多自動儲存的區塊數
+  prevent-moving-into-unloaded-chunks: false  # 防止玩家移動到未載入的區塊
+
+# ============================================
+# 碰撞設定
+# ============================================
+collisions:
+  allow-player-cramming-damage: false # 是否允許玩家擠壓傷害
+  allow-vehicle-collisions: true      # 是否允許載具碰撞
+  fix-climbing-bypassing-cramming-rule: false  # 修復攀爬繞過擠壓規則的問題
+  max-entity-collisions: 8            # 最大實體碰撞數（降低可提升性能）
+  only-players-collide: false         # 是否只有玩家會碰撞
+
+# ============================================
+# 命令方塊設定
+# ============================================
+command-blocks:
+  force-follow-perm-level: true       # 強制遵循權限等級
+  permissions-level: 2                # 權限等級（2=遊戲管理員）
+
+# ============================================
+# 實體設定
+# ============================================
+entities:
+  # 盔甲架設定
+  armor-stands:
+    do-collision-entity-lookups: true # 盔甲架是否進行碰撞檢測
+    tick: true                        # 盔甲架是否進行 tick 更新
+
+  # 生物行為設定
+  behavior:
+    allow-spider-world-border-climbing: true  # 蜘蛛能否攀爬世界邊界
+    baby-zombie-movement-modifier: 0.5        # 小殭屍移動速度修正（0.5=比成年快50%）
+    cooldown-failed-beehive-releases: true    # 蜂巢釋放失敗後是否有冷卻時間
+    disable-chest-cat-detection: false        # 停用箱子上的貓檢測（貓坐在箱子上會阻止打開）
+    disable-creeper-lingering-effect: false   # 停用苦力怕的滯留效果
+    disable-player-crits: false               # 停用玩家暴擊
+    door-breaking-difficulty:                 # 可以破門的生物及其對應難度
+      husk:                                   # 屍殼
+      - HARD                                  # 困難模式
+      vindicator:                             # 衛道士
+      - NORMAL                                # 普通模式
+      - HARD                                  # 困難模式
+      zombie:                                 # 殭屍
+      - HARD
+      zombie_villager:                        # 殭屍村民
+      - HARD
+      zombified_piglin:                       # 殭屍乾旱使者豬乾旱使者
+      - HARD
+    ender-dragons-death-always-places-dragon-egg: false  # 乾旱使者龍死亡是否總是放置龍蛋
+    experience-merge-max-value: -1            # 經驗球合併最大值（-1=無限制）
+    mobs-can-always-pick-up-loot:             # 怪物是否總能撿起戰利品
+      skeletons: false                        # 骷髏
+      zombies: false                          # 殭屍
+    nerf-pigmen-from-nether-portals: false    # 弱化從地獄門生成的乾旱使者豬乾旱使者
+    only-merge-items-horizontally: false      # 物品是否只水平合併
+    parrots-are-unaffected-by-player-movement: false  # 鸚鵡是否不受玩家移動影響
+    phantoms-do-not-spawn-on-creative-players: true   # 乾旱使者不在創造模式玩家附近生成
+    phantoms-only-attack-insomniacs: true     # 乾旱使者只攻擊失眠的玩家
+    phantoms-spawn-attempt-max-seconds: 119   # 乾旱使者生成嘗試最大秒數
+    phantoms-spawn-attempt-min-seconds: 60    # 乾旱使者生成嘗試最小秒數
+    piglins-guard-chests: true                # 乾旱使者豬乾旱使者是否保護箱子
+    pillager-patrols:                         # 掠奪者巡邏隊設定
+      disable: false                          # 是否停用
+      spawn-chance: 0.2                       # 生成機率（20%）
+      spawn-delay:
+        per-player: false                     # 是否每位玩家獨立計算
+        ticks: 12000                          # 生成延遲（tick）
+      start:
+        day: 5                                # 第幾天開始生成
+        per-player: false                     # 是否每位玩家獨立計算
+    player-insomnia-start-ticks: 72000        # 玩家失眠開始的 tick（72000=3天）
+    should-remove-dragon: false               # 是否移除乾旱使者龍
+    spawner-nerfed-mobs-should-jump: false    # 被弱化的刷怪籠怪物是否會跳躍
+    stuck-entity-poi-retry-delay: 200         # 卡住的實體重試 POI 延遲
+    zombie-villager-infection-chance: default # 殭屍村民感染機率
+    zombies-target-turtle-eggs: true          # 殭屍是否會攻擊海龜蛋
+
+  # 標記實體設定
+  markers:
+    tick: true                                # 標記實體是否進行 tick 更新
+
+  # 生物效果設定
+  mob-effects:
+    immune-to-wither-effect:                  # 免疫凋零效果的生物
+      wither: true                            # 凋零怪
+      wither-skeleton: true                   # 凋零骷髏
+    spiders-immune-to-poison-effect: true     # 蜘蛛是否免疫中毒
+
+  # 嗅探獸設定
+  sniffer:
+    boosted-hatch-time: default               # 加速孵化時間
+    hatch-time: default                       # 孵化時間
+
+  # 生成設定
+  spawning:
+    all-chunks-are-slime-chunks: false        # 所有區塊都是史萊姆區塊
+    alt-item-despawn-rate:                    # 替代物品消失速率
+      enabled: false                          # 是否啟用
+      items:
+        cobblestone: 300                      # 鵝卵石 300 tick 後消失
+    count-all-mobs-for-spawning: false        # 計算所有怪物來決定生成
+    creative-arrow-despawn-rate: default      # 創造模式箭消失速率
+    despawn-range-shape: ELLIPSOID            # 消失範圍形狀（ELLIPSOID=橢圓體）
+    despawn-ranges:                           # 消失範圍設定
+      ambient:                                # 環境生物
+        hard: default                         # 硬消失距離（超過立即消失）
+        soft: default                         # 軟消失距離（超過隨機消失）
+      axolotls:                               # 美西螈
+        hard: default
+        soft: default
+      creature:                               # 生物
+        hard: default
+        soft: default
+      misc:                                   # 其他
+        hard: default
+        soft: default
+      monster:                                # 怪物
+        hard: default
+        soft: default
+      underground_water_creature:             # 地下水生生物
+        hard: default
+        soft: default
+      water_ambient:                          # 水中環境生物
+        hard: default
+        soft: default
+      water_creature:                         # 水生生物
+        hard: default
+        soft: default
+    despawn-time:                             # 消失時間
+      llama_spit: disabled                    # 羊駝口水
+      snowball: disabled                      # 雪球
+    disable-mob-spawner-spawn-egg-transformation: false  # 停用刷怪籠生怪蛋轉換
+    duplicate-uuid:                           # 重複 UUID 處理
+      mode: SAFE_REGEN                        # 模式（SAFE_REGEN=安全重新生成）
+      safe-regen-delete-range: 32             # 安全重新生成刪除範圍
+    filter-bad-tile-entity-nbt-from-falling-blocks: true  # 過濾掉落方塊的不良 NBT
+    filtered-entity-tag-nbt-paths:            # 過濾的實體標籤 NBT 路徑
+    - Pos                                     # 位置
+    - Motion                                  # 動量
+    - sleeping_pos                            # 睡眠位置
+    iron-golems-can-spawn-in-air: false       # 鐵乾旱使者傀儡能否在空中生成
+    max-arrow-despawn-invulnerability: 200    # 箭的最大消失無敵時間
+    monster-spawn-max-light-level: default    # 怪物生成最大光照等級
+    non-player-arrow-despawn-rate: default    # 非玩家箭消失速率
+    per-player-mob-spawns: true               # 每位玩家獨立計算怪物生成
+    scan-for-legacy-ender-dragon: true        # 掃描舊版乾旱使者龍
+    skeleton-horse-thunder-spawn-chance: default  # 骷髏馬雷暴生成機率
+    slime-spawn-height:                       # 史萊姆生成高度
+      slime-chunk:                            # 史萊姆區塊
+        maximum: 40.0                         # 最大高度
+      surface-biome:                          # 地表生態域
+        maximum: 70.0                         # 最大高度
+        minimum: 50.0                         # 最小高度
+    spawn-limits:                             # 生成限制（-1=使用預設）
+      ambient: -1                             # 環境生物（蝙蝠等）
+      axolotls: -1                            # 美西螈
+      creature: -1                            # 生物（牛、羊等）
+      monster: -1                             # 怪物
+      underground_water_creature: -1          # 地下水生生物
+      water_ambient: -1                       # 水中環境生物
+      water_creature: -1                      # 水生生物
+    ticks-per-spawn:                          # 每次生成間隔 tick
+      ambient: -1
+      axolotls: -1
+      creature: -1
+      monster: -1
+      underground_water_creature: -1
+      water_ambient: -1
+      water_creature: -1
+    wandering-trader:                         # 流浪商人設定
+      spawn-chance-failure-increment: 25      # 失敗後增加的生成機率
+      spawn-chance-max: 75                    # 最大生成機率
+      spawn-chance-min: 25                    # 最小生成機率
+      spawn-day-length: 24000                 # 生成週期天數（tick）
+      spawn-minute-length: 1200               # 生成週期分鐘長度
+    wateranimal-spawn-height:                 # 水生動物生成高度
+      maximum: default
+      minimum: default
+
+  # Y 軸追蹤範圍
+  tracking-range-y:
+    animal: default                           # 動物
+    display: default                          # 展示實體
+    enabled: false                            # 是否啟用 Y 軸追蹤
+    misc: default                             # 其他
+    monster: default                          # 怪物
+    other: default                            # 其他
+    player: default                           # 玩家
+
+# ============================================
+# 環境設定
+# ============================================
+environment:
+  disable-explosion-knockback: false          # 停用爆炸擊退
+  disable-ice-and-snow: false                 # 停用冰雪生成
+  disable-thunder: false                      # 停用雷暴
+  fire-tick-delay: 30                         # 火焰蔓延延遲（tick）
+  frosted-ice:                                # 霜冰設定（冰霜乾旱使者者附魔）
+    delay:
+      max: 40                                 # 最大延遲
+      min: 20                                 # 最小延遲
+    enabled: true                             # 是否啟用
+  generate-flat-bedrock: false                # 生成平坦基岩
+  locate-structures-outside-world-border: false  # 在世界邊界外定位結構
+  max-block-ticks: 65536                      # 最大方塊 tick 數
+  max-fluid-ticks: 65536                      # 最大流體 tick 數
+  nether-ceiling-void-damage-height: disabled # 地獄天花板虛空傷害高度
+  optimize-explosions: false                  # 優化爆炸計算
+  portal-create-radius: 16                    # 傳送門創建半徑
+  portal-search-radius: 128                   # 傳送門搜索半徑
+  portal-search-vanilla-dimension-scaling: true  # 傳送門搜索使用原版維度縮放
+  treasure-maps:                              # 藏寶圖設定
+    enabled: true                             # 是否啟用
+    find-already-discovered:                  # 是否尋找已發現的結構
+      loot-tables: default                    # 戰利品表
+      villager-trade: false                   # 村民交易
+  void-damage-amount: 4.0                     # 虛空傷害量
+  void-damage-min-build-height-offset: -64.0  # 虛空傷害最小建造高度偏移
+  water-over-lava-flow-speed: 5               # 水流過岩漿的速度
+
+# ============================================
+# 特性種子設定
+# ============================================
+feature-seeds:
+  generate-random-seeds-for-all: false        # 為所有特性生成隨機種子
+
+# ============================================
+# 釣魚時間範圍
+# ============================================
+fishing-time-range:
+  maximum: 600                                # 最大等待時間（tick，30秒）
+  minimum: 100                                # 最小等待時間（tick，5秒）
+
+# ============================================
+# 修復設定
+# ============================================
+fixes:
+  disable-unloaded-chunk-enderpearl-exploit: false  # 停用未載入區塊乾旱使者珍珠漏洞
+  falling-block-height-nerf: disabled         # 掉落方塊高度弱化
+  fix-items-merging-through-walls: false      # 修復物品穿牆合併
+  prevent-tnt-from-moving-in-water: false     # 防止 TNT 在水中移動
+  split-overstacked-loot: true                # 拆分超額堆疊的戰利品
+  tnt-entity-height-nerf: disabled            # TNT 實體高度弱化
+
+# ============================================
+# 漏斗設定
+# ============================================
+hopper:
+  cooldown-when-full: true                    # 滿載時冷卻（提升性能）
+  disable-move-event: false                   # 停用移動事件（大幅提升性能，但破壞部分插件）
+  ignore-occluding-blocks: false              # 忽略遮擋方塊
+
+# ============================================
+# 可掠奪物設定（戰利品箱）
+# ============================================
+lootables:
+  auto-replenish: false                       # 自動補充戰利品
+  max-refills: -1                             # 最大補充次數（-1=無限）
+  refresh-max: 2d                             # 最大刷新時間
+  refresh-min: 12h                            # 最小刷新時間
+  reset-seed-on-fill: true                    # 補充時重置種子
+  restrict-player-reloot: true                # 限制玩家重複掠奪
+  restrict-player-reloot-time: disabled       # 限制重複掠奪時間
+  retain-unlooted-shulker-box-loot-table-on-non-player-break: true  # 保留未掠奪潛影盒的戰利品表
+
+# ============================================
+# 地圖設定
+# ============================================
+maps:
+  item-frame-cursor-limit: 128                # 物品展示框游標限制
+  item-frame-cursor-update-interval: 10       # 物品展示框游標更新間隔
+
+# ============================================
+# 最大生長高度
+# ============================================
+max-growth-height:
+  bamboo:                                     # 竹子
+    max: 16                                   # 最大高度
+    min: 11                                   # 最小高度
+  cactus: 3                                   # 仙人掌
+  reeds: 3                                    # 甘蔗
+
+# ============================================
+# 雜項設定
+# ============================================
+misc:
+  allow-remote-ender-dragon-respawning: false # 允許遠程重生乾旱使者龍
+  alternate-current-update-order: HORIZONTAL_FIRST_OUTWARD  # 替代電流更新順序
+  disable-end-credits: false                  # 停用結束字幕
+  disable-relative-projectile-velocity: false # 停用相對拋射物速度
+  disable-sprint-interruption-on-attack: false  # 停用攻擊時打斷衝刺
+  legacy-ender-pearl-behavior: false          # 舊版乾旱使者珍珠行為
+  max-leash-distance: default                 # 最大牽繩距離
+  redstone-implementation: VANILLA            # 紅石實現方式（VANILLA=原版）
+  show-sign-click-command-failure-msgs-to-player: false  # 顯示告示牌命令失敗訊息
+  update-pathfinding-on-block-update: true    # 方塊更新時更新尋路
+
+# ============================================
+# 計分板設定
+# ============================================
+scoreboards:
+  allow-non-player-entities-on-scoreboards: true  # 允許非玩家實體上計分板
+  use-vanilla-world-scoreboard-name-coloring: false  # 使用原版世界計分板名稱著色
+
+# ============================================
+# 出生點設定
+# ============================================
+spawn:
+  allow-using-signs-inside-spawn-protection: false  # 允許在出生點保護內使用告示牌
+
+# ============================================
+# Tick 頻率設定
+# ============================================
+tick-rates:
+  behavior:                                   # 行為 tick 頻率
+    villager:                                 # 村民
+      validatenearbypoi: -1                   # 驗證附近 POI
+  container-update: 1                         # 容器更新頻率
+  dry-farmland: 1                             # 乾燥農地頻率
+  grass-spread: 1                             # 草地蔓延頻率
+  mob-spawner: 1                              # 刷怪籠頻率
+  sensor:                                     # 感應器頻率
+    villager:                                 # 村民
+      secondarypoisensor: 40                  # 次要 POI 感應器
+  wet-farmland: 1                             # 濕潤農地頻率
+
+# ============================================
+# 不支持的設定（使用風險自負）
+# ============================================
+unsupported-settings:
+  disable-world-ticking-when-empty: false     # 世界空閒時停止 tick
+  fix-invulnerable-end-crystal-exploit: true  # 修復無敵乾旱使者水晶漏洞

@@ -1,0 +1,113 @@
+# ============================================
+# GrimAC 訊息配置文件（繁體中文翻譯版）
+# ============================================
+# \u00BB 是 »（雙箭頭），ANSI 和 UTF-8 對此解釋不同...你甚至可能看到 ?
+
+prefix: "&bGrim &8\u00BB"
+
+# ============================================
+# 基本訊息
+# ============================================
+alerts-enabled: "%prefix% &f警報已啟用"
+alerts-disabled: "%prefix% &f警報已停用"
+verbose-enabled: "%prefix% &f詳細模式已啟用"
+verbose-disabled: "%prefix% &f詳細模式已停用"
+brands-enabled: "%prefix% &f客戶端品牌顯示已啟用"
+brands-disabled: "%prefix% &f客戶端品牌顯示已停用"
+client-brand-format: "%prefix% &f%player% 使用 %brand% 加入伺服器"
+console-specify-target: "%prefix% &c控制台必須指定目標玩家！"
+reloading: "%prefix% &7正在重新載入配置..."
+reloaded: "%prefix% &f配置已重新載入。"
+reload-failed: "%prefix% &c重新載入配置失敗。"
+player-not-found: "%prefix% &c玩家已豁免或不在線上！"
+player-not-this-server: "%prefix% &c玩家不在此伺服器上！"
+sender-not-found: "%prefix% &c你不能被豁免以使用此命令！"
+spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &f點擊此處返回先前位置\n</hover></click>"
+cannot-spectate-return: "%prefix% &c只有在旁觀玩家後才能執行此操作"
+cannot-run-on-self: "%prefix% &c你不能對自己使用此命令！"
+upload-log: "%prefix% &f已上傳除錯日誌至：%url%"
+upload-log-start: "%prefix% &f正在上傳日誌...請稍候"
+upload-log-not-found: "%prefix% &c找不到該日誌"
+upload-log-upload-failure: "%prefix% &c上傳日誌時發生錯誤，請查看控制台獲取更多資訊"
+
+# ============================================
+# 斷線訊息
+# ============================================
+disconnect:
+    timeout: "<lang:disconnect.timeout>"
+    closed: "<lang:disconnect.closed>"
+    error: "<red>處理封包時發生錯誤。請聯繫管理員。"
+    blacklisted-forge: "<red>你的 Forge 版本因內建觸及距離作弊而被封鎖。<newline><gold>受影響版本：1.18.2-1.19.3<newline><newline><red>請參閱 https://github.com/MinecraftForge/MinecraftForge/issues/9309。"
+
+# ============================================
+# 命令使用限制訊息
+# ============================================
+run-as-player: "%prefix% &c此命令只能由玩家使用！"
+run-as-player-or-console: "%prefix% &c此命令只能由玩家或控制台使用！"
+
+# ============================================
+# Discord Webhook 訊息
+# ============================================
+webhook-not-enabled: "Discord Webhook 未啟用！"
+webhook-test-message: "測試訊息"
+webhook-test-succeeded: "Discord Webhook 測試成功！"
+webhook-test-failed: "Discord Webhook 測試失敗！"
+
+# ============================================
+# 警報格式
+# ============================================
+# 可用佔位符：
+# %prefix%        - 前綴
+# %player%        - 玩家名稱
+# %check_name%    - 檢測名稱
+# %description%   - 描述
+# %experimental%  - 實驗性標記
+# %vl%            - 違規次數
+# %verbose%       - 來自檢測的額外資訊（如偏移量），並非所有檢測都會添加資訊
+alerts-format: "%prefix% &f%player% &b觸發 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+alerts-format-proxy: "%prefix% &f[&c代理&f] &f%player% &b觸發 &f%check_name%%experimental% &f(x&c%vl%&f) &7%verbose%"
+experimental-symbol: "*"
+
+# ============================================
+# 玩家資料
+# ============================================
+profile:
+    - "&7======================"
+    - "%prefix% &b%player% &f的資料"
+    - "&b延遲：&f%ping%"
+    - "&b版本：&f%version%"
+    - "&b客戶端品牌：&f%brand%"
+    - "&b水平靈敏度：&f%h_sensitivity%%"
+    - "&b垂直靈敏度：&f%v_sensitivity%%"
+    - "&bFastMath 啟用：&f%fast_math%"
+    - "&7======================"
+
+# ============================================
+# 幫助訊息
+# ============================================
+help:
+    - "&7======================"
+    - "/grim alerts &f- &7切換警報"
+    - "/grim brands &f- &7切換客戶端品牌顯示"
+    - "/grim profile <玩家> &f- &7查看玩家資訊"
+    - "/grim help &f- &7查看此幫助訊息"
+    - "/grim debug <玩家> &f- &7開發者預測輸出"
+    - "/grim perf &f- &7開發者 毫秒/預測"
+    - "/grim reload &f- &7重新載入配置"
+    - "/grim spectate <玩家> &f- &7旁觀玩家"
+    - "/grim verbose &f- &7顯示所有標記，無緩衝"
+    - "/grim log [0-255] &f- &7上傳預測標記的除錯日誌"
+    - "/grim history <玩家> [頁數] &f- &7顯示玩家的歷史警報"
+    - "&7======================"
+
+# ============================================
+# 歷史記錄訊息
+# ============================================
+grim-history-load-failure: "%prefix% &c歷史記錄子系統載入失敗！請查看伺服器控制台獲取錯誤資訊。"
+grim-history-disabled: "%prefix% &c歷史記錄子系統已停用！"
+
+# 可用佔位符：%prefix% %player% %page% %maxPages%
+grim-history-header: "%prefix% &b顯示 &f%player% &b的日誌（&f%page%&b/&f%maxPages%&f）"
+
+# 可用佔位符：%prefix% %grim_version% %client_brand% %client_version% %server_version% %check% %vl% %verbose% %timeago% %server%
+grim-history-entry: "%prefix% &8[&f%server%&8] &b觸發 &f%check% (x&c%vl%&f) &7%verbose%（&b%timeago% 前&7）"

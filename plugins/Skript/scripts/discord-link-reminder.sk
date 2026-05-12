@@ -1,0 +1,17 @@
+on join:
+    wait 3 seconds
+    if player is not online:
+        stop
+
+    send "" to player
+    send "&9╔═════════════════╗" to player
+    send "&9       &b&l⚡ Discord 綁定提醒 ⚡      " to player
+    send "&9╠═════════════════╣" to player
+    send "&9 &f請記得綁定 &bDiscord &f帳號！          " to player
+    send "&9 &f遊戲中輸入 &e/discord link &f取得認證碼     " to player
+    send "&9 &f加入 Discord 並到「帳號綁定」頻道  " to player
+    send "&9 &f輸入認證碼即可完成綁定           " to player
+    send "&9╚═════════════════╝" to player
+    send "&e&lDiscord 連結（用瀏覽器開啟）:" to player
+    send "&bhttps://discord.gg/CkCPd2CAy4" to player
+    play sound "BLOCK_NOTE_BLOCK_PLING" with volume 0.5 to player

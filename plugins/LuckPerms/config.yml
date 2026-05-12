@@ -1,0 +1,408 @@
+# ============================================
+# LuckPerms 配置文件（繁體中文翻譯版）
+# ============================================
+#
+#  官網：https://luckperms.net
+#  Wiki：https://luckperms.net/wiki
+#  Discord：https://discord.gg/luckperms
+#  問題回報：https://github.com/LuckPerms/LuckPerms/issues
+#
+#  每個選項的詳細說明：
+#  https://luckperms.net/wiki/Configuration
+#
+# ============================================
+
+# ============================================
+# 基本設定
+# ============================================
+
+# 伺服器名稱，用於伺服器特定權限
+# - 設為 "global" 時此設定無效
+# - 其他情況下，此值會添加到所有玩家的 "server" 上下文中
+server: global
+
+# 當 LuckPerms 沒有玩家記錄時，是否使用伺服器自己的 UUID 快取/查詢功能
+# - 設為 false 時，使用玩家名稱的指令只在玩家曾經加入過伺服器後才有效
+# - 設為 true 時，會使用伺服器功能（可能包括本地快取或 Mojang API 請求）
+use-server-uuid-cache: false
+
+# ============================================
+# 儲存設定
+# ============================================
+
+# 插件應該如何儲存數據
+#
+# 可用選項：
+#   遠端資料庫（需要設定連線資訊）：
+#   |=> MySQL
+#   |=> MariaDB（比 MySQL 更推薦）
+#   |=> PostgreSQL
+#   |=> MongoDB
+#
+#   本地資料庫（不需要額外設定）：
+#   |=> H2（比 SQLite 更推薦）
+#   |=> SQLite
+#
+#   可讀取和編輯的文字檔案（不需要額外設定）：
+#   |=> YAML（.yml 檔案）
+#   |=> JSON（.json 檔案）
+#   |=> HOCON（.conf 檔案）
+#   |=> TOML（.toml 檔案）
+#
+# - 預設使用 H2 資料庫
+# - 如果想手動編輯數據，建議使用 YAML
+storage-method: h2
+
+# 遠端資料庫儲存設定
+# - 如果使用本地儲存方式，不需要修改這些設定！
+data:
+
+  # 資料庫地址和端口
+  # - 預設使用標準 DB 引擎端口（MySQL: 3306, PostgreSQL: 5432, MongoDB: 27017）
+  # - 如果不同，請指定為 "主機:端口"
+  address: localhost
+
+  # 儲存 LuckPerms 數據的資料庫名稱
+  # - 必須預先建立。如果使用 MongoDB 則不用擔心此設定。
+  database: minecraft
+
+  # 資料庫憑證
+  username: root
+  password: ''
+
+  # MySQL 連接池設定
+  # - 預設值適用於大多數用戶
+  # - 除非你知道自己在做什麼，否則不要更改這些設定！
+  pool-settings:
+
+    # MySQL 連接池的最大大小
+    # - 此值決定資料庫後端的實際最大連接數
+    maximum-pool-size: 10
+
+    # 連接池嘗試維護的最小閒置連接數
+    # - 為了獲得最佳效能，建議將此值設為與 'maximum-pool-size' 相同
+    minimum-idle: 10
+
+    # 連接池中連接的最大生命週期（毫秒）
+    # - 此值應至少比資料庫或基礎設施施加的連接時間限制少 30 秒
+    maximum-lifetime: 1800000 # 30 分鐘
+
+    # 連接池 'ping' 連接以防止超時的頻率（毫秒）
+    # - 此值應小於 maximum-lifetime 且大於 30000（30 秒）
+    # - 設為 0 將禁用 keepalive 功能
+    keepalive-time: 0
+
+    # 插件等待連接池連接的最大毫秒數
+    connection-timeout: 5000 # 5 秒
+
+    # 連接的額外屬性
+    # - 預設啟用 UTF-8 編碼
+    properties:
+      useUnicode: true
+      characterEncoding: utf8
+      #useSSL: false
+      #verifyServerCertificate: false
+
+  # 所有 LuckPerms SQL 資料表的前綴
+  # - 只適用於遠端 SQL 儲存類型（MySQL、MariaDB 等）
+  table-prefix: 'luckperms_'
+
+  # LuckPerms MongoDB 集合的前綴
+  mongodb-collection-prefix: ''
+
+  # MongoDB 連接字串 URI
+  mongodb-connection-uri: ''
+
+# 分割儲存設定
+# - 允許為每種類型的數據定義儲存方式
+split-storage:
+  # 如果不想使用分割儲存，不要修改此項！
+  enabled: false
+  methods:
+    user: h2
+    group: h2
+    track: h2
+    uuid: h2
+    log: h2
+
+# ============================================
+# 更新傳播和訊息服務
+# ============================================
+
+# LuckPerms 執行同步任務的頻率
+# - 同步任務會從儲存刷新所有數據
+# - 預設禁用。如果使用遠端儲存且沒有設定訊息服務，可以設為 3
+# - 設為 -1 完全禁用此任務
+sync-minutes: -1
+
+# 是否啟用文件監視器
+# - 使用文件儲存類型時，LuckPerms 可以監視數據文件的變更並自動更新
+watch-files: true
+
+# 定義插件應使用的訊息服務
+#
+# 可用選項：
+#   => sql       使用 SQL 資料庫形成佇列系統進行通訊（僅 MySQL/MariaDB）
+#   => pluginmsg 使用插件訊息頻道與代理通訊
+#   => lilypad   使用 LilyPad 發布/訂閱推送變更
+#   => redis     使用 Redis 發布/訂閱推送變更
+#   => rabbitmq  使用 RabbitMQ 發布/訂閱推送變更
+#   => nats      使用 Nats 發布/訂閱推送變更
+#   => custom    使用通過 LuckPerms API 提供的訊息服務
+#   => auto      嘗試使用 redis 或 sql 自動設定訊息服務
+messaging-service: auto
+
+# 使用指令進行變更後是否自動推送更新
+auto-push-updates: true
+
+# 是否通過訊息服務推送日誌條目到連接的伺服器
+push-log-entries: true
+
+# 是否向此平台上的玩家廣播收到的日誌條目
+broadcast-received-log-entries: true
+
+# Redis 設定
+redis:
+  enabled: false
+  address: localhost
+  username: ''
+  password: ''
+
+# Nats 設定
+nats:
+  enabled: false
+  address: localhost
+  username: ''
+  password: ''
+
+# RabbitMQ 設定
+rabbitmq:
+  enabled: false
+  address: localhost
+  vhost: '/'
+  username: 'guest'
+  password: 'guest'
+
+# ============================================
+# 自訂設定
+# ============================================
+
+# 控制臨時權限/父級/元數據的累積方式
+# 可用選項：
+#   => accumulate   持續時間將添加到現有的到期時間
+#   => replace      如果新持續時間晚於當前到期時間，則替換
+#   => deny         如果嘗試添加具有相同到期時間的另一個節點，指令將失敗
+temporary-add-behaviour: deny
+
+# 控制 LuckPerms 如何確定用戶的「主要」群組
+# 可用選項：
+#   => stored                  使用儲存在用戶記錄中的值
+#   => parents-by-weight       使用權重最高的父群組
+#   => all-parents-by-weight   同上，但根據所有繼承的父級計算
+primary-group-calculation: parents-by-weight
+
+# 是否檢查用戶執行 LP 指令時的「額外」權限
+argument-based-command-permissions: false
+
+# 是否檢查發送者是否是群組成員才能編輯群組數據
+require-sender-group-membership-to-modify: false
+
+# 是否在修改權限時向用戶發送日誌通知
+log-notify: true
+
+# 不應作為通知發送的日誌條目列表
+log-notify-filtered-descriptions:
+#  - "parent add example"
+
+# 是否自動安裝翻譯包並定期更新
+auto-install-translations: true
+
+# 前綴和後綴堆疊選項
+meta-formatting:
+  prefix:
+    format:
+      - "highest"
+    duplicates: first-only
+    start-spacer: ""
+    middle-spacer: " "
+    end-spacer: ""
+  suffix:
+    format:
+      - "highest"
+    duplicates: first-only
+    start-spacer: ""
+    middle-spacer: " "
+    end-spacer: ""
+
+# ============================================
+# 權限計算和繼承
+# ============================================
+
+# LuckPerms 遍歷「繼承樹」時應使用的演算法
+# 可用選項：
+#   => breadth-first            廣度優先搜尋
+#   => depth-first-pre-order    深度優先前序搜尋
+#   => depth-first-post-order   深度優先後序搜尋
+inheritance-traversal-algorithm: depth-first-pre-order
+
+# 遍歷演算法解析繼承樹後是否執行最終排序
+post-traversal-inheritance-sort: false
+
+# 確定上下文是否滿足的模式
+# 可用選項：
+#   => at-least-one-value-per-key   每個鍵至少有一個值匹配
+#   => all-values-per-key           所有鍵值條目都匹配
+context-satisfy-mode: at-least-one-value-per-key
+
+# 禁用的內建上下文
+disabled-contexts:
+#  - "world"
+
+# 權限解析設定
+
+# 是否應用全域權限
+include-global: true
+
+# 是否應用全域世界權限
+include-global-world: true
+
+# 是否應用全域群組
+apply-global-groups: true
+
+# 是否應用全域世界群組
+apply-global-world-groups: true
+
+# 元數據值選擇方式
+# 可用選項：
+#   => inheritance      選擇最先繼承的元數據值
+#   => highest-number   選擇最高的數值元數據值
+#   => lowest-number    選擇最低的數值元數據值
+meta-value-selection-default: inheritance
+
+# 每個鍵的元數據值選擇方式
+meta-value-selection:
+#  max-homes: highest-number
+
+# 繼承設定
+
+# 是否應用萬用字元權限
+apply-wildcards: true
+
+# 是否根據 Sponge 風格隱式萬用字元繼承系統解析和應用權限
+apply-sponge-implicit-wildcards: false
+
+# 是否在考慮萬用字元分配之前應用否定的 Bukkit 預設權限
+apply-default-negated-permissions-before-wildcards: false
+
+# 是否解析正則表達式權限
+apply-regex: true
+
+# 是否完成和應用簡寫權限
+apply-shorthand: true
+
+# 是否應用 Bukkit 子權限
+apply-bukkit-child-permissions: true
+
+# 是否應用 Bukkit 預設權限
+apply-bukkit-default-permissions: true
+
+# 是否應用附加權限
+apply-bukkit-attachment-permissions: true
+
+# 額外設定
+
+# 跳過的上下文計算器列表
+disabled-context-calculators: []
+
+# 世界別名
+world-rewrite:
+#  world_nether: world
+#  world_the_end: world
+
+# 群組權重
+group-weight:
+#  admin: 10
+
+# ============================================
+# 微調選項
+# ============================================
+
+# OP 設定
+
+# 是否啟用 OP
+enable-ops: true
+
+# 自動 OP 系統
+# - 設為 true 時，擁有 "luckperms.autoop" 權限的用戶將自動獲得 OP 狀態
+auto-op: false
+
+# 是否允許 OP 使用所有 LuckPerms 指令
+commands-allow-op: true
+
+# Vault 整合設定
+
+# 是否允許在主執行緒上對離線玩家進行 Vault 查詢
+vault-unsafe-lookups: false
+
+# Vault API 調用中是否使用群組的「顯示名稱」
+vault-group-use-displaynames: true
+
+# NPC 玩家使用的群組
+vault-npc-group: default
+
+# NPC 玩家的 OP 狀態
+vault-npc-op-status: false
+
+# 是否使用下面的 vault-server 選項
+use-vault-server: false
+
+# Vault 操作中使用的伺服器名稱
+vault-server: global
+
+# 是否在獲取元數據或玩家群組時考慮全域權限
+vault-include-global: true
+
+# Vault 操作是否忽略世界參數
+vault-ignore-world: false
+
+# 雜項設定
+
+# 是否在處理登入時產生額外的日誌輸出
+debug-logins: false
+
+# 是否允許包含非字母數字字元的用戶名
+allow-invalid-usernames: false
+
+# 是否不要求用戶確認 bulkupdate 操作
+skip-bulkupdate-confirmation: false
+
+# 是否禁止 bulkupdate 操作
+disable-bulkupdate: false
+
+# 是否防止使用 'parent remove' 指令移除用戶的主要群組
+prevent-primary-group-removal: false
+
+# 是否在權限變更時更新發送給客戶端的指令列表
+update-client-command-list: true
+
+# 是否嘗試為 LP 指令註冊 "Brigadier" 指令列表數據
+register-command-list-data: true
+
+# 是否嘗試為 LP 指令解析 Vanilla 指令目標選擇器
+resolve-command-selectors: false
+
+# 指令唯讀模式
+commands-read-only-mode:
+  players: false
+  console: false
+
+# 是否禁用 LuckPerms 指令
+disable-luckperms-commands:
+  players: false
+  console: false
+
+# ============================================
+# 語言設定（繁體中文）
+# ============================================
+# LuckPerms 會自動下載翻譯包，如需強制使用特定語言：
+language: zh_TW

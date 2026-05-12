@@ -1,0 +1,48 @@
+# This is the configuration file for DiscordSRV's voice module.
+# It is an experimental feature. Things may not work properly.
+# If you do play around with this module, please send us feedback about any
+# issues on our Discord. https://discordsrv.com/discord
+#
+
+# Whether to enable the proximity voice chat feature of DiscordSRV
+# You must restart your server after changing this option
+Voice enabled: true
+# Amount of ticks between network updates
+Tick speed: 5
+# The main category that the voice module will create/delete/move voice channels in
+# No channels other than the lobby channel (below) should be in this category
+Voice category: 1477908713418264692
+# The lobby channel (inside the voice category) that people will be moved to
+# when they are not in range of any networks. This is also the channel people will
+# join to be connected to the proximity voice network.
+Lobby channel: 1477908713418264693
+# Mutes users in the lobby who have the Speak and Mute Others permissions in the lobby
+Mute users who bypass speak permissions in the lobby: true
+
+Network: 
+  # 垂直連接強度（方塊）
+  # 玩家之間的最大垂直距離
+  # 超過此距離的玩家不會被連接到同一個語音頻道
+  Vertical Strength: 40
+
+  # 水平連接強度（方塊）
+  # 玩家之間的最大水平距離
+  # 超過此距離的玩家不會被連接到同一個語音頻道
+  Horizontal Strength: 80
+
+  # 衰減距離（方塊）
+  # 玩家加入網路後，可以在 (強度 + 衰減) 方塊外才會被斷開連接
+  # 這可以防止玩家在邊界附近時頻繁切換頻道
+  #
+  # 範例：
+  # 水平強度 = 80，衰減 = 5
+  # 玩家在 80 方塊內會連接
+  # 玩家要離開到 85 方塊外才會斷開
+  Falloff: 5
+
+  # 語音網路頻道是否對所有人可見
+  # true = 所有人都能看到語音頻道（即使未連接）
+  # false = 只有頻道內的人才能看到
+  #
+  # 設為 true 可以讓玩家知道是否有人正在使用語音網路
+  Channels are visible: true

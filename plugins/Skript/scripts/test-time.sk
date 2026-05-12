@@ -1,0 +1,10 @@
+# 測試時間格式腳本
+# 用完可刪除
+
+command /testtime:
+    permission: op
+    trigger:
+        set {_time} to now formatted as "HH:mm"
+        set {_day} to now formatted as "EEEE"
+        send "&e時間格式: &f%{_time}%"
+        send "&e星期格式: &f%{_day}%"

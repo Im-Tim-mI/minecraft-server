@@ -1,0 +1,172 @@
+# ============================================
+# 測試裝備發放系統
+# 鞘翅 + 全套鑽石裝 + 煙火
+# ============================================
+
+options:
+    prefix: &e[&6測試裝備&e]
+    item_name: &b測試用道具
+
+# ============================================
+# 發放裝備指令
+# ============================================
+command /發放測試裝備 [<player>]:
+    permission: op
+    trigger:
+        if arg-1 is set:
+            giveTestGear(arg-1)
+            send "{@prefix} &a已發放測試裝備給 &e%arg-1%&a！" to player
+        else:
+            loop all players:
+                giveTestGear(loop-player)
+            send "{@prefix} &a已發放測試裝備給 &e%size of all players% &a位玩家！" to player
+
+# ============================================
+# 發放裝備函數
+# ============================================
+function giveTestGear(p: player):
+    # 鑽石頭盔
+    set {_helmet} to diamond helmet named "{@item_name}" with lore "&7此為測試道具" and "&c死亡後消失、無法脫下"
+    enchant {_helmet} with unbreaking 3
+    enchant {_helmet} with mending 1
+    enchant {_helmet} with binding curse 1
+    enchant {_helmet} with vanishing curse 1
+    set helmet of {_p} to {_helmet}
+    
+    # 鑽石胸甲 → 改成鞘翅
+    set {_elytra} to elytra named "{@item_name}" with lore "&7此為測試道具" and "&c死亡後消失、無法脫下"
+    enchant {_elytra} with unbreaking 3
+    enchant {_elytra} with mending 1
+    enchant {_elytra} with binding curse 1
+    enchant {_elytra} with vanishing curse 1
+    set chestplate of {_p} to {_elytra}
+    
+    # 鑽石護腿
+    set {_leggings} to diamond leggings named "{@item_name}" with lore "&7此為測試道具" and "&c死亡後消失、無法脫下"
+    enchant {_leggings} with unbreaking 3
+    enchant {_leggings} with mending 1
+    enchant {_leggings} with binding curse 1
+    enchant {_leggings} with vanishing curse 1
+    set leggings of {_p} to {_leggings}
+    
+    # 鑽石靴子
+    set {_boots} to diamond boots named "{@item_name}" with lore "&7此為測試道具" and "&c死亡後消失、無法脫下"
+    enchant {_boots} with unbreaking 3
+    enchant {_boots} with mending 1
+    enchant {_boots} with binding curse 1
+    enchant {_boots} with vanishing curse 1
+    set boots of {_p} to {_boots}
+    
+    # 煙火 5 組（64 x 5 = 320）
+    give 320 firework rocket to {_p}
+    
+    # 通知玩家
+    send "{@prefix} &a你獲得了測試裝備！" to {_p}
+    send "&7- 鑽石頭盔（綁定、消失詛咒）" to {_p}
+    send "&7- 鞘翅（綁定、消失詛咒）" to {_p}
+    send "&7- 鑽石護腿（綁定、消失詛咒）" to {_p}
+    send "&7- 鑽石靴子（綁定、消失詛咒）" to {_p}
+    send "&7- 煙火 x 320" to {_p}
+    send "&c注意：裝備死亡後會消失且無法脫下！" to {_p}
+    play sound "ENTITY_PLAYER_LEVELUP" with volume 1 to {_p}
+
+# ============================================
+# 回收銷毀指令（單一玩家）
+# ============================================
+command /回收測試裝備 [<player>]:
+    permission: op
+    trigger:
+        if arg-1 is set:
+            recallTestGear(arg-1)
+            send "{@prefix} &c已回收 &e%arg-1% &c的測試裝備！" to player
+        else:
+            send "{@prefix} &c用法：/回收測試裝備 <玩家>" to player
+            send "{@prefix} &7或使用 /回收全部測試裝備 回收所有人" to player
+
+# ============================================
+# 回收全部玩家裝備
+# ============================================
+command /回收全部測試裝備:
+    permission: op
+    trigger:
+        set {_count} to 0
+        loop all players:
+            recallTestGear(loop-player)
+            add 1 to {_count}
+        send "{@prefix} &c已回收 &e%{_count}% &c位玩家的測試裝備！" to player
+
+# ============================================
+# 回收裝備函數
+# ============================================
+function recallTestGear(p: player):
+    # 檢查並移除頭盔
+    if name of helmet of {_p} is "{@item_name}":
+        set helmet of {_p} to air
+    
+    # 檢查並移除胸甲/鞘翅
+    if name of chestplate of {_p} is "{@item_name}":
+        set chestplate of {_p} to air
+    
+    # 檢查並移除護腿
+    if name of leggings of {_p} is "{@item_name}":
+        set leggings of {_p} to air
+    
+    # 檢查並移除靴子
+    if name of boots of {_p} is "{@item_name}":
+        set boots of {_p} to air
+    
+    # 移除背包中的測試裝備（不移除煙火）
+    loop all items in {_p}'s inventory:
+        if name of loop-item is "{@item_name}":
+            remove loop-item from {_p}'s inventory
+    
+    # 通知玩家
+    send "{@prefix} &c你的測試裝備已被回收！" to {_p}
+    send "&7煙火不受影響，可繼續使用。" to {_p}
+    play sound "ENTITY_ITEM_BREAK" with volume 1 to {_p}
+
+# ============================================
+# 查看誰有測試裝備
+# ============================================
+command /查看測試裝備:
+    permission: op
+    trigger:
+        send "{@prefix} &e擁有測試裝備的玩家：" to player
+        set {_count} to 0
+        loop all players:
+            set {_has} to false
+            if name of helmet of loop-player is "{@item_name}":
+                set {_has} to true
+            if name of chestplate of loop-player is "{@item_name}":
+                set {_has} to true
+            if name of leggings of loop-player is "{@item_name}":
+                set {_has} to true
+            if name of boots of loop-player is "{@item_name}":
+                set {_has} to true
+            
+            if {_has} is true:
+                add 1 to {_count}
+                send "&7- &a%loop-player%" to player
+        
+        if {_count} is 0:
+            send "&7沒有玩家擁有測試裝備" to player
+        else:
+            send "&e共 &a%{_count}% &e位玩家" to player
+
+# ============================================
+# 防止丟棄測試裝備
+# ============================================
+on drop:
+    if name of event-item is "{@item_name}":
+        cancel event
+        send "{@prefix} &c無法丟棄測試裝備！" to player
+
+# ============================================
+# 防止放入容器
+# ============================================
+on inventory click:
+    if event-inventory is not player's inventory:
+        if cursor slot of player is not air:
+            if name of cursor slot of player is "{@item_name}":
+                cancel event
+                send "{@prefix} &c無法將測試裝備放入容器！" to player

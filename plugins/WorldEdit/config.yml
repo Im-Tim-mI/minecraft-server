@@ -1,0 +1,224 @@
+# ============================================
+# WorldEdit 配置文件（繁體中文翻譯版）
+# ============================================
+#
+# 編輯此文件的注意事項：
+# - 請勿使用 TAB 鍵。必須使用空格，否則 Bukkit 會報錯。
+#   如果你使用編輯器（如 Notepad++），
+#   請設定「將 Tab 替換為空格」。
+# - 不要刪除縮排。縮排表示某些項目屬於特定分類。
+# - 如果想檢查格式是否正確，可以將內容貼到
+#   http://yaml-online-parser.appspot.com/ 檢查。
+# - 以 # 開頭的行是註釋，會被忽略。
+# - 如果要允許某些方塊，請將 "disallowed-blocks" 改為 []
+#
+# ============================================
+
+# ============================================
+# 限制設定
+# ============================================
+limits:
+    # 最大可更改方塊數
+    max-blocks-changed:
+        default: -1     # 預設值（-1 = 無限制）
+        maximum: -1     # 最大值（-1 = 無限制）
+
+    # 垂直高度限制
+    vertical-height:
+        default: 256    # 預設高度
+
+    # 多邊形選區最大點數
+    max-polygonal-points:
+        default: -1     # 預設值（-1 = 無限制）
+        maximum: 20     # 最大值
+
+    # 最大半徑（-1 = 無限制）
+    max-radius: -1
+
+    # 超級鎬子最大範圍
+    max-super-pickaxe-size: 5
+
+    # 筆刷最大半徑
+    max-brush-radius: 5
+
+    # 屠殺指令半徑（/butcher）
+    butcher-radius:
+        default: -1     # 預設值（-1 = 無限制）
+        maximum: -1     # 最大值（-1 = 無限制）
+
+    # 禁止使用的方塊列表
+    # 這些方塊無法被 WorldEdit 放置
+    # 設為 [] 可允許所有方塊
+    disallowed-blocks:
+    - "minecraft:oak_sapling"           # 橡木樹苗
+    - "minecraft:jungle_sapling"        # 乾林樹苗
+    - "minecraft:dark_oak_sapling"      # 黑橡木樹苗
+    - "minecraft:spruce_sapling"        # 雲杉樹苗
+    - "minecraft:birch_sapling"         # 白樺樹苗
+    - "minecraft:acacia_sapling"        # 相思木樹苗
+    - "minecraft:black_bed"             # 黑色床
+    - "minecraft:blue_bed"              # 藍色床
+    - "minecraft:brown_bed"             # 棕色床
+    - "minecraft:cyan_bed"              # 青色床
+    - "minecraft:gray_bed"              # 灰色床
+    - "minecraft:green_bed"             # 綠色床
+    - "minecraft:light_blue_bed"        # 淺藍色床
+    - "minecraft:light_gray_bed"        # 淺灰色床
+    - "minecraft:lime_bed"              # 淺綠色床
+    - "minecraft:magenta_bed"           # 洋紅色床
+    - "minecraft:orange_bed"            # 橙色床
+    - "minecraft:pink_bed"              # 粉紅色床
+    - "minecraft:purple_bed"            # 紫色床
+    - "minecraft:red_bed"               # 紅色床
+    - "minecraft:white_bed"             # 白色床
+    - "minecraft:yellow_bed"            # 黃色床
+    - "minecraft:powered_rail"          # 動力鐵軌
+    - "minecraft:detector_rail"         # 偵測鐵軌
+    - "minecraft:short_grass"           # 短草
+    - "minecraft:dead_bush"             # 枯灌木
+    - "minecraft:moving_piston"         # 移動中的活塞
+    - "minecraft:piston_head"           # 活塞頭
+    - "minecraft:sunflower"             # 向日葵
+    - "minecraft:rose_bush"             # 玫瑰叢
+    - "minecraft:dandelion"             # 蒲公英
+    - "minecraft:poppy"                 # 罌粟花
+    - "minecraft:brown_mushroom"        # 棕色蘑菇
+    - "minecraft:red_mushroom"          # 紅色蘑菇
+    - "minecraft:tnt"                   # TNT 炸藥
+    - "minecraft:torch"                 # 火把
+    - "minecraft:fire"                  # 火焰
+    - "minecraft:redstone_wire"         # 紅石線
+    - "minecraft:wheat"                 # 小麥
+    - "minecraft:potatoes"              # 馬鈴薯
+    - "minecraft:carrots"               # 胡蘿蔔
+    - "minecraft:melon_stem"            # 西瓜莖
+    - "minecraft:pumpkin_stem"          # 南瓜莖
+    - "minecraft:beetroots"             # 甜菜根
+    - "minecraft:rail"                  # 鐵軌
+    - "minecraft:lever"                 # 控制桿
+    - "minecraft:redstone_torch"        # 紅石火把
+    - "minecraft:redstone_wall_torch"   # 牆上紅石火把
+    - "minecraft:repeater"              # 紅石中繼器
+    - "minecraft:comparator"            # 紅石比較器
+    - "minecraft:stone_button"          # 石頭按鈕
+    - "minecraft:birch_button"          # 白樺木按鈕
+    - "minecraft:acacia_button"         # 相思木按鈕
+    - "minecraft:dark_oak_button"       # 黑橡木按鈕
+    - "minecraft:jungle_button"         # 乾林木按鈕
+    - "minecraft:oak_button"            # 橡木按鈕
+    - "minecraft:spruce_button"         # 雲杉木按鈕
+    - "minecraft:cactus"                # 仙人掌
+    - "minecraft:sugar_cane"            # 甘蔗
+    - "minecraft:bedrock"               # 基岩
+
+# ============================================
+# 背包模式設定
+# 使用背包中的方塊來建造，而非無限供應
+# ============================================
+use-inventory:
+    enable: false               # 是否啟用背包模式
+    allow-override: true        # 允許玩家覆蓋此設定
+    creative-mode-overrides: false  # 創造模式是否覆蓋此設定
+
+# ============================================
+# 日誌設定
+# ============================================
+logging:
+    log-commands: false         # 是否記錄 WorldEdit 指令
+    file: worldedit.log         # 日誌文件名稱
+
+    # 日誌格式（Java 格式化字串）
+    # 參數說明：
+    #   1$ : 日期 - 日誌記錄的時間
+    #   2$ : 來源 - 呼叫者名稱
+    #   3$ : 記錄器 - 記錄器名稱
+    #   4$ : 等級 - 日誌等級
+    #   5$ : 訊息 - 格式化後的日誌訊息
+    #   6$ : 異常 - 異常資訊（如有）
+    format: "[%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s]: %5$s%6$s%n"
+
+# ============================================
+# 超級鎬子設定
+# ============================================
+super-pickaxe:
+    drop-items: true            # 破壞方塊時是否掉落物品
+    many-drop-items: false      # 批量破壞時是否掉落物品
+
+# ============================================
+# 快照設定（用於 //restore 指令）
+# ============================================
+snapshots:
+    directory:                  # 快照目錄（留空使用預設）
+
+# ============================================
+# 導航魔杖設定（指南針傳送）
+# ============================================
+navigation-wand:
+    item: minecraft:compass     # 導航魔杖物品（預設：指南針）
+    max-distance: 100           # 最大傳送距離
+
+# ============================================
+# 腳本設定
+# ============================================
+scripting:
+    timeout: 3000               # 腳本執行超時時間（毫秒）
+    dir: craftscripts           # 腳本目錄
+
+# ============================================
+# 儲存設定
+# ============================================
+saving:
+    dir: schematics             # Schematic 檔案儲存目錄
+
+# ============================================
+# 文件設定
+# ============================================
+files:
+    allow-symbolic-links: false # 是否允許符號連結
+
+# ============================================
+# 歷史記錄設定（//undo、//redo）
+# ============================================
+history:
+    size: 15                    # 歷史記錄數量（可復原次數）
+    expiration: 10              # 歷史記錄過期時間（分鐘）
+
+# ============================================
+# 計算設定
+# ============================================
+calculation:
+    timeout: 100                # 計算超時時間（毫秒）
+
+# ============================================
+# 除錯設定
+# ============================================
+debugging:
+    trace-unflushed-sessions: false  # 追蹤未刷新的會話
+
+# ============================================
+# 其他設定
+# ============================================
+
+# 選區魔杖物品（預設：木斧）
+wand-item: minecraft:wooden_axe
+
+# Shell 儲存類型
+shell-save-type:
+
+# 無操作權限
+no-op-permissions: false
+
+# 除錯模式
+debug: false
+
+# 首次使用時顯示幫助
+show-help-on-first-use: true
+
+# 伺服器端 CUI（Cubic Unholy Interface）
+server-side-cui: true
+
+# 命令方塊支援
+command-block-support: false
+
+# 預設語言（繁體中文）
+default-locale: zh_TW

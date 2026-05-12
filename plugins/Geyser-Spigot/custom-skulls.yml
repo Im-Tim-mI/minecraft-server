@@ -1,0 +1,30 @@
+# --------------------------------
+# Geyser 自訂頭顱配置檔案
+#
+# 若 `add-custom-skull-blocks` 停用，此檔案將被忽略。
+# 主要配置請參閱 `config.yml`
+#
+# 在此檔案中指定玩家帳號名稱、UUID 或材質的自訂頭顱，
+# 將被轉換為自訂方塊，並可在物品欄和實體上正確顯示。
+# --------------------------------
+
+# Java 版玩家帳號名稱
+# 當 Geyser 啟動時會更新皮膚，若有玩家更換了皮膚，
+# 玩家需要重新下載資源包。
+player-usernames:
+#  - GeyserMC
+
+# Java 版玩家 UUID
+# 當 Geyser 啟動時會更新皮膚，若有玩家更換了皮膚，
+# 玩家需要重新下載資源包。
+player-uuids:
+#  - 8b8d8e8f-2759-47c6-acb5-5827de8a72b8
+
+# 自訂玩家頭顱 NBT 中的長字串（Base64 編碼的材質資料）
+player-profiles:
+#  - ewogICJ0aW1lc3RhbXAiIDogMTY1NzMyMjIzOTgzMywKICAicHJvZmlsZUlkIiA6ICJjZGRiZTUyMGQwNDM0YThiYTFjYzlmYzkyZmRlMmJjZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbWJlcmljaHUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTkwNzkwYzU3ZTE4MWVkMTNhZGVkMTRjNDdlZTJmN2M4ZGUzNTMzZTAxN2JhOTU3YWY3YmRmOWRmMWJkZTk0ZiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9
+
+# Minecraft 皮膚伺服器上的皮膚雜湊值
+# （來自 http://textures.minecraft.net/texture/雜湊值）
+skin-hashes:
+#  - a90790c57e181ed13aded14c47ee2f7c8de3533e017ba957af7bdf9df1bde94f

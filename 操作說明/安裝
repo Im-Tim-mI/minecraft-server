@@ -1,0 +1,2 @@
+./setup_server.sh
+./minecraft-server/start.sh

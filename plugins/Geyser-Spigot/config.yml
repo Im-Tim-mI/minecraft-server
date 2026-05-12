@@ -1,0 +1,278 @@
+# --------------------------------
+# Geyser Configuration File
+# 
+# A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition.
+# 
+# GitHub: https://github.com/GeyserMC/Geyser
+# Discord: https://discord.gg/geysermc
+# Wiki: https://geysermc.org/wiki
+# 
+# NOTICE: See https://geysermc.org/wiki/geyser/setup/ for the setup guide. Many video tutorials are outdated.
+# In most cases, especially with server hosting providers, further hosting-specific configuration is required.
+# --------------------------------
+
+# ============================================
+# 基岩版監聽器網路設定
+# ============================================
+bedrock:
+  # Geyser 將綁定的 IP 地址，用於監聽傳入的基岩版連線。
+  # 通常，只有當你想限制哪些 IP 可以連接到你的伺服器時才需要更改此設定。
+  address: 0.0.0.0
+
+  # Geyser 將監聽傳入基岩版連線的端口。
+  # 由於 Minecraft 基岩版使用 UDP，此端口必須允許 UDP 流量。
+  port: 19132
+
+  # 某些託管服務每次啟動伺服器時都會更改你的 Java 端口，並要求基岩版使用相同的端口。
+  # 此選項使基岩版端口在每次啟動伺服器時與 Java 端口相同。
+  clone-remote-port: false
+
+# ============================================
+# Java 伺服器連線網路設定
+# ============================================
+java:
+  # 基岩版玩家登入 Java 伺服器時將使用的驗證類型。
+  # 可以是 "floodgate"（參見 https://wiki.geysermc.org/floodgate/）、"online" 或 "offline"。
+  # online = 正版驗證（需要 Java 版帳號）
+  # offline = 離線模式（不需要正版）
+  # floodgate = 使用 Floodgate 插件（基岩版玩家無需 Java 帳號）
+  auth-type: floodgate
+
+# ============================================
+# MOTD（伺服器訊息）設定
+# ============================================
+motd:
+  # 將廣播給 Minecraft 基岩版客戶端的 MOTD。
+  # 如果 "passthrough-motd" 設為 true，此設定無效。
+  # 如果這些為空，相應的字串將默認為 "Geyser"
+  primary-motd: tim_server
+  secondary-motd: mc.tim945.com server.
+
+  # Geyser 是否應該將 Java 伺服器的 MOTD 轉發給基岩版玩家。
+  passthrough-motd: true
+
+  # 可連線的最大玩家數。
+  # 這只是視覺效果，僅在 passthrough-motd 禁用時生效。
+  max-players: 100
+
+  # 是否將 Java 伺服器的玩家數量和最大玩家數轉發給基岩版玩家。
+  passthrough-player-counts: true
+
+  # 是否使用伺服器 API 方法來確定 Java 伺服器的 MOTD 和 ping 直通。
+  # 除非你的 MOTD 或玩家數量顯示不正確，否則無需禁用此項。
+  integrated-ping-passthrough: true
+
+  # 刷新 MOTD 和玩家數量時 ping Java 伺服器的頻率（秒）。
+  # 僅在 integrated-ping-passthrough 禁用時有效。
+  ping-passthrough-interval: 3
+
+# ============================================
+# 遊戲設定（影響基岩版玩家）
+# ============================================
+gameplay:
+  # 將發送給 Minecraft 基岩版客戶端的伺服器名稱。
+  # 這在暫停選單和設定選單中都可見。
+  server-name: 清交 交清 虛擬交流服務器
+
+  # Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
+  # Please note: with the integrated pack disabled, some users may see a black box during the cooldown sequence, like below:
+  # https://geysermc.org/img/external/cooldown_indicator.png
+  # This can be resolved by enabling the integrated pack, or by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0.
+  # This setting can be set to "crosshair", "hotbar", or "disabled"
+  cooldown-type: crosshair
+
+  # 基岩版客戶端在首次打開命令提示時，如果有大量命令可能會凍結。
+  # 禁用此選項將阻止發送命令建議，解決基岩版客戶端凍結問題。
+  command-suggestions: true
+
+  # 控制是否向玩家顯示座標。
+  show-coordinates: true
+
+  # 是否阻止基岩版玩家執行其特有的腳手架式搭橋。
+  # true = 禁止基岩版特有的搭橋方式
+  disable-bedrock-scaffolding: false
+
+  # 基岩版阻止在地獄 Y127 以上建造和顯示方塊。
+  # 此配置選項通過將地獄維度 ID 更改為終界 ID 來解決此問題。
+  # 主要缺點是整個地獄將擁有相同的紅霧，而不是每個生態域有不同的霧。
+  nether-roof-workaround: true
+
+  # 是否向其他基岩版玩家顯示基岩版表情動作。
+  emotes-enabled: true
+
+  # Whether to remove legacy text formatting codes sent by Bedrock players.
+  # Unlike on Java Edition, typing section signs for legacy color codes is possible on Bedrock Edition.
+  # See https://minecraft.wiki/w/Formatting_codes for further information.
+  block-legacy-codes: true
+
+  # 用於標記基岩版玩家物品欄中不可用格子的物品。
+  # 例如創造模式下的 2x2 合成格，或與通常 3x9 大小不同的自訂物品欄選單。
+  # 預設為屏障方塊。
+  # 此配置選項可以設為任何基岩版物品標識符。
+  # 如果要設為自訂物品，請確保以下列格式指定：「geyser_custom:<映射名稱>」
+  unusable-space-block: minecraft:barrier
+
+  # 是否添加基岩版中通常不存在的物品和方塊。
+  # 只有在使用不使用「傳輸封包」風格伺服器切換的代理時才需要禁用此項。
+  # 如果禁用，熔爐礦車物品將映射為漏斗礦車物品。
+  # Geyser 的方塊、物品和頭顱映射系統也將被禁用。
+  # 此選項需要重啟 Geyser 才能更改其設定。
+  enable-custom-content: true
+
+  # 如果有資源包，強制客戶端載入所有資源包。
+  # 如果設為 false，即使用戶不想下載資源包，也允許連接到伺服器。
+  force-resource-packs: true
+
+  # 是否自動向所有連接的基岩版玩家提供某些 Geyser 功能所需的資源包。
+  # 如果啟用，force-resource-packs 將被啟用。
+  enable-integrated-pack: true
+
+  # 是否將玩家 ping 轉發到伺服器。
+  # 啟用此功能將使基岩版玩家獲得更準確的 ping，
+  # 但也可能導致玩家更容易超時斷線。
+  forward-player-ping: false
+
+  # 允許解鎖 Xbox 成就。
+  # 如果玩家輸入未知命令，他們將收到作弊已禁用的訊息。
+  # 否則，命令正常運作。
+  xbox-achievements-enabled: false
+
+  # 每位玩家顯示的最大自訂頭顱數量。
+  # 增加此值可能會降低較弱設備的效能。
+  # 值為 0 將禁用所有自訂頭顱。
+  # 設為 -1 將顯示所有自訂頭顱，不考慮距離或數量。
+  max-visible-custom-skulls: 128
+
+  # 顯示自訂頭顱的玩家周圍半徑（方塊）。
+  custom-skull-render-distance: 32
+
+# ============================================
+# 語言設定
+# ============================================
+# 如果我們沒有客戶端請求的語言，則使用的預設語言。
+# 如果設為 "system"，將使用系統的語言。
+default-locale: zh_tw
+
+# 伺服器是否記錄玩家 IP 地址。
+log-player-ip-addresses: true
+
+# ============================================
+# 正版模式登入設定
+# ============================================
+# 僅適用於線上模式驗證類型。
+# 儲存登入後應保存其 Java 版帳號的基岩版玩家用戶名列表。
+# 這會保存一個可用於稍後驗證玩家的令牌。這不會保存電子郵件或密碼，
+# 但在添加到此列表並讓他人存取此 Geyser 實例的文件時，你仍應謹慎。
+# 從此列表中移除名稱將在下次 Geyser 啟動時刪除其快取的登入資訊。
+# 令牌將保存在與此配置相同的資料夾中，名為 "saved-refresh-tokens.json"。
+saved-user-logins:
+  - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
+  - ThisOtherExampleUsernameShouldAlsoBeLongEnough
+
+# 僅適用於線上模式驗證類型。
+# 指定在用戶授權 Geyser 存取其 Microsoft 帳號時等待多少秒。
+# 用戶可以在此期間斷開與伺服器的連線。
+pending-authentication-timeout: 120
+
+# 是否在控制台和管理員中提醒有新的 Geyser 版本可用，
+# 該版本支援此 Geyser 版本不支援的基岩版版本。
+# 建議保持此選項啟用，因為許多基岩版平台會自動更新。
+notify-on-new-bedrock-update: true
+
+# ============================================
+# 進階配置選項（通常不需要修改）
+# ============================================
+advanced:
+  # 指定玩家皮膚圖像將快取到磁碟多少天，以節省從網際網路下載。
+  # 值為 0 表示禁用。（預設：0）
+  cache-images: 0
+
+  # Geyser 在每個計分板封包後更新計分板，
+  # 但當 Geyser 嘗試每秒處理大量計分板封包時，這可能導致嚴重延遲。
+  # 此選項允許你指定在每秒多少個計分板封包後，
+  # 計分板更新將限制為每秒四次更新。
+  scoreboard-packet-threshold: 20
+
+  # Geyser 是否應該在命令建議中發送隊伍名稱。
+  # 如果你有很多不需要作為建議的隊伍，請禁用此選項。
+  add-team-suggestions: true
+
+  # 要發送給基岩版客戶端下載的遠端資源包 URL 列表。
+  # 基岩版客戶端對這些的傳送方式非常挑剔 - 請參閱我們的 wiki 頁面獲取更多資訊：
+  # https://geysermc.org/wiki/geyser/packs/
+  resource-pack-urls: []
+
+  # Floodgate 使用加密來確保來自授權來源的使用。
+  # 這應該指向 Floodgate 生成的公鑰（BungeeCord、Spigot 或 Velocity）
+  # 如果不使用 Floodgate，可以忽略此項。
+  # 如果你在同一伺服器上使用 Floodgate 插件版本，密鑰將自動從 Floodgate 獲取。
+  floodgate-key-file: key.pem
+
+  # Geyser 到 Java 伺服器連線的進階網路選項
+  java:
+    # 連接到 Java 伺服器時是否啟用 HAPROXY 協議。
+    # 這僅在以下情況下有用：
+    # 1) 你的 Java 伺服器支援 HAPROXY 協議（它可能不支援）
+    # 2) 你運行 Velocity 或 BungeeCord，並在代理的主配置中啟用了該選項。
+    # 如果你不知道這是什麼，請勿更改！
+    use-haproxy-protocol: false
+
+    # 是否直接連接到 Java 伺服器而不建立 TCP 連線。
+    # 只有當與封包或網路互動的插件無法與 Geyser 正確配合時才應禁用此選項。
+    # 如果啟用，遠端地址和端口部分將被忽略。
+    # 如果禁用，預計效能會下降，延遲會增加。
+    use-direct-connection: true
+
+    # Geyser 是否應該嘗試禁用封包壓縮（從 Java 伺服器到 Geyser）以供基岩版玩家使用。
+    # 這應該是有益的，因為當 Java 封包不是通過網路處理時，不需要壓縮數據。
+    # 這需要 use-direct-connection 設為 true。
+    disable-compression: true
+
+  # Geyser 基岩版監聽器的進階網路選項
+  bedrock:
+    # 向基岩版客戶端廣播的端口，告知他們應使用哪個端口連接到伺服器。
+    # 值為 0 將廣播上面指定的端口。
+    # 除非 Geyser 運行在與用於連接的端口不同的端口上，否則不要更改此項。
+    broadcast-port: 0
+
+    # 壓縮到基岩版客戶端的網路流量的程度。
+    # 數字越高，CPU 使用率越高，但頻寬使用越小。
+    # 低於 -1 或高於 9 沒有任何效果。設為 -1 表示禁用。
+    compression-level: 6
+
+    # 是否期望連接的基岩版客戶端使用 HAPROXY 協議。
+    # 這僅在你的 Geyser 實例前面運行 UDP 反向代理時有用。
+    # 如果你不知道這是什麼，請勿更改！
+    use-haproxy-protocol: false
+
+    # 允許的 HAPROXY 協議代理 IP 地址/子網列表。
+    # 僅在 "use-proxy-protocol" 啟用時有效，
+    # 通常只有在你無法使用適當的防火牆時才應使用（通常在共享託管提供商中如此）。
+    # 保持此列表為空表示沒有 IP 地址白名單。
+    # 支援 IP 地址、子網和純文字文件的連結。
+    haproxy-protocol-whitelisted-ips: []
+
+    # Should be enabled if this Geyser instance is behind a WaterdogPE proxy. If enabled, Geyser will
+    # use the xuid / address sent from WaterdogPE and reject clients that do not send it.
+    use-waterdogpe-forwarding: false
+
+    # 網際網路支援的最大 MTU 為 1492，但可能導致封包碎片問題。
+    # 預設值為 1400。
+    mtu: 1400
+
+    # 此選項禁用 Geyser 為連接的基岩版玩家執行的驗證步驟。
+    # 它可用於允許來自 ProxyPass 和 WaterdogPE 的連線。
+    # 在這些情況下，請確保用戶無法直接連接到此 Geyser 實例。
+    # 請參閱 https://www.spigotmc.org/wiki/firewall-guide/ 獲取協助 - 並使用 UDP 而不是 TCP。
+    # 不支援為其他用途禁用基岩版驗證，因為這允許任何人偽造用戶名，因此存在安全風險。
+    # 禁用此選項時，所有 Floodgate 功能（包括皮膚上傳和帳號連結）也將無法運作。
+    validate-bedrock-login: true
+
+# ============================================
+# 除錯設定
+# ============================================
+# 是否應通過控制台發送除錯訊息
+debug-mode: false
+
+# 請勿更改！
+config-version: 7

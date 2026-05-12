@@ -1,0 +1,61 @@
+# 步驟 1：建立群組
+/lp creategroup frozen
+
+# 步驟 2：設定所有禁止權限
+# ========== 建築與交互 ==========
+/lp group frozen permission set essentials.build false
+/lp group frozen permission set worldguard.region.bypass.* false
+/lp group frozen permission set essentials.chest-access false
+
+# ========== 告示牌 ==========
+/lp group frozen permission set essentials.signs.use.* false
+/lp group frozen permission set essentials.signs.create.* false
+
+# ========== 物品 ==========
+/lp group frozen permission set essentials.drop false
+/lp group frozen permission set essentials.pickup false
+/lp group frozen permission set essentials.itemspawn.* false
+
+# ========== 傳送 ==========
+/lp group frozen permission set essentials.tp false
+/lp group frozen permission set essentials.tpa false
+/lp group frozen permission set essentials.tpaccept false
+/lp group frozen permission set essentials.home false
+/lp group frozen permission set essentials.spawn false
+/lp group frozen permission set essentials.warp.* false
+/lp group frozen permission set essentials.back false
+
+# ========== 經濟 ==========
+/lp group frozen permission set essentials.pay false
+/lp group frozen permission set essentials.trade false
+
+# ========== 其他指令 ==========
+/lp group frozen permission set essentials.gamemode false
+/lp group frozen permission set essentials.fly false
+/lp group frozen permission set essentials.god false
+/lp group frozen permission set essentials.heal false
+/lp group frozen permission set essentials.feed false
+/lp group frozen permission set essentials.kit false
+/lp group frozen permission set essentials.give false
+
+# ========== WorldEdit/CoreProtect ==========
+/lp group frozen permission set worldedit.* false
+/lp group frozen permission set coreprotect.inspect false
+/lp group frozen permission set coreprotect.lookup false
+
+# ========== 聊天 ==========
+/lp group frozen permission set essentials.msg false
+/lp group frozen permission set essentials.mail false
+
+# 步驟 3：設定群組優先級（高於 default）
+/lp group frozen setweight 100
+
+# 步驟 4：將玩家加入群組
+/lp user <玩家名稱> parent add frozen
+/lp user .AaroN341672 parent add frozen
+/lp user 00000000-0000-0000-0009-01f360355d8d parent add frozen
+
+
+
+# 解除限制時
+/lp user <玩家名稱> parent remove frozen

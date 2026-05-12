@@ -1,0 +1,219 @@
+# This is an /advanced/ feature of DiscordSRV that allows you to send messages to Discord when a game event happens
+# or when a command is run. You will need a working knowledge of how Bukkit events work and their properties.
+# If you aren't sure about what you're doing here, maybe ask a developer or join our support server @ discordsrv.com/discord
+# Made something you'd like to share? You can do so in our Discord server's #alerts forum (invite above)
+#
+# Refer to the Bukkit API javadoc to find events & properties to use:
+#  https://hub.spigotmc.org/javadocs/bukkit
+# Helpful resources for learning how to use SpEL:
+#  https://docs.spring.io/spring/docs/4.2.x/spring-framework-reference/html/expressions.html
+#  https://dzone.com/articles/learn-spring-expression-language-with-examples
+#
+# You can use the following placeholders:
+#  {tps} - server TPS
+#  {time} - formatted time
+#  {date} - formatted date
+#  {name} - if alert is for a player event, the name of the player
+#  {ping} - if alert is for a player event, the ping of the player
+#  {username} - if alert is for a player event, the username of the player
+#  {displayname} - if alert is for a player event, the display name of the player
+#  {usernamenoescapes} - if alert is for a player event, the username of the player without escaping discord format (for use in inline code & code block markdown)
+#  {displaynamenoescapes} - if alert is for a player event, the display name of the player without escaping discord format (for use in inline code & code block markdown)
+#  {world} - if alert is for a player event, the world the player is in
+#  {embedavatarurl} - if alert is for a player event, the avatar url for the player's head, otherwise, the bot's avatar url
+#  {botavatarurl} - the bot's avatar url
+#  {botname} - the bot's name
+#  %placeholder% - any PlaceholderAPI placeholders, can only use player ones when alert is for a player event
+#
+# You can also use SpEL expressions with ${expression...}, such as...
+#  - Getting a player's IP: ${#player.address.address.hostAddress}
+#  - Getting a player's game mode: ${#player.gameMode.name()}
+#  - Getting a player's linked Discord account ID: ${#discordsrv.accountLinkManager.getDiscordId(#player.uniqueId)}
+#  - Getting the online player count: ${#server.onlinePlayers.size()}
+#  - Getting the status of DiscordSRV's connection to Discord: ${#jda.status.name()}
+#  - Checking if a player is in a specific world: ${#player.world.name == 'world_the_end'}
+#  - Checking if it's day in the world that the player is in: ${#player.world.time > 0 && #player.world.time < 13000}
+#  You can use the following expression placeholders, as seen above:
+#   #plugins.<plugin> - the specified plugin instance, null if doesn't exist
+#   #event - the event that's triggering the alert if this alert is an event alert
+#   #server - the Bukkit API server instance, equivalent to Bukkit#getServer
+#   #discordsrv - the DiscordSRV plugin instance
+#   #player - the player that the event is for, if this is a player event or command
+#   #sender - the command sender, if this is a command alert
+#   #command - the full command, with no leading slash, if this is a command alert
+#   #args - the command arguments, if this is a command alert
+#   #allArgs - the command arguments as one string, if this is a command alert
+#   #channel - the destination channel for this alert
+#   #jda - DiscordSRV's JDA instance that it uses to communicate with Discord
+#
+# Syntax/defaults:
+#  - Trigger: <event name or /command>
+#    Async: true # optional, defaults to true, you should almost never have to change this
+#    Conditions:
+#      - property == < > <= >= value etc
+#    Channel: <discordsrv channel name>
+#    IgnoreCancelled: true # only for event alerts
+#    Content: ""
+#    Webhook:
+#      Enabled: false
+#      AvatarUrl: "{botavatarurl}"
+#      Name: "{botname}"
+#    Embed:
+#      Enabled: true
+#      Color: "#00ff00" # accepts a hex color code (eg. "#ffffff") or a rgb integer (eg. 0)
+#      Author:
+#        ImageUrl: "{embedavatarurl}"
+#        Name: "{username} did... something."
+#        Url: ""
+#      ThumbnailUrl: ""
+#      Title:
+#        Text: ""
+#        Url: ""
+#      Description: ""
+#      Fields: [] # format is "title;value;inline" (eg. "Who joined?;%displayname%;true") or "blank" to add a blank field
+#      ImageUrl: ""
+#      Footer:
+#        Text: ""
+#        IconUrl: ""
+#      Timestamp: false # set to true to use the time the message was sent or use a epoch timestamp for a specific time (https://www.epochconverter.com/)
+#
+Alerts: 
+
+  # ============================================
+  # 範例：玩家釣魚成功時發送訊息
+  # ============================================
+  # 當玩家成功釣到魚時，發送訊息到 "fish" 頻道
+  #
+  #- Trigger: org.bukkit.event.player.PlayerFishEvent
+  #  Channel: fish
+  #  Conditions:
+  #    - state.name() == 'CAUGHT_FISH'
+  #  Embed:
+  #    Color: "#00ff00"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "{name} 釣到了 ${caught.itemStack.type.name()}！"
+
+  # ============================================
+  # 範例：Matrix 反作弊訊息
+  # ============================================
+  # 發送 Matrix 反作弊的違規訊息
+  #
+  #- Trigger: me.rerere.matrix.api.events.PlayerViolationEvent
+  #  Channel: matrix
+  #  Conditions:
+  #    - violations >= 5    # 只發送違規次數 >= 5 的事件
+  #  Embed:
+  #    Color: "#ff0000"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "{username} 未通過 ${hackType.name().toLowerCase()} 檢測 | ${component} | 違規:${violations} 延遲:${player.handle.ping} TPS:{tps}"
+
+  # ============================================
+  # 範例：/gamemode 指令監控
+  # ============================================
+  # 當玩家使用 /gamemode 指令時發送訊息
+  #
+  #- Trigger: /gamemode
+  #  Channel: gamemode
+  #  Conditions:
+  #    - '#player.hasPermission("minecraft.command.gamemode") == true'
+  #  Embed:
+  #    Color: "#ff0000"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "{username} 將遊戲模式更改為 ${#args.get(0)}"
+
+  # ============================================
+  # 範例：/me 指令監控
+  # ============================================
+  # 當玩家使用 /me 指令時發送訊息
+  #
+  #- Trigger: /me
+  #  Channel: me
+  #  Conditions:
+  #    - '#player.hasPermission("minecraft.command.me") == true || #player.hasPermission("essentials.me") == true'
+  #  Embed:
+  #    Color: "#00ff00"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "* {username} ${#allArgs}"
+
+  # ============================================
+  # 範例：GrimAC 反作弊警報
+  # ============================================
+  # 當 GrimAC 檢測到作弊時發送訊息
+  #
+  #- Trigger: ac.grim.grimac.events.FlagEvent
+  #  Channel: anticheat
+  #  Conditions:
+  #    - violations >= 10
+  #  Embed:
+  #    Color: "#ff0000"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "⚠️ {username} 觸發了 GrimAC 警報"
+  #    Description: "檢測類型: ${check.checkName}\n違規次數: ${violations}"
+
+  # ============================================
+  # 範例：玩家死亡詳細訊息
+  # ============================================
+  # 當玩家死亡時發送詳細訊息
+  #
+  #- Trigger: org.bukkit.event.entity.PlayerDeathEvent
+  #  Channel: deaths
+  #  Embed:
+  #    Color: "#000000"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "☠️ {username} 死亡了"
+  #    Description: "${deathMessage}"
+  #    Fields:
+  #      - "世界;{world};true"
+  #      - "座標;${#player.location.blockX}, ${#player.location.blockY}, ${#player.location.blockZ};true"
+
+  # ============================================
+  # 範例：玩家升級訊息
+  # ============================================
+  # 當玩家升級時發送訊息
+  #
+  #- Trigger: org.bukkit.event.player.PlayerLevelChangeEvent
+  #  Channel: levelup
+  #  Conditions:
+  #    - newLevel > oldLevel
+  #    - newLevel % 10 == 0    # 只在等級為 10 的倍數時發送
+  #  Embed:
+  #    Color: "#ffd700"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "🎉 {username} 升到了 ${newLevel} 級！"
+
+  # ============================================
+  # 範例：OP 指令監控
+  # ============================================
+  # 當使用 /op 指令時發送警報
+  #
+  #- Trigger: /op
+  #  Channel: admin
+  #  Embed:
+  #    Color: "#ff0000"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "⚠️ {username} 使用了 /op ${#allArgs}"
+
+  # ============================================
+  # 範例：傳送指令監控
+  # ============================================
+  # 當使用 /tp 指令時發送訊息
+  #
+  #- Trigger: /tp
+  #  Channel: teleport
+  #  Conditions:
+  #    - '#player.hasPermission("minecraft.command.teleport") == true'
+  #  Embed:
+  #    Color: "#00ffff"
+  #    Author:
+  #      ImageUrl: "{embedavatarurl}"
+  #      Name: "🚀 {username} 傳送了：/tp ${#allArgs}"
+
+

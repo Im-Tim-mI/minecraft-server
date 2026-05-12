@@ -1,0 +1,61 @@
+# ============================================
+# EssentialsX 基本功能權限設定
+# ============================================
+# 目標群組：default（所有玩家預設群組）
+# 設定後所有玩家都能使用這些功能
+# ============================================
+
+# ---------- 出生點功能 ----------
+# 允許使用 /spawn 傳送到伺服器出生點
+/lp group default permission set essentials.spawn true
+
+# ---------- 家功能 ----------
+# 允許使用 /home 傳送回家
+/lp group default permission set essentials.home true
+
+# 允許使用 /sethome 設定家的位置
+/lp group default permission set essentials.sethome true
+
+# 允許使用 /homes 列出所有已設定的家
+/lp group default permission set essentials.homes true
+
+# 允許使用 /delhome 刪除已設定的家
+/lp group default permission set essentials.delhome true
+
+# 允許設定最多 8 個家（可改成其他數字）
+# 例如：multiple.5 = 5 個家，multiple.10 = 10 個家
+/lp group default permission set essentials.sethome.multiple.8 true
+
+# 開放 /help 指令
+/lp group default permission set essentials.help true
+# /help              # 查看所有可用指令
+
+# ============================================
+# 玩家可用指令
+# ============================================
+# /spawn          - 傳送到出生點
+# /home           - 傳送到預設的家
+# /home <名稱>    - 傳送到指定名稱的家
+# /sethome        - 在目前位置設定家（預設名稱）
+# /sethome <名稱> - 設定有名稱的家（如：/sethome 礦坑）
+# /homes          - 列出所有已設定的家
+# /delhome <名稱> - 刪除指定名稱的家
+# ============================================
+
+# ============================================
+# 確認權限是否設定成功
+# ============================================
+# /lp group default info
+# ============================================
+```
+
+---
+
+## 快速一鍵版（無備注）
+```
+/lp group default permission set essentials.spawn true
+/lp group default permission set essentials.home true
+/lp group default permission set essentials.sethome true
+/lp group default permission set essentials.homes true
+/lp group default permission set essentials.delhome true
+/lp group default permission set essentials.sethome.multiple.3 true

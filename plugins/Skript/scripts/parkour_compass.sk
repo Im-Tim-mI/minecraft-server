@@ -1,0 +1,28 @@
+# 每 30 秒執行一次檢測，確保補給即時
+every 30 second:
+    # 設定目標箱子座標與世界名稱（請確認世界名稱是否為 "world"）
+    set {_loc} to location(-1019, 93, -1189, world "world")
+    
+    # 檢查該位置是否為箱子或木桶
+    if block at {_loc} is a chest or barrel:
+        
+        # 1. 先清空箱子內所有物品（確保只有「一個」物品存在）
+        clear inventory of block at {_loc}
+        
+        # 2. 在箱子的第一個格子 (Slot 0) 放入指定的指南針
+        # 使用 §b 讓名稱變為淺藍色（可依喜好更換顏色代碼）
+        set slot 0 of block at {_loc} to 1 compass named "§b跑酷能手"
+    
+    # 設定目標箱子座標與世界名稱（請確認世界名稱是否為 "world"）
+    set {_loc} to location(-1007, 93, -1189, world "world")
+    
+    # 檢查該位置是否為箱子或木桶
+    if block at {_loc} is a chest or barrel:
+        
+        # 1. 先清空箱子內所有物品（確保只有「一個」物品存在）
+        clear inventory of block at {_loc}
+        
+        # 2. 在箱子的第一個格子 (Slot 0) 放入指定的指南針
+        # 使用 §b 讓名稱變為淺藍色（可依喜好更換顏色代碼）
+        set slot 0 of block at {_loc} to 1 nether star named "§b跑酷高手"
+

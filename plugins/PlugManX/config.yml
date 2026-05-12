@@ -1,0 +1,48 @@
+###
+# 執行啟用、停用、重啟、載入、重載、卸載時要忽略的插件列表。
+#
+# 格式為用逗號分隔的列表，放在方括號內。
+###
+ignored-plugins: [ PlugMan,PlugManX,PlugManBungee,ViaVersion,ViaBackwards,ViaRewind,ProtocolSupport,ProtocolLib ]
+# 忽略的插件：這些插件不會被 PlugManX 管理
+# - PlugMan, PlugManX, PlugManBungee：PlugMan 系列本身
+# - ViaVersion, ViaBackwards, ViaRewind：版本兼容插件（熱重載可能導致問題）
+# - ProtocolSupport, ProtocolLib：協議處理插件（熱重載可能導致問題）
+
+notify-on-broken-command-removal: true
+# 當移除損壞的指令時發送通知
+# true = 啟用通知 | false = 停用通知
+
+auto-load:
+  # 自動載入功能：自動載入放入 plugins 資料夾的新插件
+  enabled: true
+  # 是否啟用自動載入
+  # true = 啟用 | false = 停用（預設）
+  check-every-seconds: 60
+  # 檢查間隔（秒）：每隔多少秒檢查一次新插件
+
+auto-unload:
+  # 自動卸載功能：自動卸載從 plugins 資料夾移除的插件
+  enabled: true
+  # 是否啟用自動卸載
+  # true = 啟用 | false = 停用（預設）
+  check-every-seconds: 60
+  # 檢查間隔（秒）：每隔多少秒檢查一次
+
+auto-reload:
+  # 自動重載功能：自動重載被修改的插件
+  enabled: true
+  # 是否啟用自動重載
+  # true = 啟用 | false = 停用（預設）
+  check-every-seconds: 60
+  # 檢查間隔（秒）：每隔多少秒檢查一次插件是否被修改
+
+showPaperWarning: true
+# 顯示 Paper 警告
+# true = 顯示警告（PlugManX 在 Paper 上有些功能受限）
+# false = 隱藏警告
+# 建議：如果你已知道這個限制，可以設為 false 來隱藏啟動時的警告
+  
+# 請勿修改此值
+version: 3
+# 配置文件版本號（內部使用）

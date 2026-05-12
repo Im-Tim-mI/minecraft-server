@@ -1,0 +1,24 @@
+### 設定出生點保護區
+```
+# 1. 拿木斧選區
+//wand
+
+# 2. 左鍵點第一個角落，右鍵點第二個角落（選一個大範圍）
+
+# 3. 創建保護區域，名稱叫 "go"
+/rg define go
+
+# 4. 設定防爆
+/rg flag go creeper-explosion deny
+/rg flag go other-explosion deny
+/rg flag go tnt deny
+
+# 5. 禁止怪物生成（可選）
+/rg flag go mob-going deny
+
+# 6. 禁止 PVP（可選）
+/rg flag go pvp deny
+
+# 7. 禁止破壞方塊（可選）
+/rg flag go block-break deny
+/rg flag go block-place deny

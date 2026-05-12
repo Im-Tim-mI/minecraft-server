@@ -1,0 +1,12 @@
+＃選取舊有區域
+/rg select spawn
+＃複製
+//copy
+＃備份
+//schem save spawn_backupup_3_5
+
+
+載入備份：
+//schem load spawn_backupup_3_5
+/paste -o
+

@@ -1,0 +1,101 @@
+# ============================================
+# 末地每週重置腳本
+# 每週日中午 12:00 自動重置末地
+# ============================================
+# 檔案名稱：end-reset.sk
+# 放置位置：plugins/Skript/scripts/
+# ============================================
+# 
+# ⚠️ 重要設定：
+# 請確保 Multiverse config.yml 中設定：
+# confirm-mode: disable_console
+#
+# ============================================
+
+options:
+    prefix: &6&l[末地重置] &r
+
+# ============================================
+# 每分鐘檢查時間
+# ============================================
+every minute:
+    set {_time} to now formatted as "HH:mm"
+    set {_day} to now formatted as "EEEE"
+    
+    # 只在週日執行
+    if {_day} is "Sunday":
+        
+        # 11:30 - 預告
+        if {_time} is "11:30":
+            broadcast "{@prefix}&e12:00 末地將會重置！"
+            broadcast "{@prefix}&e請末地的玩家提前離開並保存物品！"
+        
+        # 11:50 - 倒數 10 分鐘
+        if {_time} is "11:50":
+            broadcast "{@prefix}&c末地重置 倒數十分鐘！"
+            broadcast "{@prefix}&c請立即離開末地！"
+        
+        # 11:55 - 倒數 5 分鐘
+        if {_time} is "11:55":
+            broadcast "{@prefix}&c&l末地重置 倒數五分鐘！"
+        
+        # 11:59 - 倒數 1 分鐘
+        if {_time} is "11:59":
+            broadcast "{@prefix}&4&l末地重置 倒數一分鐘！"
+            broadcast "{@prefix}&4&l所有末地玩家將被強制傳送！"
+        
+        # 12:00 - 執行重置
+        if {_time} is "12:00":
+            execute console command "重置末地"
+
+# ============================================
+# 手動重置指令（管理員用）
+# ============================================
+command /重置末地:
+    permission: op
+    description: 手動重置末地
+    trigger:
+        broadcast "{@prefix}&b正在重置末地..."
+        
+        # 步驟 1：傳送所有末地玩家到主世界
+        loop all players in world "world_the_end":
+            teleport loop-player to spawn of world "world"
+            send "{@prefix}&e你已被傳送至主世界！" to loop-player
+        
+        wait 2 seconds
+        
+        # 步驟 2：嘗試匯入末地（確保在 MV 管理中）
+        # execute console command "mv import world_the_end THE_END"
+        # wait 1 second
+        
+        # 步驟 3：卸載末地
+        execute console command "mv unload world_the_end --remove-players"
+        wait 1 second
+        
+        # 步驟 4：刪除末地
+        execute console command "mv delete world_the_end"
+        wait 2 seconds
+        
+        # 步驟 5：重新建立末地
+        execute console command "mv create world_the_end THE_END"
+        wait 3 seconds
+        
+        # 步驟 6：載入末地
+        # execute console command "mv load world_the_end"
+        # wait 1 second
+        
+        broadcast ""
+        broadcast "{@prefix}&a&l末地重置完成！"
+        broadcast "{@prefix}&d&l✦ 搶龍大作戰開始！ ✦"
+        broadcast ""
+
+# ============================================
+# 查看下次重置時間
+# ============================================
+command /末地下次重置時間:
+    description: 查看末地重置資訊
+    trigger:
+        send "&6&l========== 末地重置資訊 =========="
+        send "&e下次重置時間: &b每週日 12:00"
+        send "&e重置內容: &f末地世界完全重置，末影龍重生"
+        send "&6&l=================================="

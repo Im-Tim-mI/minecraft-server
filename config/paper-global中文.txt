@@ -1,0 +1,243 @@
+# ============================================
+# Paper 全局配置文件（繁體中文翻譯版）
+# ============================================
+# 這是 Paper 服務器的全局配置文件。
+# 如你所見，有很多可以配置的選項。某些選項可能會影響遊戲體驗，
+# 請謹慎使用，並確保你了解每個選項的作用後再進行配置。
+#
+# 如果你需要配置方面的幫助或有任何關於 Paper 的問題，
+# 請加入我們的 Discord 或查看文檔頁面。
+#
+# 世界配置選項已移至各自的世界資料夾內。
+# 文件名為 paper-world.yml
+#
+# 文件參考：https://docs.papermc.io/paper/reference/global-configuration/
+# 文檔：https://docs.papermc.io/
+# Discord：https://discord.gg/papermc
+# 網站：https://papermc.io/
+
+_version: 31
+
+# ============================================
+# 反作弊設定
+# ============================================
+anticheat:
+  obfuscation:                                # 混淆設定（防止作弊客戶端）
+    items:
+      all-models:                             # 所有模型的通用設定
+        also-obfuscate: []                    # 額外要混淆的項目
+        dont-obfuscate:                       # 不混淆的項目
+        - minecraft:lodestone_tracker         # 磁石追蹤器（指南針）
+        sanitize-count: true                  # 是否清理數量資訊
+      enable-item-obfuscation: false          # 是否啟用物品混淆（防止物品透視）
+      model-overrides:                        # 特定模型的覆蓋設定
+        minecraft:elytra:                     # 鞘翅
+          also-obfuscate: []
+          dont-obfuscate:
+          - minecraft:damage                  # 不混淆耐久度
+          sanitize-count: true
+
+# ============================================
+# 方塊更新設定
+# ============================================
+block-updates:
+  disable-chorus-plant-updates: false         # 停用乾旱使者紫頌花更新（用於建築技巧）
+  disable-mushroom-block-updates: false       # 停用蘑菇方塊更新（用於建築技巧）
+  disable-noteblock-updates: false            # 停用音階盒更新
+  disable-tripwire-updates: false             # 停用絆線更新
+
+# ============================================
+# 進階區塊載入設定
+# ============================================
+chunk-loading-advanced:
+  auto-config-send-distance: true             # 自動配置發送距離
+  player-max-concurrent-chunk-generates: 0    # 玩家同時生成區塊的最大數量（0=自動）
+  player-max-concurrent-chunk-loads: 0        # 玩家同時載入區塊的最大數量（0=自動）
+
+# ============================================
+# 基礎區塊載入設定
+# ============================================
+chunk-loading-basic:
+  player-max-chunk-generate-rate: -1.0        # 玩家區塊生成速率（-1=無限制）
+  player-max-chunk-load-rate: 100.0           # 玩家區塊載入速率（每秒）
+  player-max-chunk-send-rate: 75.0            # 玩家區塊發送速率（每秒）
+
+# ============================================
+# 區塊系統設定
+# ============================================
+chunk-system:
+  io-threads: -1                              # I/O 線程數（-1=自動）
+  worker-threads: -1                          # 工作線程數（-1=自動）
+
+# ============================================
+# 碰撞設定
+# ============================================
+collisions:
+  enable-player-collisions: true              # 啟用玩家碰撞（false=玩家可以互相穿過）
+  send-full-pos-for-hard-colliding-entities: true  # 對硬碰撞實體發送完整位置
+
+# ============================================
+# 命令設定
+# ============================================
+commands:
+  ride-command-allow-player-as-vehicle: false # 允許 /ride 命令讓玩家作為載具
+  suggest-player-names-when-null-tab-completions: true  # Tab 補全為空時建議玩家名稱
+  time-command-affects-all-worlds: false      # /time 命令是否影響所有世界
+
+# ============================================
+# 控制台設定
+# ============================================
+console:
+  enable-brigadier-completions: true          # 啟用 Brigadier 命令補全
+  enable-brigadier-highlighting: true         # 啟用 Brigadier 命令高亮
+  has-all-permissions: false                  # 控制台是否擁有所有權限
+
+# ============================================
+# 物品驗證設定（防止惡意數據包）
+# ============================================
+item-validation:
+  book:                                       # 書本限制
+    author: 8192                              # 作者欄位最大字元數
+    page: 16384                               # 每頁最大字元數
+    title: 8192                               # 標題最大字元數
+  book-size:                                  # 書本大小限制
+    page-max: 2560                            # 每頁最大位元組
+    total-multiplier: 0.98                    # 總大小乘數
+  display-name: 8192                          # 顯示名稱最大字元數
+  lore-line: 8192                             # 說明文字每行最大字元數
+  resolve-selectors-in-books: false           # 是否解析書本中的選擇器
+
+# ============================================
+# 日誌設定
+# ============================================
+logging:
+  deobfuscate-stacktraces: true               # 反混淆堆疊追蹤（使錯誤訊息更易讀）
+
+# ============================================
+# 訊息設定
+# ============================================
+messages:
+  kick:                                       # 踢出訊息
+    authentication-servers-down: <red>驗證伺服器目前無法連線，請稍後再試。
+                                              # 驗證伺服器離線訊息
+    connection-throttle: <red>連線過於頻繁，請稍候再重新連線。
+                                              # 連線限流訊息（連接太頻繁）
+    flying-player: <red>偵測到異常飛行，已中斷連線。
+                                              # 玩家飛行踢出訊息
+    flying-vehicle: <red>偵測到載具異常飛行，已中斷連線。
+                                              # 載具飛行踢出訊息
+  no-permission: <red>抱歉，你沒有權限執行此指令。若你認為這是錯誤，請聯絡伺服器管理員。
+                                              # 無權限訊息（可自訂中文）
+  use-display-name-in-quit-message: false     # 離開訊息使用顯示名稱
+
+# ============================================
+# 雜項設定
+# ============================================
+misc:
+  chat-threads:                               # 聊天線程設定
+    chat-executor-core-size: -1               # 聊天執行器核心大小（-1=自動）
+    chat-executor-max-size: -1                # 聊天執行器最大大小（-1=自動）
+  client-interaction-leniency-distance: default  # 客戶端互動寬容距離
+  compression-level: default                  # 壓縮等級（越高壓縮越好但更耗 CPU）
+  enable-nether: true                         # 啟用地獄維度
+  fix-far-end-terrain-generation: true        # 修復遠端終界地形生成
+  load-permissions-yml-before-plugins: true   # 在載入插件前載入 permissions.yml
+  max-joins-per-tick: 5                       # 每 tick 最大加入玩家數（防止同時登入導致卡頓）
+  prevent-negative-villager-demand: false     # 防止村民需求變為負數
+  region-file-cache-size: 256                 # 區域文件快取大小
+  send-full-pos-for-item-entities: false      # 對物品實體發送完整位置
+  strict-advancement-dimension-check: false   # 嚴格進度維度檢查
+  use-alternative-luck-formula: false         # 使用替代幸運公式
+  use-dimension-type-for-custom-spawners: false  # 自訂刷怪籠使用維度類型
+  xp-orb-groups-per-area: default             # 每區域經驗球分組數
+
+# ============================================
+# 數據包限制器（防止惡意數據包攻擊）
+# ============================================
+packet-limiter:
+  all-packets:                                # 所有數據包的預設限制
+    action: KICK                              # 超過限制的動作（KICK=踢出，DROP=丟棄）
+    interval: 7.0                             # 檢測間隔（秒）
+    max-packet-rate: 500.0                    # 最大數據包速率（每間隔）
+  kick-message: <red><lang:disconnect.exceeded_packet_rate>
+                                              # 數據包超限踢出訊息
+  overrides:                                  # 特定數據包的覆蓋設定
+    minecraft:place_recipe:                   # 配方放置數據包（防止配方書刷屏）
+      action: DROP                            # 超過限制就丟棄
+      interval: 4.0
+      max-packet-rate: 5.0
+
+# ============================================
+# 玩家自動儲存設定
+# ============================================
+player-auto-save:
+  max-per-tick: -1                            # 每 tick 最大儲存玩家數（-1=使用預設）
+  rate: -1                                    # 儲存頻率（-1=使用預設）
+
+# ============================================
+# 代理設定（群組服需要）
+# ============================================
+proxies:
+  bungee-cord:                                # BungeeCord 代理設定
+    online-mode: true                         # 是否使用線上模式（正版驗證）
+  proxy-protocol: false                       # 啟用代理協議（用於 TCPShield 等）
+  velocity:                                   # Velocity 代理設定
+    enabled: false                            # 是否啟用 Velocity 支援
+    online-mode: true                         # 是否使用線上模式
+    secret: ''                                # Velocity 密鑰（必須與 Velocity 配置相同）
+
+# ============================================
+# 計分板設定
+# ============================================
+scoreboards:
+  save-empty-scoreboard-teams: true           # 儲存空的計分板隊伍
+  track-plugin-scoreboards: false             # 追蹤插件計分板（可能影響性能）
+
+# ============================================
+# 垃圾訊息限制器（防止刷屏）
+# ============================================
+spam-limiter:
+  incoming-packet-threshold: 300              # 傳入數據包閾值
+  recipe-spam-increment: 1                    # 配方垃圾訊息增量
+  recipe-spam-limit: 20                       # 配方垃圾訊息限制
+  tab-spam-increment: 1                       # Tab 垃圾訊息增量
+  tab-spam-limit: 500                         # Tab 垃圾訊息限制
+
+# ============================================
+# Spark 性能分析器設定
+# ============================================
+spark:
+  enable-immediately: false                   # 立即啟用（不等待服務器完全啟動）
+  enabled: true                               # 是否啟用 Spark 性能分析器
+
+# ============================================
+# 不支持的設定（使用風險自負）
+# ============================================
+# ⚠️ 這些設定利用遊戲 bug 或繞過驗證
+# 可能在未來版本被移除，Paper 官方不提供支援
+unsupported-settings:
+  allow-headless-pistons: false               # 允許無頭活塞（用於特殊紅石機器）
+  allow-permanent-block-break-exploits: false # 允許永久破壞方塊漏洞（如破壞基岩）
+  allow-piston-duplication: true              # 允許活塞複製（TNT、地毯、鐵軌複製機）
+                                              # ✅ 你已開啟此功能！
+  allow-unsafe-end-portal-teleportation: false  # 允許不安全的終界傳送門傳送
+  compression-format: ZLIB                    # 壓縮格式
+  oversized-item-component-sanitizer:         # 超大物品組件清理器
+    dont-sanitize: []                         # 不清理的項目
+  perform-username-validation: true           # 執行用戶名驗證
+  skip-tripwire-hook-placement-validation: false  # 跳過絆線鉤放置驗證
+  skip-vanilla-damage-tick-when-shield-blocked: false  # 盾牌格擋時跳過原版傷害 tick
+  update-equipment-on-player-actions: true    # 玩家動作時更新裝備
+
+# ============================================
+# 更新檢查器
+# ============================================
+update-checker:
+  enabled: true                               # 是否檢查 Paper 更新
+
+# ============================================
+# 看門狗設定（偵測服務器卡頓）
+# ============================================
+watchdog:
+  early-warning-delay: 10000                  # 提前警告延遲（毫秒，10秒）
+  early-warning-every: 5000                   # 每隔多久警告一次（毫秒，5秒）

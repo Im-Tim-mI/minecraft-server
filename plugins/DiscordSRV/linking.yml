@@ -1,0 +1,105 @@
+Require linked account to play: 
+  # 是否啟用此功能
+  Enabled: false
+
+  # ============================================
+  # 進階設定（如果不了解這些設定，請勿修改）
+  # ============================================
+
+  # 加入監聽器的優先級
+  # 可用值（按順序）：LOWEST, LOW, NORMAL, HIGH, HIGHEST
+  # 如果使用封禁插件，可能需要改為較後的優先級，讓封禁插件先踢出玩家
+  Listener priority: LOWEST
+
+  # 連結模組應該監聽並拒絕登入的事件
+  # 有些白名單插件使用 AsyncPlayerPreLoginEvent（較好）
+  # 有些使用 PlayerLoginEvent（較差）
+  Listener event: AsyncPlayerPreLoginEvent
+
+  # ============================================
+  # 繞過設定
+  # ============================================
+
+  # 永遠允許進入的 Minecraft 玩家名稱（無論是否連結或訂閱）
+  Bypass names: []
+
+  # 原版白名單中的玩家是否可以繞過連結/訂閱檢查
+  Whitelisted players bypass check: true
+
+  # 是否檢查原版封禁名單中的玩家能否連結帳號
+  Check banned players: false
+
+  # 是否只檢查被封禁的玩家（非封禁玩家可繞過連結/訂閱檢查）
+  Only check banned players: false
+
+  # ============================================
+  # 未連結踢出訊息
+  # ============================================
+  # 當玩家未連結帳號時，踢出並顯示的訊息
+  #
+  # 可用佔位符：
+  # {BOT}    - Bot 名稱
+  # {CODE}   - 玩家需要發送給 Bot 的連結代碼
+  # {INVITE} - Discord 伺服器邀請連結（來自 config.yml 的 DiscordInviteLink）
+  #
+  Not linked message: "&7你必須連結 &9Discord &7帳號才能遊玩。\n\n&7請在 Discord 伺服器中私訊 &b{BOT}&7，發送 &b{CODE}&7 來連結你的帳號。\n\n&7Discord 邀請連結 » &b{INVITE}"
+
+  # ============================================
+  # 要求加入 Discord 伺服器
+  # ============================================
+  # 啟用後，玩家不僅需要連結帳號，還必須是 Bot 所在 Discord 伺服器的成員
+  #
+  # 可接受的格式：
+  #   true/false: 連結的帳號必須在至少一個 Bot 所在的 Discord 伺服器中
+  #     範例：true
+  #   <伺服器 ID>: 連結的帳號必須在指定的 Discord 伺服器中
+  #     範例：135634590575493120
+  #   [<伺服器 ID>, <伺服器 ID>, ...]: 連結的帳號必須在「所有」指定的 Discord 伺服器中
+  #     範例：[135634590575493120, 690411863766466590]
+  #
+  # 注意：當啟用下方的訂閱者身分組要求時，此選項會被覆蓋
+  Must be in Discord server: true
+
+  # ============================================
+  # 訂閱者身分組要求
+  # ============================================
+  # 可選功能：要求玩家不僅要連結帳號，還必須擁有特定身分組（如 Twitch 訂閱者身分組）
+  Subscriber role:
+    # 是否要求訂閱者身分組才能加入
+    Require subscriber role to join: false
+
+    # 訂閱者身分組 ID 列表
+    # 從 Discord 取得身分組 ID：開啟開發者模式 → 右鍵身分組 → 複製 ID
+    Subscriber roles: ["00000000000000000", "00000000000000000", "00000000000000000"]
+
+    # 是否要求擁有「所有」列出的身分組
+    # false = 只需要擁有其中一個身分組
+    # true = 必須擁有所有身分組
+    Require all of the listed roles: false
+
+    # 沒有訂閱者身分組時的踢出訊息
+    Kick message: "&c你必須是訂閱者才能遊玩。"
+
+  # ============================================
+  # 各種情況的訊息
+  # ============================================
+  Messages:
+    # DiscordSRV 仍在啟動中
+    DiscordSRV still starting: "&c目前無法檢查連結狀態，因為伺服器仍在連接 Discord。\n\n請稍後再試。"
+
+    # 玩家不在 Discord 伺服器中
+    Not in server: "&c你目前不在我們的 Discord 伺服器中。\n\n請加入：{INVITE}！"
+
+    # 找不到訂閱者身分組
+    Failed to find subscriber role: "&c無法在 Discord 中找到任何訂閱者身分組。\n\n請聯繫伺服器管理員處理此問題。"
+
+    # 未知原因失敗
+    Failed for unknown reason: "&c驗證你的帳號時發生錯誤。\n\n請聯繫伺服器管理員處理此問題。"
+
+    # 因解除連結而被踢出
+    Kicked for unlinking: "&c你因為解除帳號連結而被踢出伺服器。\n\n請重新加入伺服器以連結你的帳號。"
+
+
+
+
+

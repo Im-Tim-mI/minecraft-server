@@ -1,0 +1,219 @@
+# ============================================
+# 2026/4/27 測試人員感謝套裝
+# 下界合金全套 + 鞘翅 + 胸甲 + 感謝勳章
+# ============================================
+
+options:
+    prefix: &6[&e感謝套裝&6]
+    armor_name: &6&l2026/4/27測試人員感謝套裝
+    medal_name: &6&l2026/4/27測試人員感謝勳章
+
+# ============================================
+# 發放感謝套裝指令
+# ============================================
+command /發放感謝套裝 [<player>]:
+    permission: op
+    trigger:
+        if arg-1 is set:
+            giveThankYouGear(arg-1)
+            send "{@prefix} &a已發放感謝套裝給 &e%arg-1%&a！" to player
+        else:
+            loop all players:
+                giveThankYouGear(loop-player)
+            send "{@prefix} &a已發放感謝套裝給 &e%size of all players% &a位玩家！" to player
+
+# ============================================
+# 發放裝備函數
+# ============================================
+function giveThankYouGear(p: player):
+    # ======== 下界合金頭盔 ========
+    set {_helmet} to netherite helmet named "{@armor_name}"
+    set lore of {_helmet} to "&7感謝您參與測試！" and "&7日期：2026/4/27" and "" and "&e✦ 全附魔滿等 ✦"
+    enchant {_helmet} with protection 4
+    enchant {_helmet} with fire protection 4
+    enchant {_helmet} with blast protection 4
+    enchant {_helmet} with projectile protection 4
+    enchant {_helmet} with respiration 3
+    enchant {_helmet} with aqua affinity 1
+    enchant {_helmet} with thorns 3
+    enchant {_helmet} with unbreaking 3
+    enchant {_helmet} with mending 1
+    give {_helmet} to {_p}
+    
+    # ======== 下界合金胸甲 ========
+    set {_chestplate} to netherite chestplate named "{@armor_name}"
+    set lore of {_chestplate} to "&7感謝您參與測試！" and "&7日期：2026/4/27" and "" and "&e✦ 全附魔滿等 ✦"
+    enchant {_chestplate} with protection 4
+    enchant {_chestplate} with fire protection 4
+    enchant {_chestplate} with blast protection 4
+    enchant {_chestplate} with projectile protection 4
+    enchant {_chestplate} with thorns 3
+    enchant {_chestplate} with unbreaking 3
+    enchant {_chestplate} with mending 1
+    give {_chestplate} to {_p}
+    
+    # ======== 鞘翅 ========
+    set {_elytra} to elytra named "{@armor_name}"
+    set lore of {_elytra} to "&7感謝您參與測試！" and "&7日期：2026/4/27" and "" and "&e✦ 全附魔滿等 ✦"
+    enchant {_elytra} with protection 4
+    enchant {_elytra} with fire protection 4
+    enchant {_elytra} with blast protection 4
+    enchant {_elytra} with projectile protection 4
+    enchant {_elytra} with thorns 3
+    enchant {_elytra} with unbreaking 3
+    enchant {_elytra} with mending 1
+    give {_elytra} to {_p}
+    
+    # ======== 下界合金護腿 ========
+    set {_leggings} to netherite leggings named "{@armor_name}"
+    set lore of {_leggings} to "&7感謝您參與測試！" and "&7日期：2026/4/27" and "" and "&e✦ 全附魔滿等 ✦"
+    enchant {_leggings} with protection 4
+    enchant {_leggings} with fire protection 4
+    enchant {_leggings} with blast protection 4
+    enchant {_leggings} with projectile protection 4
+    enchant {_leggings} with thorns 3
+    enchant {_leggings} with unbreaking 3
+    enchant {_leggings} with mending 1
+    enchant {_leggings} with swift sneak 3
+    give {_leggings} to {_p}
+    
+    # ======== 下界合金靴子 ========
+    set {_boots} to netherite boots named "{@armor_name}"
+    set lore of {_boots} to "&7感謝您參與測試！" and "&7日期：2026/4/27" and "" and "&e✦ 全附魔滿等 ✦"
+    enchant {_boots} with protection 4
+    enchant {_boots} with fire protection 4
+    enchant {_boots} with blast protection 4
+    enchant {_boots} with projectile protection 4
+    enchant {_boots} with feather falling 4
+    enchant {_boots} with thorns 3
+    enchant {_boots} with depth strider 3
+    enchant {_boots} with soul speed 3
+    enchant {_boots} with frost walker 2
+    enchant {_boots} with unbreaking 3
+    enchant {_boots} with mending 1
+    give {_boots} to {_p}
+    
+    # ======== 感謝勳章（下界之星）========
+    set {_medal} to nether star named "{@medal_name}"
+    set lore of {_medal} to "&7感謝您參與測試！" and "&7日期：2026/4/27" and "" and "&d✦ 永久紀念 ✦"
+    give {_medal} to {_p}
+    
+    # 通知玩家
+    send "" to {_p}
+    send "&6&l✦═══════════════════════════════✦" to {_p}
+    send "&e&l     感謝您參與測試！" to {_p}
+    send "&6&l✦═══════════════════════════════✦" to {_p}
+    send "" to {_p}
+    send "&7您獲得了以下物品：" to {_p}
+    send "&f  - &b下界合金頭盔 &7（全附魔 + 經驗修補）" to {_p}
+    send "&f  - &b下界合金胸甲 &7（全附魔 + 經驗修補）" to {_p}
+    send "&f  - &b鞘翅 &7（全附魔 + 經驗修補）" to {_p}
+    send "&f  - &b下界合金護腿 &7（全附魔 + 迅捷潛行 + 經驗修補）" to {_p}
+    send "&f  - &b下界合金靴子 &7（全附魔 + 靈魂疾行 + 經驗修補）" to {_p}
+    send "&f  - &d感謝勳章 &7（下界之星）" to {_p}
+    send "" to {_p}
+    send "&e感謝您對伺服器的貢獻！" to {_p}
+    send "&6&l✦═══════════════════════════════✦" to {_p}
+    send "" to {_p}
+    
+    # 標題 + 音效
+    send title "&6&l感謝您！" with subtitle "&e測試人員感謝套裝已發放" to {_p} for 3 seconds
+    play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 with pitch 1 to {_p}
+
+# ============================================
+# 回收感謝套裝（單一玩家）
+# ============================================
+command /回收感謝套裝 [<player>]:
+    permission: op
+    trigger:
+        if arg-1 is set:
+            recallThankYouGear(arg-1)
+            send "{@prefix} &c已回收 &e%arg-1% &c的感謝套裝！" to player
+        else:
+            send "{@prefix} &c用法：/回收感謝套裝 <玩家>" to player
+            send "{@prefix} &7或使用 /回收全部感謝套裝 回收所有人" to player
+
+# ============================================
+# 回收全部玩家裝備
+# ============================================
+command /回收全部感謝套裝:
+    permission: op
+    trigger:
+        set {_count} to 0
+        loop all players:
+            recallThankYouGear(loop-player)
+            add 1 to {_count}
+        send "{@prefix} &c已回收 &e%{_count}% &c位玩家的感謝套裝！" to player
+
+# ============================================
+# 回收裝備函數
+# ============================================
+function recallThankYouGear(p: player):
+    set {_removed} to 0
+    
+    # 檢查並移除裝備欄
+    if name of helmet of {_p} is "{@armor_name}":
+        set helmet of {_p} to air
+        add 1 to {_removed}
+    
+    if name of chestplate of {_p} is "{@armor_name}":
+        set chestplate of {_p} to air
+        add 1 to {_removed}
+    
+    if name of leggings of {_p} is "{@armor_name}":
+        set leggings of {_p} to air
+        add 1 to {_removed}
+    
+    if name of boots of {_p} is "{@armor_name}":
+        set boots of {_p} to air
+        add 1 to {_removed}
+    
+    # 移除背包中的感謝套裝和勳章
+    loop all items in {_p}'s inventory:
+        if name of loop-item is "{@armor_name}":
+            remove loop-item from {_p}'s inventory
+            add 1 to {_removed}
+        if name of loop-item is "{@medal_name}":
+            remove loop-item from {_p}'s inventory
+            add 1 to {_removed}
+    
+    # 通知玩家
+    if {_removed} > 0:
+        send "{@prefix} &c你的感謝套裝已被回收！" to {_p}
+        send "&7共回收 &e%{_removed}% &7件物品" to {_p}
+        play sound "ENTITY_ITEM_BREAK" with volume 1 to {_p}
+
+# ============================================
+# 查看誰有感謝套裝
+# ============================================
+command /查看感謝套裝:
+    permission: op
+    trigger:
+        send "{@prefix} &e擁有感謝套裝的玩家：" to player
+        set {_count} to 0
+        loop all players:
+            set {_has} to false
+            
+            # 檢查裝備欄
+            if name of helmet of loop-player is "{@armor_name}":
+                set {_has} to true
+            if name of chestplate of loop-player is "{@armor_name}":
+                set {_has} to true
+            if name of leggings of loop-player is "{@armor_name}":
+                set {_has} to true
+            if name of boots of loop-player is "{@armor_name}":
+                set {_has} to true
+            
+            # 檢查背包
+            loop all items in loop-player's inventory:
+                if name of loop-item is "{@armor_name}" or "{@medal_name}":
+                    set {_has} to true
+            
+            if {_has} is true:
+                add 1 to {_count}
+                send "&7- &a%loop-player%" to player
+        
+        if {_count} is 0:
+            send "&7沒有玩家擁有感謝套裝" to player
+        else:
+            send "&e共 &a%{_count}% &e位玩家" to player

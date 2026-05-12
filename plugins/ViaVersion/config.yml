@@ -1,0 +1,228 @@
+# 感謝您下載 ViaVersion
+# 請確保您仔細閱讀所有選項
+# 如需協助：
+# Discord - https://viaversion.com/discord
+# 文件 - https://docs.viaversion.com
+#
+#----------------------------------------------------------#
+#                       全域選項                            #
+#----------------------------------------------------------#
+#
+# ViaVersion 是否應檢查更新？
+check-for-updates: true
+# 在狀態（Ping）回應封包中傳送支援的版本
+send-supported-versions: false
+# 比 'block-protocols' 更易設定的替代方案，使用可讀的版本字串，可加上 '<' 和 '>' 前綴。
+# 例如，封鎖 1.16.4、1.16 以下所有版本，以及 1.17.1 以上所有版本：["<1.16", "1.16.4", ">1.17.1"]
+# 可與 block-protocols 選項同時使用。
+block-versions: [">1.21.11"]
+# 封鎖特定的 Minecraft 協定版本號碼。
+# 所有 Minecraft 協定版本列表：https://minecraft.wiki/w/Protocol_version，或使用產生器：https://via.krusic22.com
+block-protocols: []
+# 變更被封鎖時的中斷連線訊息
+block-disconnect-msg: 請將版本降到 1.21.11 最新版Minecraft 運行有BUG因此暫時禁止連線！
+#block-disconnect-msg: 您正在使用不支援的 Minecraft 版本！
+# 若您使用 ProtocolLib，我們無法在不踢出玩家的情況下重新載入。
+# （我們也不建議使用 reload，請使用插件管理器）
+# 您可以在此自訂使用 ProtocolLib 時踢出玩家的訊息。
+reload-disconnect-msg: 伺服器重新載入，請重新加入！
+# 紀錄行為的相關設定。在除錯問題時，我們可能會要求您變更其中一些設定。
+# 大多數預設為停用，以防止因錯誤使用者輸入造成大量日誌。
+logging:
+  # 是否將因封鎖協定版本而踢出的更多資訊記錄至控制台。
+  log-blocked-joins: false
+  # 是否記錄實體資料轉換期間的錯誤。
+  log-entity-data-errors: true
+  # 是否記錄文字元件轉換期間的錯誤。
+  log-text-component-conversion-errors: false
+  # 是否對伺服器與客戶端之間轉換物品、方塊或其他資料時的其他問題發出警告。
+  log-other-conversion-warnings: false
+  # 控制台中錯誤訊息的最大長度。
+  max-error-length: 1500
+#
+# 用於自動更新設定檔，請勿修改。
+config-version: 1
+init-config-version: 1
+# 是否將保持預設值的設定更新至新變更的預設值，建議保持啟用。
+migrate-default-config-changes: true
+# 若啟用，ViaVersion 將在連線時透過插件訊息將玩家原生版本傳送至伺服器。
+# 詳情請參閱 wiki：https://github.com/ViaVersion/ViaVersion/wiki/Server-and-Player-Details-Protocol
+send-player-details: true
+# 若啟用，ViaVersion 將在連線時透過插件訊息將原生伺服器版本傳送給玩家。
+# 詳情請參閱上方 wiki。
+send-server-details: true
+#
+#----------------------------------------------------------#
+#                    全域封包限制器                          #
+#----------------------------------------------------------#
+# 每秒封包數（PPS）與封包大小（KB）限制器。
+# 將 'max-per-second' 或 'sustained-max-per-second' 設為 -1 可停用各別限制。
+# 踢出訊息可分別使用 %pps 或 %bps 佔位符，但這些主要用於除錯目的。
+#
+# 限制每秒傳送的封包數量。
+# 客戶端預設每秒傳送約 20-90 個封包。
+packet-limiter:
+  enabled: true
+  # 客戶端每秒可傳送的最大封包數。
+  max-per-second: 800
+  max-per-second-kick-message: 您傳送了太多封包！
+  #
+  # 若玩家在較長時間內持續傳送過多封包，也可踢出他們。
+  # 例如：若玩家在 7 秒中的 4 秒內每秒傳送超過 200 個封包，則踢出。
+  # 客戶端在較長時間內每秒可傳送的最大封包數。
+  sustained-max-per-second: 200
+  # 追蹤的時間區間（秒）。
+  sustained-period-seconds: 7
+  # 在被踢出前，客戶端在時間區間內可超出限制的秒數。
+  sustained-threshold: 4
+  sustained-kick-message: 您傳送了太多封包，:( 
+# 限制每秒傳送的封包大小（KB）。
+packet-size-limiter:
+  enabled: false
+  max-per-second: -1
+  max-per-second-kick-message: 您傳送的封包太大！
+  sustained-max-per-second: -1
+  sustained-period-seconds: 5
+  sustained-threshold: 3
+  sustained-kick-message: 您傳送的封包太大，:(
+#
+#----------------------------------------------------------#
+#                    多版本選項                             #
+#----------------------------------------------------------#
+#
+# 是否啟用全息圖修正？
+# 若全息圖位置不正確，請啟用此選項
+hologram-patch: false
+# 偏移量，啟用後預設值應可正常運作。
+hologram-y: -0.96
+# 是否確保在 PlayerJoinEvent 中 ViaVersion 的 UserConnection 物件已可用。
+# 若您確定沒有插件需要此功能，可停用以加快啟動/加入速度。
+register-userconnections-on-join: true
+# 是否為 1.11/1.11.1 客戶端停用活塞動畫？
+# 在某些情況下，大量觸發活塞時會導致客戶端崩潰。
+piston-animation-patch: false
+# 實驗性 - 是否為 1.12 客戶端修正 Shift 快速移動動作（會導致移動物品時 Shift + 雙擊無法使用）（僅適用於基於 Bukkit 的 1.8-1.11.2 伺服器）
+quick-move-action-fix: false
+# 是否在 1.13 及以上版本客戶端上使用前綴處理隊伍顏色？
+team-colour-fix: true
+# 1.13 引入了新的自動補全功能，可能對 1.13 以下的伺服器觸發「因垃圾訊息被踢出」，以下選項可完全停用此功能。
+disable-1_13-auto-complete: false
+# 以下選項將延遲 Tab 補全請求 x 個 tick（若大於 0），若收到其他 Tab 補全，則取消先前的請求
+1_13-tab-complete-delay: 0
+# 對於 1.13 客戶端，最薄（1 層）的雪不會有碰撞，這將為 1.13+ 客戶端傳送 2 層雪，以防止他們穿過雪層
+fix-low-snow-collision: false
+# 受侵染的方塊對 1.13+ 客戶端可瞬間破壞，導致他們在 1.13 以下伺服器上無法破壞。此選項將其重新對應至正常的石頭變體
+fix-infested-block-breaking: true
+# 1.14 將客戶端書頁限制從 50 頁提高至 100 頁。某些反作弊插件會在客戶端超過 50 頁時封禁。此選項將編輯的書削減至 50 頁。
+truncate-1_14-books: false
+# 防止在 1.8 伺服器上使用 1.9-1.13 版本的客戶端在矮空間蹲下時不受擊退/出現速度錯誤。
+change-1_9-hitbox: false
+# 與上方類似，但適用於在 1.8-1.13 伺服器上的 1.14+ 玩家。
+# 警告：這將使 1.14+ 玩家能夠在其他版本玩家無法蹲入的方塊下方蹲下（在僅 1.5 格高的地方蹲下）！
+# 另外請記住，這些玩家在蹲下時，射向其頭頂的射彈和攻擊可能會錯過。
+change-1_14-hitbox: false
+# 修正 1.14+ 客戶端在 1.14 以下伺服器上非完整方塊的亮度值為 0 的問題。
+fix-non-full-blocklight: true
+# 修正當生命值設為 Float.NaN 時行走動畫不顯示的問題
+fix-1_14-health-nan: true
+# 1.15+ 客戶端是否應立即重生（不顯示死亡畫面）？
+use-1_15-instant-respawn: false
+#
+# 為 1.13+ 客戶端啟用伺服器端方塊連接 - 本節所有選項均圍繞此選項建立
+serverside-blockconnections: true
+# 設定方塊連接的方法（world 為高度實驗性的世界層級（使用風險自負），packet 為封包層級）
+blockconnection-method: packet
+# 啟用後，只有最重要的方塊會儲存在方塊儲存中。（柵欄、玻璃板等不會連接至實心方塊）
+reduce-blockstorage-memory: false
+# 與 serverside-blockconnections 一起啟用時，上方有方塊的花朵部分將傳送為莖
+# 適用於玩家無法建造且這些莖作為裝飾使用的大廳伺服器
+flowerstem-when-block-above: false
+# 未連接至方塊的藤蔓將對應為空氣，否則 1.13+ 客戶端仍能攀爬。
+vine-climb-fix: false
+#
+# 忽略 1.16+ 客戶端傳入的頻道名稱超過 32 個字元的插件頻道訊息。
+# CraftBukkit 在 1.16 之前對此有硬性限制，因此我們必須假設任何伺服器/代理可能存在此任意檢查。
+ignore-long-1_16-channel-names: true
+#
+# 強制 1.17+ 客戶端接受伺服器資源包；若拒絕將自動中斷連線。
+forced-use-1_17-resource-pack: false
+# 1.17+ 客戶端收到伺服器資源包時，提示視窗中顯示的訊息。
+resource-pack-1_17-prompt: ''
+#
+# 快取光照直到區塊被卸載，以允許後續的區塊更新封包，而非在傳送第一個區塊資料時立即清除快取。
+# 除非您知道自己在做什麼，否則請勿停用此選項。
+cache-1_17-light: true
+#
+# 當 1.19.4+ 玩家嘗試在已被佔用的槽位交換盔甲時，強制更新其物品欄。
+armor-toggle-fix: true
+#
+# 取得應為每個原版維度回傳的世界名稱
+map-1_16-world-names:
+  overworld: minecraft:overworld
+  nether: minecraft:the_nether
+  end: minecraft:the_end
+#
+# 若停用，已馴服的貓在 1.13 伺服器上對 1.14+ 客戶端將顯示為豹貓。否則，豹貓（已馴服和未馴服）將顯示為貓。
+translate-ocelot-to-cat: false
+#
+# 若目前 ViaVersion 無法存取，決定加入時傳送給 1.19+ 客戶端的值。
+# 若您的伺服器運行 1.19 或更新版本，不建議偽造此值，因為 1.20.5 對聊天處理更為嚴格，可能導致被踢出。
+enforce-secure-chat: false
+#
+# 處理 1.20.3 伺服器上數量值無效（超過最大堆疊大小）的物品。
+handle-invalid-item-count: false
+#
+# 在舊版伺服器上為 1.20.3+ 客戶端隱藏計分板數字。
+hide-scoreboard-numbers: false
+#
+# 修正 1.20.5 伺服器上 1.21+ 客戶端在快速移動時將水/熔岩桶放置在錯誤位置的問題，注意：這可能與反作弊插件產生衝突。
+fix-1_21-placement-rotation: true
+#
+# 若啟用，在 1.15.2 及以下版本伺服器上，取消玩家開啟物品欄時傳送的揮手封包。這可能與反作弊插件產生誤判。
+cancel-swing-in-inventory: true
+#
+#----------------------------------------------------------#
+#             1.8 伺服器上的 1.9+ 客戶端選項               #
+#----------------------------------------------------------#
+#
+# 碰撞選項，讓您設定碰撞的運作方式。
+# 是否要防止碰撞？
+prevent-collision: true
+# 若上述為 true，是否應自動將玩家分組直到您手動設定？
+auto-team: true
+# 啟用後，1.9+ 將能夠使用盾牌進行格擋
+shield-blocking: true
+# 若此設定啟用，將使用主手而非副手來觸發玩家格擋。
+# 使用主手時，格擋開始速度更快。
+# （需要停用 "show-shield-when-sword-in-hand"）
+no-delay-shield-blocking: false
+# 若此設定啟用，當 1.9+ 玩家主手持劍時，盾牌將立即顯示。
+# 切換至其他物品時，盾牌消失。
+# （需要啟用 "shield-blocking"）
+show-shield-when-sword-in-hand: false
+# 啟用玩家 tick 模擬，修正進食、飲用、地獄傳送門等問題。
+simulate-pt: true
+# 是否使用 nms 玩家模擬封包（可能修正反作弊問題）
+nms-player-ticking: true
+# 是否修補 Boss 血條使其正常運作？（預設：true，若遇到問題請停用）
+bossbar-patch: true
+# 若您的 Boss 血條在 1.9+ 上閃爍，請設為 'true'。這將保持所有 Boss 血條在 100%（不建議）
+bossbar-anti-flicker: false
+# 這將為 1.9+ 玩家在右上角顯示新的效果指示器。
+use-new-effect-indicator: true
+# 在死亡畫面上為 1.9+ 顯示新的死亡訊息
+use-new-deathmessages: true
+# 是否快取我們的物品，這將防止伺服器因此而延遲，但代價是持續進行物品快取任務
+item-cache: true
+# 是否替換延伸活塞以修正 1.10.1（僅在區塊載入時）？
+replace-pistons: false
+# 應使用哪個 ID 替換，預設為空氣。（注意玩家可能站在上面被困住）
+replacement-piston-id: 0
+# 修正 1.9+ 客戶端不渲染遠距離區塊的問題，並改善快速移動時的區塊渲染（增加網路使用量並略微降低客戶端幀率）
+chunk-border-fix: false
+# 允許在 1.8 伺服器上的 1.9+ 左撇子處理（主手）
+left-handed-handling: true
+# 嘗試取消 1.8 伺服器傳送給 1.9+ 客戶端的方塊破壞/放置音效，以防止重複播放
+cancel-block-sounds: true
+# 若啟用，在 1.8 伺服器上的 1.21.11+ 客戶端在使用物品攻擊時將獲得更寬的實體碰撞箱
+use-1_8-hitbox-margin: true

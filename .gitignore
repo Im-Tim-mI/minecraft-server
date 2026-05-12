@@ -1,0 +1,179 @@
+# ══════════════════════════════════════════════
+# Minecraft Server .gitignore
+# ══════════════════════════════════════════════
+
+# ── 伺服器設定（含 RCON 密碼）─────────────────
+server.properties
+server copy.properties
+
+# ── 地圖資料 ──────────────────────────────────
+world/
+world_nether/
+world_the_end/
+
+# ── 玩家與用戶資料 ────────────────────────────
+whitelist.json
+ops.json
+banned-players.json
+banned-ips.json
+usercache.json
+playerdata/
+stats/
+world/playerdata/
+world/stats/
+world/advancements/
+world_nether/playerdata/
+world_the_end/playerdata/
+
+# ── 日誌（含玩家 IP）─────────────────────────
+logs/
+*.log
+debug/
+
+# ── 伺服器執行檔 ──────────────────────────────
+*.jar
+
+# ── 崩潰報告 ─────────────────────────────────
+crash-reports/
+hs_err_pid*
+
+# ── 暫存檔 ───────────────────────────────────
+session.lock
+*.tmp
+*.old
+*.bak
+files.txt
+map-color-cache.dat
+version_history.json
+
+# ── 終端機歷史 ───────────────────────────────
+.console_history
+
+# ── 伺服器依賴函式庫（自動下載）──────────────
+libraries/
+
+# ══════════════════════════════════════════════
+# 插件敏感資料
+# ══════════════════════════════════════════════
+
+# ── 通用插件資料庫 ────────────────────────────
+plugins/*/*.db
+plugins/*/*.sqlite
+plugins/*/*.h2.db
+
+# ── Paper 插件重映射快取 ──────────────────────
+plugins/.paper-remapped/
+
+# ── WorldEdit ────────────────────────────────
+plugins/WorldEdit/.archive-unpack/
+plugins/WorldEdit/sessions/
+
+# ── DiscordSRV（含 Bot Token）─────────────────
+plugins/DiscordSRV/config.yml
+plugins/DiscordSRV/linking.json
+plugins/DiscordSRV/accounts.json
+plugins/DiscordSRV/accounts.aof
+plugins/InteractiveChatDiscordSrvAddon/
+
+# ── Geyser / Floodgate（含驗證金鑰）──────────
+plugins/Geyser-Spigot/key.pem
+plugins/Geyser-Spigot/saved-refresh-tokens.json
+plugins/Geyser-Spigot/cache/
+plugins/Geyser-Spigot/extensions/mcxboxbroadcast/cache.json
+plugins/Geyser-Spigot/extensions/mcxboxbroadcast/player_history.db
+plugins/floodgate/key.pem
+plugins/floodgate/config.yml
+plugins/Floodgate/key.pem
+plugins/Floodgate/config.yml
+
+# ── LuckPerms（權限資料庫）───────────────────
+plugins/LuckPerms/*.db
+plugins/LuckPerms/luckperms-h2.mv.db
+plugins/LuckPerms/json-storage/
+plugins/LuckPerms/yaml-storage/
+plugins/LuckPerms/translations/
+
+# ── CoreProtect（操作記錄資料庫）─────────────
+plugins/CoreProtect/database.db
+plugins/CoreProtect/CoreProtect.db
+
+# ── EssentialsX（玩家資料）───────────────────
+plugins/Essentials/userdata/
+plugins/Essentials/warps/
+plugins/Essentials/config.yml
+plugins/Essentials/usermap.bin
+plugins/Essentials/uuids.bin
+
+# ── WorldGuard（區域資料）────────────────────
+plugins/WorldGuard/worlds/
+plugins/WorldGuard/cache/
+
+# ── Multiverse（世界配置）────────────────────
+plugins/Multiverse-Core/worlds.yml
+plugins/Multiverse-Core/world_managers/
+
+# ── InteractiveChat ──────────────────────────
+plugins/InteractiveChat/*.db
+
+# ── Skript 變數 ──────────────────────────────
+plugins/Skript/variables.csv
+plugins/Skript/variables/
+
+# ── Skript 備份 ──────────────────────────────
+plugins/Skript/backups/
+plugins/Skript/lang/backups/
+
+# ── PlaceholderAPI 擴展 ─────────────────────
+plugins/PlaceholderAPI/expansions/
+
+# ── DynMap（地圖渲染快取）────────────────────
+plugins/dynmap/web/tiles/
+plugins/dynmap/renderdata/
+
+# ── Vault（經濟資料）─────────────────────────
+plugins/Vault/
+
+# ── Plan（玩家統計資料庫）────────────────────
+plugins/Plan/database.db
+plugins/Plan/PlayerData/
+
+# ── BlueMap（網頁地圖快取）───────────────────
+plugins/BlueMap/web/maps/
+plugins/BlueMap/web/assets/
+
+# ── GriefPrevention（領地資料）───────────────
+plugins/GriefPrevention/PlayerData/
+plugins/GriefPrevention/ClaimData/
+
+# ── ShopGUI+ / EconomyShopGUI（商店資料）─────
+plugins/ShopGUIPlus/data/
+plugins/EconomyShopGUI/playerdata/
+
+# ── AuthMe（帳號驗證資料）────────────────────
+plugins/AuthMe/data/
+plugins/AuthMe/players.db
+
+# ── Towny（城鎮資料）─────────────────────────
+plugins/Towny/data/
+
+# ── Jobs Reborn（職業資料）───────────────────
+plugins/Jobs/storageData/
+
+# ── BanManager（封禁資料）────────────────────
+plugins/BanManager/players.db
+plugins/BanManager/config.yml
+
+# ── bStats（含伺服器統計 UUID）───────────────
+plugins/bStats/config.yml
+
+# ── Spark（效能記錄）─────────────────────────
+plugins/spark/activity.json
+plugins/spark/tmp/
+
+# ── ProtocolLib ──────────────────────────────
+plugins/ProtocolLib/lastupdate
+
+# ══════════════════════════════════════════════
+# 玩家追蹤工具（含玩家 IP）
+# ══════════════════════════════════════════════
+小工具/player-trace-report-*.txt

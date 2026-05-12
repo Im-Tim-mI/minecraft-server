@@ -1,0 +1,4 @@
+on join:
+    if player's name is not ".Tim901038":
+        if player's name is not "tim901037":
+            set player's gamemode to survival
