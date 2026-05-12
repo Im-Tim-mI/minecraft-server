@@ -95,6 +95,7 @@ java -Xmx4G -Xms2G -jar server.jar nogui
 放入後在遊戲或控制台執行以下指令載入：
 
 ​```/skript reload all          # 重載全部腳本​```
+
 ​```/skript reload <腳本檔名>   # 只重載單一腳本​```
 
 ---
