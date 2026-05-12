@@ -17,12 +17,33 @@
 
 ---
 
+
 ## 🔗 連結
 
 | | |
 |---|---|
 | 🎮 服務器地址 | `mc.tim945.com` |
 | 💬 Discord | [加入交流](https://discord.gg/CkCPd2CAy4) |
+
+
+---
+
+## 🚀 啟動方式
+
+下載配置文件後，將 PaperMC（或其他服務端）的 `.jar` 更名為 `server.jar` 放入根目錄，然後執行：
+
+```bash
+cd ~/minecraft-server
+java -Xmx4G -Xms2G -jar server.jar nogui
+```
+
+| 參數 | 說明 |
+|------|------|
+| `-Xmx4G` | 最大記憶體 4GB |
+| `-Xms2G` | 初始記憶體 2GB |
+| `nogui` | 不開啟圖形介面（伺服器環境用）|
+
+> 記憶體大小可依照你的主機規格自行調整。
 
 ---
 
@@ -36,3 +57,4 @@
 - ❌ 修改後不得更換授權條款
 
 Copyright (c) 2026 tim945
+
