@@ -19,7 +19,6 @@
 
 ## 🔗 連結
 
-| | |
 |---|---|
 | 🎮 創世神遊戲服務器地址 | `mc.tim945.com` |
 | 💬 Discord | [加入交流](https://discord.gg/CkCPd2CAy4) |
@@ -28,7 +27,6 @@
 
 ## 🖥️ 服務器環境
 
-| | |
 |---|---|
 | 框架 | [PaperMC](https://papermc.io) |
 | 版本 | 1.21.1 |
