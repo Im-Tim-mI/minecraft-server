@@ -30,14 +30,14 @@
 
 | | |
 |---|---|
-| 框架 | [PaperMC](https://fill-ui.papermc.io/projects/paper/family/1.21) |
+| 框架 | [PaperMC](https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar) |
 | 版本 | 1.21.1 |
 
 ---
 
 ## 🚀 啟動方式
 
-下載配置文件後，將 [PaperMC 1.21.1](https://papermc.io/downloads/paper) 的 `.jar` 更名為 `server.jar` 放入根目錄，然後執行：
+下載配置文件後，將 [PaperMC 1.21.1](https://fill-data.papermc.io/v1/objects/5ffef465eeeb5f2a3c23a24419d97c51afd7dbb4923ff42df9a3f58bba1ccfba/paper-1.21.11-132.jar) 的 `.jar` 更名為 `server.jar` 放入根目錄，然後執行：
 
 ```bash
 cd ~/minecraft-server
