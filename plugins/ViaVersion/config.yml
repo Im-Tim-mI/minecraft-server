@@ -15,12 +15,12 @@ send-supported-versions: false
 # 比 'block-protocols' 更易設定的替代方案，使用可讀的版本字串，可加上 '<' 和 '>' 前綴。
 # 例如，封鎖 1.16.4、1.16 以下所有版本，以及 1.17.1 以上所有版本：["<1.16", "1.16.4", ">1.17.1"]
 # 可與 block-protocols 選項同時使用。
-block-versions: [">1.21.11"]
+block-versions: [""]
 # 封鎖特定的 Minecraft 協定版本號碼。
 # 所有 Minecraft 協定版本列表：https://minecraft.wiki/w/Protocol_version，或使用產生器：https://via.krusic22.com
 block-protocols: []
 # 變更被封鎖時的中斷連線訊息
-block-disconnect-msg: 請將版本降到 1.21.11 最新版Minecraft 運行有BUG因此暫時禁止連線！
+block-disconnect-msg: 您正在使用不支援的 Minecraft 版本！(如果在基岩版看到這條訊息請聯繫管理員!是BUG!!)
 #block-disconnect-msg: 您正在使用不支援的 Minecraft 版本！
 # 若您使用 ProtocolLib，我們無法在不踢出玩家的情況下重新載入。
 # （我們也不建議使用 reload，請使用插件管理器）

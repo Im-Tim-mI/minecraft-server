@@ -12,25 +12,87 @@ options:
     party_tp_z: 0
 
 # ============================================
-# 怪物列表
+# 怪物列表 & 比賽分數設定
 # ============================================
 on script load:
     # 簡單怪物（弱）
     set {party.mobs.easy::*} to "zombie" and "skeleton" and "spider" and "cave_spider" and "silverfish" and "slime" and "endermite" and "phantom"
-    
+
     # 普通怪物（中）
     set {party.mobs.normal::*} to "creeper" and "witch" and "pillager" and "vindicator" and "zombified_piglin" and "piglin" and "blaze" and "hoglin" and "enderman" and "stray" and "husk"
-    
+
     # 困難怪物（強）
     set {party.mobs.hard::*} to "evoker" and "ravager" and "piglin_brute" and "zoglin" and "wither_skeleton" and "ghast" and "magma_cube" and "shulker" and "guardian" and "elder_guardian"
-    
+
     # Boss
     set {party.mobs.boss::*} to "warden" and "wither" and "ender_dragon"
-    
+
     send "{@prefix} &a怪物列表已載入！" to console
 
+on script load:
+    # ── 簡單怪物 1~2 分 ──
+    set {party.score.zombie} to 1
+    set {party.score.skeleton} to 1
+    set {party.score.spider} to 1
+    set {party.score.cave spider} to 2
+    set {party.score.silverfish} to 1
+    set {party.score.slime} to 1
+    set {party.score.endermite} to 1
+    set {party.score.phantom} to 2
+    # ── 普通怪物 3~5 分 ──
+    set {party.score.creeper} to 3
+    set {party.score.witch} to 4
+    set {party.score.pillager} to 3
+    set {party.score.vindicator} to 4
+    set {party.score.zombified piglin} to 3
+    set {party.score.piglin} to 3
+    set {party.score.blaze} to 4
+    set {party.score.hoglin} to 3
+    set {party.score.enderman} to 5
+    set {party.score.stray} to 3
+    set {party.score.husk} to 3
+    # ── 困難怪物 5~10 分 ──
+    set {party.score.evoker} to 8
+    set {party.score.ravager} to 10
+    set {party.score.piglin brute} to 7
+    set {party.score.zoglin} to 6
+    set {party.score.wither skeleton} to 5
+    set {party.score.ghast} to 6
+    set {party.score.magma cube} to 5
+    set {party.score.shulker} to 7
+    set {party.score.guardian} to 5
+    set {party.score.elder guardian} to 10
+    # ── Boss 特殊高分 ──
+    set {party.score.warden} to 30
+    set {party.score.wither} to 40
+    set {party.score.ender dragon} to 50
+
+    send "{@prefix} &a比賽分數設定已載入！" to console
+
 # ============================================
-# 開始派對（定時）
+# 擊殺計分事件（僅比賽模式）
+# ============================================
+on death of living entity:
+    if {party.contest} is not true:
+        stop
+    if world of victim is not world "world_the_end":
+        stop
+    if attacker is not a player:
+        stop
+
+    set {_type} to "%type of victim%" in lowercase
+    set {_score} to {party.score.%{_type}%}
+    if {_score} is not set:
+        stop
+
+    add {_score} to {party.contest.score::%uuid of attacker%}
+    add 1 to {party.contest.kills::%uuid of attacker%}
+    set {party.contest.name::%uuid of attacker%} to name of attacker
+
+    send action bar "&6+%{_score}% 分  &8│  &7總分 &e%{party.contest.score::%uuid of attacker%}% 分  &8│  &7擊殺 &f%{party.contest.kills::%uuid of attacker%}% 隻" to attacker
+
+# ============================================
+# 開始派對（定時，無計分）
 # ============================================
 command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
     permission: op
@@ -40,7 +102,7 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
             send "{@prefix} &c派對已經在進行中！" to player
             send "{@prefix} &7使用 /派對停止 來結束" to player
             stop
-        
+
         # 檢查難度
         set {_diff} to arg-1
         if {_diff} is not "簡單" or "普通" or "困難":
@@ -52,14 +114,14 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
                 set {_diff} to "困難"
             else:
                 set {_diff} to "普通"
-        
+
         set {party.active} to true
         set {party.difficulty} to {_diff}
         set {party.duration} to arg-2
         set {party.interval} to arg-3
         set {party.remaining} to arg-2 * 60
         set {party.warned.1min} to false
-        
+
         # 設定難度參數
         if {_diff} is "簡單":
             set {party.min.mobs} to 2
@@ -85,15 +147,15 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
             set {party.hard.chance} to 40
             set {party.boss.chance} to 10
             set {_color} to "&c"
-        
-        # 開啟末地防噴（PvP 關閉）
-        execute console command "rg flag -w world_the_end __global__ pvp deny"
-        broadcast "{@prefix} &a末地 PvP 已關閉，請專心打怪！"
-        
+
+        # 開啟末地防噴
+        execute console command "execute in minecraft:the_end run gamerule keepInventory true"
+        broadcast "{@prefix} &a末地死亡不掉落已開啟，放心打怪！"
+
         # 全螢幕標題 - 開始
         send title "&d&l🎉 派對模式開始！" with subtitle "&e難度：%{_diff}% &7- &e時間：%arg-2% 分鐘" to all players for 4 seconds with fade in 0.5 seconds and fade out 1 seconds
         play sound "ENTITY_ENDER_DRAGON_GROWL" with volume 0.5 to all players
-        
+
         # 廣播開始
         broadcast ""
         broadcast "&d&l✦═══════════════════════════════✦"
@@ -104,7 +166,7 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
         broadcast "&7時間：&e%arg-2% 分鐘"
         broadcast "&7間隔：&e每 %arg-3% 秒刷怪"
         broadcast "&7地點：&c末地"
-        broadcast "&7防噴：&a已開啟"
+        broadcast "&7死亡不掉落：&a已開啟"
         if {_diff} is "困難":
             broadcast ""
             broadcast "&c&l⚠ 警告：困難模式可能出現末影龍！"
@@ -112,13 +174,13 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
         broadcast "&e前往末地參加派對吧！"
         broadcast "&e可以使用 /前往派對現場 前往"
         broadcast ""
-        
+
         # 開始刷怪循環
         while {party.active} is true:
             spawnPartyMobs()
             wait "%{party.interval}% seconds" parsed as timespan
             remove {party.interval} from {party.remaining}
-            
+
             # 一分鐘提醒
             if {party.remaining} <= 60:
                 if {party.warned.1min} is false:
@@ -129,17 +191,17 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
                     broadcast "{@prefix} &7請把握最後的時間！"
                     broadcast ""
                     play sound "BLOCK_NOTE_BLOCK_BELL" with volume 1 to all players
-            
+
             if {party.remaining} <= 0:
                 set {party.active} to false
-        
+
         # 自動清除末地怪物
         partyCleanup()
-        
+
         # 全螢幕標題 - 結束
         send title "&d&l🎉 派對結束！" with subtitle "&e感謝參與！下次再見！" to all players for 4 seconds with fade in 0.5 seconds and fade out 1 seconds
         play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 to all players
-        
+
         # 廣播結束
         broadcast ""
         broadcast "&d&l✦═══════════════════════════════✦"
@@ -147,14 +209,143 @@ command /派對開始 [<text=普通>] [<integer=30>] [<integer=10>]:
         broadcast "&d&l✦═══════════════════════════════✦"
         broadcast ""
         broadcast "&e感謝參與！下次再見！"
-        broadcast "&7末地 PvP 已恢復開啟"
+        broadcast "&7末地死亡不掉落已關閉"
         broadcast ""
-        
-        
+
         wait 5 seconds
-        # 關閉末地防噴（PvP 開啟）
-        execute console command "rg flag -w world_the_end __global__ pvp allow"
-        
+        execute console command "execute in minecraft:the_end run gamerule keepInventory false"
+
+# ============================================
+# 派對開始-比賽（有計分 + 排行 + 頒獎）
+# 用法：/派對開始-比賽 [難度] [分鐘] [刷怪間隔秒]
+# 範例：/派對開始-比賽 困難 30 10
+# ============================================
+command /派對開始-比賽 [<text=普通>] [<integer=30>] [<integer=10>]:
+    permission: op
+    aliases: /partycontest
+    trigger:
+        if {party.active} is true:
+            send "{@prefix} &c派對已經在進行中！請先使用 /派對停止 結束" to player
+            stop
+
+        # 清除舊比賽資料
+        delete {party.contest.score::*}
+        delete {party.contest.kills::*}
+        delete {party.contest.name::*}
+        set {party.contest.cycle} to 0
+
+        # 難度解析
+        set {_diff} to arg-1
+        if {_diff} is not "簡單" or "普通" or "困難":
+            if {_diff} is "easy":
+                set {_diff} to "簡單"
+            else if {_diff} is "normal":
+                set {_diff} to "普通"
+            else if {_diff} is "hard":
+                set {_diff} to "困難"
+            else:
+                set {_diff} to "普通"
+
+        set {party.active} to true
+        set {party.contest} to true
+        set {party.difficulty} to {_diff}
+        set {party.interval} to arg-3
+        set {party.remaining} to arg-2 * 60
+        set {party.warned.1min} to false
+
+        if {_diff} is "簡單":
+            set {party.min.mobs} to 2
+            set {party.max.mobs} to 4
+            set {party.easy.chance} to 70
+            set {party.normal.chance} to 25
+            set {party.hard.chance} to 5
+            set {party.boss.chance} to 0
+            set {_color} to "&a"
+        else if {_diff} is "普通":
+            set {party.min.mobs} to 3
+            set {party.max.mobs} to 6
+            set {party.easy.chance} to 40
+            set {party.normal.chance} to 40
+            set {party.hard.chance} to 18
+            set {party.boss.chance} to 2
+            set {_color} to "&e"
+        else if {_diff} is "困難":
+            set {party.min.mobs} to 5
+            set {party.max.mobs} to 10
+            set {party.easy.chance} to 15
+            set {party.normal.chance} to 35
+            set {party.hard.chance} to 40
+            set {party.boss.chance} to 10
+            set {_color} to "&c"
+
+        execute console command "execute in minecraft:the_end run gamerule keepInventory true"
+        broadcast "{@prefix} &a末地死亡不掉落已開啟，放心打怪！"
+
+        send title "&d&l🏆 派對比賽模式開始！" with subtitle "%{_color}%難度：%{_diff}%  &7│  &e時間：%arg-2% 分鐘" to all players for 4 seconds with fade in 0.5 seconds and fade out 1 seconds
+        play sound "ENTITY_ENDER_DRAGON_GROWL" with volume 0.5 to all players
+
+        broadcast ""
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast "&5&l      🏆 派對比賽模式開始！ 🏆"
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast ""
+        broadcast "&7難度：%{_color}%%{_diff}%  &8│  &7時間：&e%arg-2% 分鐘  &8│  &7刷怪間隔：&e%arg-3% 秒"
+        broadcast "&7地點：&c末地  &8│  &7死亡不掉落：&a已開啟"
+        broadcast ""
+        broadcast "&e─── 怪物分數一覽 ───"
+        broadcast "  &a簡單怪物 &71~2分  &8│  &e普通怪物 &73~5分  &8│  &c困難怪物 &75~10分"
+        broadcast "  &5Boss &8→ &c守望者&f30分  &8│  &c凋零&f40分  &8│  &c末影龍&f50分"
+        broadcast ""
+        broadcast "&e前往末地：&f/前往派對現場  &7│  &e查看分數：&f/我的分數"
+        if {_diff} is "困難":
+            broadcast ""
+            broadcast "&c&l⚠ 困難模式：有機率召喚末影龍！"
+        broadcast ""
+
+        # ── 主迴圈 ──
+        while {party.active} is true:
+            spawnPartyMobs()
+            add 1 to {party.contest.cycle}
+            wait "%{party.interval}% seconds" parsed as timespan
+            remove {party.interval} from {party.remaining}
+
+            # 每 5 個刷怪週期顯示一次排行
+            if mod({party.contest.cycle}, 5) = 0:
+                showPartyRanking()
+
+            # 一分鐘警告
+            if {party.remaining} <= 60:
+                if {party.warned.1min} is false:
+                    set {party.warned.1min} to true
+                    send title "&e&l⏰ 比賽快結束了！" with subtitle "&7剩餘：1 分鐘  最後衝刺！" to all players for 3 seconds
+                    broadcast "{@prefix} &e⏰ 比賽剩餘 &c1 分鐘&e！最後衝刺！"
+                    play sound "BLOCK_NOTE_BLOCK_BELL" with volume 1 to all players
+
+            if {party.remaining} <= 0:
+                set {party.active} to false
+
+        # ── 結束處理 ──
+        partyCleanup()
+        set {party.contest} to false
+
+        send title "&d&l🏆 比賽結束！" with subtitle "&e正在統計排名..." to all players for 3 seconds with fade in 0.5 seconds and fade out 1 seconds
+        play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 to all players
+        wait 2 seconds
+
+        broadcast ""
+        broadcast "&d&l✦═══════════════════════════════✦"
+        broadcast "&5&l    🏆 派對比賽結束！最終排名 🏆"
+        broadcast "&d&l✦═══════════════════════════════✦"
+        showPartyRanking()
+
+        wait 1 second
+        giveContestRewards()
+
+        broadcast "&e感謝所有參賽者！下次再見！"
+        broadcast ""
+
+        wait 5 seconds
+        execute console command "execute in minecraft:the_end run gamerule keepInventory false"
 
 # ============================================
 # 玩家前往派對現場（只在派對期間開放）
@@ -185,11 +376,11 @@ command /派對刷怪 [<text=普通>] [<integer=10>]:
     trigger:
         set {_diff} to arg-1
         set {_count} to arg-2
-        
+
         if {_count} > 100:
             set {_count} to 100
             send "{@prefix} &c單次最多 100 隻，已自動調整" to player
-        
+
         # 檢查難度
         if {_diff} is not "簡單" or "普通" or "困難":
             if {_diff} is "easy":
@@ -200,7 +391,7 @@ command /派對刷怪 [<text=普通>] [<integer=10>]:
                 set {_diff} to "困難"
             else:
                 set {_diff} to "普通"
-        
+
         # 臨時設定難度
         if {_diff} is "簡單":
             set {party.easy.chance} to 70
@@ -217,12 +408,12 @@ command /派對刷怪 [<text=普通>] [<integer=10>]:
             set {party.normal.chance} to 35
             set {party.hard.chance} to 40
             set {party.boss.chance} to 10
-        
+
         set {_spawned} to 0
         loop {_count} times:
             if spawnRandomPartyMob() is true:
                 add 1 to {_spawned}
-        
+
         broadcast "{@prefix} &a已刷出 &e%{_spawned}% &a隻怪物！難度：&e%{_diff}%"
         broadcast "{@prefix} &7快去末地打怪吧！"
 
@@ -236,23 +427,32 @@ command /派對停止:
         if {party.active} is not true:
             send "{@prefix} &c目前沒有進行中的派對" to player
             stop
-        
+
         set {party.active} to false
-        
-        # 自動清除末地怪物
-        partyCleanup()
-        
-        # 全螢幕標題 - 停止
-        send title "&c&l派對已停止" with subtitle "&7管理員已結束活動" to all players for 3 seconds
-        play sound "ENTITY_ENDER_DRAGON_HURT" with volume 0.5 to all players
-        
-        broadcast "{@prefix} &c派對已被管理員停止！"
-        broadcast "{@prefix} &7末地 PvP 已恢復開啟"
-        
+
+        # 若是比賽模式，結算排行並頒獎
+        if {party.contest} is true:
+            set {party.contest} to false
+            partyCleanup()
+
+            send title "&c&l派對比賽已停止" with subtitle "&7管理員強制結束，正在結算..." to all players for 3 seconds
+            play sound "ENTITY_ENDER_DRAGON_HURT" with volume 0.5 to all players
+            broadcast "{@prefix} &c派對比賽已被管理員停止，進行最終結算！"
+            wait 2 seconds
+            showPartyRanking()
+            wait 1 second
+            giveContestRewards()
+        else:
+            partyCleanup()
+
+            send title "&c&l派對已停止" with subtitle "&7管理員已結束活動" to all players for 3 seconds
+            play sound "ENTITY_ENDER_DRAGON_HURT" with volume 0.5 to all players
+            broadcast "{@prefix} &c派對已被管理員停止！"
+
+        broadcast "{@prefix} &7末地死亡不掉落已關閉"
+
         wait 5 seconds
-        
-        # 關閉末地防噴（PvP 開啟）
-        execute console command "rg flag -w world_the_end __global__ pvp allow"
+        execute console command "execute in minecraft:the_end run gamerule keepInventory false"
 
 # ============================================
 # 清除末地所有怪物
@@ -265,18 +465,6 @@ command /派對清除:
         send "{@prefix} &a已執行清除！" to player
 
 # ============================================
-# 清除函數
-# ============================================
-function partyCleanup():
-    set {_count} to 0
-    loop all entities in world "world_the_end":
-        if loop-entity is not a player:
-            kill loop-entity
-            add 1 to {_count}
-    
-    broadcast "{@prefix} &c已清除末地 &e%{_count}% &c隻實體！"
-
-# ============================================
 # 查看派對狀態
 # ============================================
 command /派對狀態:
@@ -286,17 +474,21 @@ command /派對狀態:
         send "{@prefix} &e═══ 派對狀態 ═══" to player
         if {party.active} is true:
             send "&7狀態：&a進行中" to player
+            if {party.contest} is true:
+                send "&7模式：&d比賽模式（計分）" to player
+            else:
+                send "&7模式：&7一般派對" to player
             send "&7難度：&e%{party.difficulty}%" to player
             set {_min} to floor({party.remaining} / 60)
             set {_sec} to mod({party.remaining}, 60)
             send "&7剩餘：&e%{_min}% 分 %{_sec}% 秒" to player
             send "&7間隔：&e%{party.interval}% 秒" to player
             send "&7每人刷怪：&e%{party.min.mobs}%-%{party.max.mobs}% 隻" to player
-            send "&7防噴：&a已開啟" to player
+            send "&7死亡不掉落：&a已開啟" to player
         else:
             send "&7狀態：&c未啟動" to player
             send "&7防噴：&c已關閉" to player
-        
+
         # 計算末地怪物數量
         set {_count} to 0
         loop all entities in world "world_the_end":
@@ -305,13 +497,241 @@ command /派對狀態:
         send "&7末地怪物：&e%{_count}% 隻" to player
 
 # ============================================
+# 查看個人分數（比賽期間任何玩家可用）
+# ============================================
+command /我的分數:
+    aliases: /myscore
+    trigger:
+        if {party.contest} is not true:
+            send "{@prefix} &c目前沒有進行中的比賽" to player
+            stop
+        set {_score} to {party.contest.score::%uuid of player%}
+        set {_kills} to {party.contest.kills::%uuid of player%}
+        if {_score} is not set:
+            set {_score} to 0
+        if {_kills} is not set:
+            set {_kills} to 0
+        send "{@prefix} &7你的分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻" to player
+
+# ============================================
+# 強制顯示當前排行（管理員）
+# ============================================
+command /派對排行:
+    permission: op
+    aliases: /partyrank
+    trigger:
+        if {party.contest} is not true:
+            send "{@prefix} &c目前沒有進行中的比賽" to player
+            stop
+        showPartyRanking()
+
+# ============================================
+# 說明指令
+# ============================================
+command /派對:
+    aliases: /party
+    trigger:
+        send "&d&l✦═══ 派對模式說明 ═══✦" to player
+        send "" to player
+        send "&e在末地開啟狂歡打怪派對！" to player
+        send "&7派對期間可輸入 &f/前往派對現場 &7傳送到末地。" to player
+        send "&7派對期間死亡不會掉落物品，放心打怪！" to player
+        send "" to player
+        send "&7難度說明：" to player
+        send "&a  簡單 &7- 弱怪多，無 Boss" to player
+        send "&e  普通 &7- 混合怪物，2%% Boss" to player
+        send "&c  困難 &7- 強怪多，10%% Boss 含末影龍" to player
+        send "" to player
+        send "&7比賽模式分數：" to player
+        send "  &a簡單怪 &71~2分  &8│  &e普通怪 &73~5分  &8│  &c困難怪 &75~10分" to player
+        send "  &5Boss：&c守望者&f30  &8│  &c凋零&f40  &8│  &c末影龍&f50" to player
+        send "" to player
+        if player has permission "op":
+            send "&7管理員指令：" to player
+            send "&f  /派對開始 [難度] [分鐘] [間隔]" to player
+            send "&7    一般派對，無計分" to player
+            send "&7    範例：/派對開始 困難 30 10" to player
+            send "" to player
+            send "&f  /派對開始-比賽 [難度] [分鐘] [間隔]" to player
+            send "&7    比賽模式，有計分排行與頒獎" to player
+            send "&7    範例：/派對開始-比賽 困難 30 10" to player
+            send "" to player
+            send "&f  /派對刷怪 [難度] [數量] &7- 手動刷怪，最多 100 隻" to player
+            send "&f  /派對停止 &7- 停止派對（比賽模式會自動結算）" to player
+            send "&f  /派對清除 &7- 清除末地怪物" to player
+            send "&f  /派對狀態 &7- 查看狀態" to player
+            send "&f  /派對排行 &7- 顯示比賽排行榜" to player
+            send "" to player
+        send "&7玩家指令：" to player
+        send "&f  /前往派對現場 &7- 派對期間傳送到末地" to player
+        send "&f  /我的分數 &7- 查看比賽中的個人分數" to player
+        send "" to player
+        send "&d&l✦═══════════════════════✦" to player
+
+# ============================================
+# 清除函數
+# ============================================
+function partyCleanup():
+    set {_count} to 0
+    loop all entities in world "world_the_end":
+        if loop-entity is not a player:
+            kill loop-entity
+            add 1 to {_count}
+
+    broadcast "{@prefix} &c已清除末地 &e%{_count}% &c隻實體！"
+
+# ============================================
+# 排行榜顯示（前 10 名）
+# ============================================
+function showPartyRanking():
+    broadcast ""
+    broadcast "&d&l✦══════ 🏆 派對比賽排行榜 🏆 ══════✦"
+
+    set {_shown} to 0
+    loop 10 times:
+        set {_max} to -1
+        set {_max.uuid} to ""
+
+        loop {party.contest.score::*}:
+            if {_seen::%loop-index%} is not set:
+                if loop-value-2 > {_max}:
+                    set {_max} to loop-value-2
+                    set {_max.uuid} to loop-index
+
+        if {_max.uuid} is "":
+            exit loop
+
+        set {_seen::%{_max.uuid}%} to true
+        add 1 to {_shown}
+
+        set {_n} to {party.contest.name::%{_max.uuid}%}
+        set {_k} to {party.contest.kills::%{_max.uuid}%}
+        if {_k} is not set:
+            set {_k} to 0
+
+        if {_shown} is 1:
+            broadcast "&6  🥇 &l#1  &r&f%{_n}%   &a%{_max}% 分  &8(&7%{_k}% 擊殺&8)"
+        else if {_shown} is 2:
+            broadcast "&7  🥈 &l#2  &r&f%{_n}%   &a%{_max}% 分  &8(&7%{_k}% 擊殺&8)"
+        else if {_shown} is 3:
+            broadcast "&e  🥉 &l#3  &r&f%{_n}%   &a%{_max}% 分  &8(&7%{_k}% 擊殺&8)"
+        else:
+            broadcast "&8  #%{_shown}%  &7%{_n}%   &a%{_max}% 分  &8(&7%{_k}% 擊殺&8)"
+
+    if {_shown} is 0:
+        broadcast "&7  目前尚無任何擊殺紀錄"
+
+    broadcast "&d&l✦═════════════════════════════════✦"
+    broadcast ""
+
+# ============================================
+# 頒獎典禮（前三名發放獎勵，離線存入待補發）
+# ============================================
+function giveContestRewards():
+    set {_datestr} to "%now%"
+    set {_rank} to 0
+
+    broadcast ""
+    broadcast "&d&l✦══════════ 🎁 頒獎典禮 🎁 ══════════✦"
+
+    loop 3 times:
+        # 找尚未發獎的最高分玩家
+        set {_max} to -1
+        set {_max.uuid} to ""
+
+        loop {party.contest.score::*}:
+            if {_done::%loop-index%} is not set:
+                if loop-value-2 > {_max}:
+                    set {_max} to loop-value-2
+                    set {_max.uuid} to loop-index
+
+        if {_max.uuid} is "":
+            exit loop
+
+        set {_done::%{_max.uuid}%} to true
+        add 1 to {_rank}
+
+        set {_pname} to {party.contest.name::%{_max.uuid}%}
+        set {_kills} to {party.contest.kills::%{_max.uuid}%}
+        if {_kills} is not set:
+            set {_kills} to 0
+        set {_p} to "%{_pname}%" parsed as player
+
+        # ════════════════════════
+        # 🥇 第一名
+        # ════════════════════════
+        if {_rank} is 1:
+            broadcast ""
+            broadcast "&6&l  🏆 冠軍  &r&f%{_pname}%   &a%{_max}% 分  &8(%{_kills}% 擊殺)"
+            if {_p} is a player:
+                set {_prize} to 1 of gold block named "&6&l★ 末地派對競賽 冠軍 ★"
+                set lore of {_prize} to "&7%{_datestr}% 末地派對競賽 第一名成就" and "&7分數：&a%{_max}% 分  &8│  &7擊殺：&f%{_kills}% 隻" and "&5&o★ 榮耀紀念品，見證你的勝利 ★"
+                give {_p} {_prize}
+                broadcast "&6     獎勵：&f金塊 × 1 &7（第一名成就紀念品）"
+                send title "&6&l🏆 恭喜！派對比賽冠軍！" with subtitle "&e%{_datestr}% 末地派對競賽 第一名" to {_p} for 5 seconds with fade in 0.5 seconds and fade out 1 seconds
+                play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 to {_p}
+            else:
+                set {party.pending.rank.%{_max.uuid}%} to 1
+                set {party.pending.score.%{_max.uuid}%} to {_max}
+                set {party.pending.kills.%{_max.uuid}%} to {_kills}
+                set {party.pending.name.%{_max.uuid}%} to {_pname}
+                set {party.pending.date.%{_max.uuid}%} to {_datestr}
+                broadcast "&6     獎勵：&f金塊 × 1 &8（&7%{_pname}% 離線，登入後自動補發&8）"
+
+        # ════════════════════════
+        # 🥈 第二名
+        # ════════════════════════
+        else if {_rank} is 2:
+            broadcast ""
+            broadcast "&b&l  🥈 亞軍  &r&f%{_pname}%   &a%{_max}% 分  &8(%{_kills}% 擊殺)"
+            if {_p} is a player:
+                set {_prize} to 1 of iron block named "&b&l✦ 末地派對競賽 亞軍 ✦"
+                set lore of {_prize} to "&7%{_datestr}% 末地派對競賽 第二名成就" and "&7分數：&a%{_max}% 分  &8│  &7擊殺：&f%{_kills}% 隻"
+                give {_p} {_prize}
+                broadcast "&b     獎勵：&f鐵塊 × 1"
+                send title "&b&l🥈 恭喜！派對比賽亞軍！" with subtitle "&b%{_datestr}% 末地派對競賽 第二名" to {_p} for 5 seconds with fade in 0.5 seconds and fade out 1 seconds
+                play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 0.8 to {_p}
+            else:
+                set {party.pending.rank.%{_max.uuid}%} to 2
+                set {party.pending.score.%{_max.uuid}%} to {_max}
+                set {party.pending.kills.%{_max.uuid}%} to {_kills}
+                set {party.pending.name.%{_max.uuid}%} to {_pname}
+                set {party.pending.date.%{_max.uuid}%} to {_datestr}
+                broadcast "&b     獎勵：&f鐵塊 × 1 &8（&7%{_pname}% 離線，登入後自動補發&8）"
+
+        # ════════════════════════
+        # 🥉 第三名
+        # ════════════════════════
+        else if {_rank} is 3:
+            broadcast ""
+            broadcast "&a&l  🥉 季軍  &r&f%{_pname}%   &a%{_max}% 分  &8(%{_kills}% 擊殺)"
+            if {_p} is a player:
+                set {_prize} to 1 of copper block named "&a&l✧ 末地派對競賽 季軍 ✧"
+                set lore of {_prize} to "&7%{_datestr}% 末地派對競賽 第三名成就" and "&7分數：&a%{_max}% 分  &8│  &7擊殺：&f%{_kills}% 隻"
+                give {_p} {_prize}
+                broadcast "&a     獎勵：&f銅塊 × 1"
+                send title "&a&l🥉 恭喜！派對比賽季軍！" with subtitle "&a%{_datestr}% 末地派對競賽 第三名" to {_p} for 5 seconds with fade in 0.5 seconds and fade out 1 seconds
+                play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 0.6 to {_p}
+            else:
+                set {party.pending.rank.%{_max.uuid}%} to 3
+                set {party.pending.score.%{_max.uuid}%} to {_max}
+                set {party.pending.kills.%{_max.uuid}%} to {_kills}
+                set {party.pending.name.%{_max.uuid}%} to {_pname}
+                set {party.pending.date.%{_max.uuid}%} to {_datestr}
+                broadcast "&a     獎勵：&f銅塊 × 1 &8（&7%{_pname}% 離線，登入後自動補發&8）"
+
+    broadcast ""
+    broadcast "&d&l✦═══════════════════════════════════════✦"
+    broadcast ""
+
+# ============================================
 # 刷怪函數（多隻）
 # ============================================
 function spawnPartyMobs():
     set {_players::*} to all players in world "world_the_end"
     if size of {_players::*} is 0:
         stop
-    
+
     # 每個玩家附近刷怪
     loop {_players::*}:
         set {_amount} to random integer between {party.min.mobs} and {party.max.mobs}
@@ -324,12 +744,12 @@ function spawnPartyMobs():
 function spawnMobNearPartyPlayer(p: player):
     # 根據難度機率選擇怪物
     set {_rand} to random integer between 1 and 100
-    
+
     # 計算累積機率
     set {_easy.max} to {party.easy.chance}
     set {_normal.max} to {_easy.max} + {party.normal.chance}
     set {_hard.max} to {_normal.max} + {party.hard.chance}
-    
+
     if {_rand} <= {_easy.max}:
         set {_mob} to random element of {party.mobs.easy::*}
     else if {_rand} <= {_normal.max}:
@@ -348,23 +768,22 @@ function spawnMobNearPartyPlayer(p: player):
         else if {_mob} is "warden":
             broadcast "&c&l⚠ 守望者出現了！！！"
             play sound "ENTITY_WARDEN_ROAR" with volume 1 to all players
-    
+
     # 隨機偏移位置
     set {_x} to random integer between -20 and 20
     set {_z} to random integer between -20 and 20
-    
+
     set {_loc} to location of {_p}
     add {_x} to x-coordinate of {_loc}
     add {_z} to z-coordinate of {_loc}
-    
+
     # 確保在地面上
     set {_loc} to highest block at {_loc}
     add 1 to y-coordinate of {_loc}
-    
+
     # 刷出怪物
     if {_mob} is "ender_dragon":
         execute console command "execute at %{_p}% in minecraft:the_end run summon minecraft:ender_dragon ~ ~10 ~ {DragonPhase:0}"
-        #broadcast "--=-=-=-=-=-=-=-=-=-"
     else:
         spawn 1 of {_mob} parsed as entity type at {_loc}
 
@@ -375,42 +794,59 @@ function spawnRandomPartyMob() :: boolean:
     set {_players::*} to all players in world "world_the_end"
     if size of {_players::*} is 0:
         return false
-    
+
     set {_p} to random element of {_players::*}
     spawnMobNearPartyPlayer({_p})
     return true
 
 # ============================================
-# 說明指令
+# 玩家登入自動補發獎勵
 # ============================================
-command /派對:
-    aliases: /party
-    trigger:
-        send "&d&l✦═══ 派對模式說明 ═══✦" to player
-        send "" to player
-        send "&e在末地開啟狂歡打怪派對！" to player
-        send "&7派對期間可輸入 &f/前往派對現場 &7傳送到末地。" to player
-        send "&7派對期間末地 PvP 將關閉。" to player
-        send "" to player
-        send "&7難度說明：" to player
-        send "&a  簡單 &7- 弱怪多，無 Boss" to player
-        send "&e  普通 &7- 混合怪物，2%% Boss" to player
-        send "&c  困難 &7- 強怪多，10%% Boss 含末影龍" to player
-        send "" to player
-        if player has permission "op":
-            send "&7管理員指令：" to player
-            send "&f  /派對開始 [難度] [分鐘] [間隔]" to player
-            send "&7    難度：簡單/普通/困難" to player
-            send "&7    範例：/派對開始 困難 30 5" to player
-            send "" to player
-            send "&f  /派對刷怪 [難度] [數量]" to player
-            send "&7    手動刷怪，最多 100 隻" to player
-            send "" to player
-            send "&f  /派對停止 &7- 停止派對" to player
-            send "&f  /派對清除 &7- 清除末地怪物" to player
-            send "&f  /派對狀態 &7- 查看狀態" to player
-            send "&f  /前往派對現場 &7- 派對期間傳送到末地" to player
-        else:
-            send "&7派對期間輸入 &f/前往派對現場 &7參加派對吧！" to player
-        send "" to player
-        send "&d&l✦═══════════════════════✦" to player
+on join:
+    set {_uuid} to uuid of player
+    if {party.pending.rank.%{_uuid}%} is not set:
+        stop
+
+    wait 3 seconds
+
+    set {_rank} to {party.pending.rank.%{_uuid}%}
+    set {_score} to {party.pending.score.%{_uuid}%}
+    set {_kills} to {party.pending.kills.%{_uuid}%}
+    set {_datestr} to {party.pending.date.%{_uuid}%}
+
+    if {_rank} is 1:
+        set {_prize} to 1 of gold block named "&6&l★ 末地派對競賽 冠軍 ★"
+        set lore of {_prize} to "&7%{_datestr}% 末地派對競賽 第一名成就" and "&7分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻" and "&5&o★ 榮耀紀念品，見證你的勝利 ★"
+        give player {_prize}
+        send title "&6&l🏆 恭喜！你是派對比賽冠軍！" with subtitle "&e%{_datestr}% 末地派對競賽 第一名" to player for 5 seconds with fade in 0.5 seconds and fade out 1 seconds
+        send "{@prefix} &6&l【補發獎勵】&r &7你在 &e%{_datestr}% &7的比賽中榮獲 &6&l冠軍！" to player
+        send "{@prefix} &7分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻" to player
+        send "{@prefix} &f金塊 × 1 &a已補發至你的背包！" to player
+        play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 1 to player
+
+    else if {_rank} is 2:
+        set {_prize} to 1 of iron block named "&b&l✦ 末地派對競賽 亞軍 ✦"
+        set lore of {_prize} to "&7%{_datestr}% 末地派對競賽 第二名成就" and "&7分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻"
+        give player {_prize}
+        send title "&b&l🥈 恭喜！你是派對比賽亞軍！" with subtitle "&b%{_datestr}% 末地派對競賽 第二名" to player for 5 seconds with fade in 0.5 seconds and fade out 1 seconds
+        send "{@prefix} &b&l【補發獎勵】&r &7你在 &e%{_datestr}% &7的比賽中榮獲 &b&l亞軍！" to player
+        send "{@prefix} &7分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻" to player
+        send "{@prefix} &f鐵塊 × 1 &a已補發至你的背包！" to player
+        play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 0.8 to player
+
+    else if {_rank} is 3:
+        set {_prize} to 1 of copper block named "&a&l✧ 末地派對競賽 季軍 ✧"
+        set lore of {_prize} to "&7%{_datestr}% 末地派對競賽 第三名成就" and "&7分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻"
+        give player {_prize}
+        send title "&a&l🥉 恭喜！你是派對比賽季軍！" with subtitle "&a%{_datestr}% 末地派對競賽 第三名" to player for 5 seconds with fade in 0.5 seconds and fade out 1 seconds
+        send "{@prefix} &a&l【補發獎勵】&r &7你在 &e%{_datestr}% &7的比賽中榮獲 &a&l季軍！" to player
+        send "{@prefix} &7分數：&a%{_score}% 分  &8│  &7擊殺：&f%{_kills}% 隻" to player
+        send "{@prefix} &f銅塊 × 1 &a已補發至你的背包！" to player
+        play sound "UI_TOAST_CHALLENGE_COMPLETE" with volume 0.6 to player
+
+    # 清除待補發記錄（防止重複補發）
+    delete {party.pending.rank.%{_uuid}%}
+    delete {party.pending.score.%{_uuid}%}
+    delete {party.pending.kills.%{_uuid}%}
+    delete {party.pending.name.%{_uuid}%}
+    delete {party.pending.date.%{_uuid}%}
