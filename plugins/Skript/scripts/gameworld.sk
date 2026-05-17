@@ -1,0 +1,191 @@
+# ============================================
+# 遊戲世界管理系統 (流水號 + 中文名對應)
+# 依賴: Skript / Multiverse-Core / Multiverse-Inventories / VoidGen
+#
+# 全域變數結構:
+#   {遊戲世界::計數器}              → 目前最大流水號
+#   {遊戲世界::名稱對應::<中文名>}   → 對應的內部世界名 (game_N)
+#   {遊戲世界::反向對應::<game_N>}  → 對應的中文顯示名
+# ============================================
+
+# 管理員 - 建立遊戲世界
+command /遊戲世界建立 <text>:
+    description: 建立新的遊戲世界 (僅限管理員)
+    permission: gameworld.admin
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法: /遊戲世界建立 <世界名稱>
+    trigger:
+        set {_中文名} to arg-1
+        if {_中文名} contains " ":
+            send "&c世界名稱不可包含空格！"
+            stop
+        # 檢查中文名是否已存在
+        if {遊戲世界::名稱對應::%{_中文名}%} is set:
+            send "&c世界 &e%{_中文名}% &c已經存在！"
+            send "&7  對應的內部世界: &f%{遊戲世界::名稱對應::%{_中文名}%}%"
+            stop
+        # 計算下一個流水號 (不直接寫入,失敗時自動取消)
+        if {遊戲世界::計數器} is not set:
+            set {遊戲世界::計數器} to 0
+        set {_流水號} to {遊戲世界::計數器} + 1
+        set {_世界名} to "game_%{_流水號}%"
+        # 雙保險: 確認該內部名沒被佔用
+        loop all worlds:
+            if "%loop-world%" is {_世界名}:
+                send "&c❌ 內部名稱 &e%{_世界名}% &c已被佔用,請聯絡管理員。"
+                stop
+        send "&a▶ 正在建立世界 &e%{_中文名}% &7(內部名: %{_世界名}%)&a..."
+        # 使用 VoidGen 建立空白世界
+        execute console command "mv create %{_世界名}% normal -g VoidGen"
+        wait 3 seconds
+        set {_世界} to world {_世界名}
+        if {_世界} is not set:
+            send "&c❌ 建立失敗！請查看後台訊息。"
+            stop
+        # ===== 建立成功,寫入對應表 =====
+        set {遊戲世界::計數器} to {_流水號}
+        set {遊戲世界::名稱對應::%{_中文名}%} to {_世界名}
+        set {遊戲世界::反向對應::%{_世界名}%} to {_中文名}
+        # 在 (0, 64, 0) 放一格基岩
+        set block at location(0, 64, 0, {_世界}) to bedrock
+        execute console command "mv modify set spawn 0.5,65,0.5 %{_世界名}%"
+        execute console command "mv modify set mode adventure %{_世界名}%"
+        
+        # ===== 環境設定 (Multiverse 5.x + Minecraft 1.21+) =====
+        # 關閉怪物與動物生成
+        execute console command "mv entity-spawn-config modify %{_世界名}% monster set spawn false"
+        execute console command "mv entity-spawn-config modify %{_世界名}% animal set spawn false"
+        wait 2 ticks
+        # Multiverse gamerule (鎖定時間與天氣不流動)
+        execute console command "mv gamerule set advance_time false %{_世界名}%"
+        execute console command "mv gamerule set advance_weather false %{_世界名}%"
+        execute console command "mv gamerule set spawn_mobs false %{_世界名}%"
+        wait 2 ticks
+        # 強制初始狀態為白天 + 晴天 (因為 advance_* false 只鎖目前狀態,不會自動改成晴天/白天)
+        execute console command "execute in minecraft:%{_世界名}% run weather clear"
+        execute console command "execute in minecraft:%{_世界名}% run time set day"
+        
+        # ===== 背包完全隔離設定 =====
+        wait 2 ticks
+        execute console command "mvinv addworld %{_世界名}% %{_世界名}%"
+        wait 5 ticks
+        execute console command "mvinv modify add inventory_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv modify add armor_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv modify add ender_chest_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv modify add off_hand_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv reload"
+        wait 5 ticks
+        send "&a✔ 世界建立完成！"
+        send "&7  ├─ 顯示名稱: &e%{_中文名}%"
+        send "&7  ├─ 內部名稱: &f%{_世界名}%"
+        send "&7  ├─ 模式: &f冒險"
+        send "&7  ├─ 出生點: &f0.5, 65, 0.5 (基岩上)"
+        send "&7  └─ 隔離項目: &f背包 / 裝備 / 副手 / 終界箱"
+        # ===== 自動傳送過去 =====
+        if sender is a player:
+            wait 10 ticks
+            send "&b▶ 正在傳送至新世界..."
+            teleport sender to spawn of {_世界}
+            send "&a✔ 已抵達 &e%{_中文名}%&a！"
+
+# 管理員 - 刪除遊戲世界 (清除對應表並卸載世界)
+command /遊戲世界刪除 <text>:
+    description: 刪除遊戲世界 (僅限管理員)
+    permission: gameworld.admin
+    permission message: &c你沒有權限使用此指令！
+    trigger:
+        set {_中文名} to arg-1
+        if {遊戲世界::名稱對應::%{_中文名}%} is not set:
+            send "&c❌ 世界 &e%{_中文名}% &c不存在！"
+            stop
+        set {_世界名} to {遊戲世界::名稱對應::%{_中文名}%}
+        send "&a▶ 正在刪除世界 &e%{_中文名}%&a..."
+        # ===== 步驟 1: 把世界內所有玩家踢回主世界 =====
+        set {_主世界} to world "world"
+        loop all players:
+            if "%loop-player's world%" is {_世界名}:
+                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.timer.bypass world=%{_世界名}%"
+                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_世界名}%"
+                set loop-player's gamemode to adventure
+                execute console command "spawn %loop-player%"
+                send "&e你所在的世界 &c%{_中文名}% &e已被刪除,已將你傳送回主世界。" to loop-player
+        wait 10 ticks
+        # ===== 步驟 2: 刪除世界 =====
+        execute console command "mvinv rmworld %{_世界名}% %{_世界名}%"
+        execute console command "mv delete %{_世界名}% --remove-players"
+        wait 2 seconds
+        execute console command "mv confirm"
+        wait 1 second
+        # 清除對應表
+        delete {遊戲世界::名稱對應::%{_中文名}%}
+        delete {遊戲世界::反向對應::%{_世界名}%}
+        send "&a✔ 已刪除世界 &e%{_中文名}% &7(%{_世界名}%)"
+
+# 一般玩家 - 列表/傳送
+command /遊戲世界列表 [<text>]:
+    description: 查看遊戲世界列表並傳送
+    trigger:
+        if arg-1 is set:
+            # 傳送模式 - 從對應表查找
+            if {遊戲世界::名稱對應::%arg-1%} is not set:
+                send "&c❌ 世界 &e%arg-1% &c不存在！"
+                send "&7  使用 &f/遊戲世界列表 &7查看可用世界。"
+                stop
+            set {_世界名} to {遊戲世界::名稱對應::%arg-1%}
+            set {_世界} to world {_世界名}
+            if {_世界} is not set:
+                send "&c❌ 世界資料異常,請聯絡管理員！"
+                send "&7  對應名稱: %{_世界名}% (未載入)"
+                stop
+            teleport player to spawn of {_世界}
+            set player's gamemode to adventure
+            send "&a✔ 已傳送至 &e%arg-1%&a！"
+            send "&7(你在此世界的背包、裝備、副手、終界箱皆為獨立)"
+        else:
+            # 列表模式 - 遍歷對應表
+            set {_有世界} to false
+            send "&6&m&r &e遊戲世界列表 &6&m"
+            loop {遊戲世界::名稱對應::*}:
+                set {_顯示名} to loop-index
+                set {_內部名} to loop-value
+                send formatted "&e ▸ &e%{_顯示名}%<command:/遊戲世界列表 %{_顯示名}%>&7[&b傳送&7]<reset>"
+                # send formatted "&e ▸ &a%{_顯示名}% &7(%{_內部名}%) <tooltip:&7點擊傳送至 &e%{_顯示名}%><command:/遊戲世界列表 %{_顯示名}%>&7[&b傳送&7]<reset>"
+                set {_有世界} to true
+            if {_有世界} is false:
+                send "&c目前沒有任何遊戲世界！"
+            # send "&6&m"
+
+# ===== 玩家切換遊戲世界時自動配發/收回繞過權限 =====
+on world change:
+    set {_新世界} to "%player's world%"
+    set {_舊世界} to "%event-world%"
+    # 離開遊戲世界 - 撤銷該世界的繞過權限
+    if {_舊世界} contains "game_":
+        execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+    # 進入遊戲世界 - 給予繞過 /spawn 等待的權限
+    if {_新世界} contains "game_":
+        execute console command "lp user %player% permission settemp essentials.teleport.timer.bypass true 7d world=%{_新世界}%"
+        execute console command "lp user %player% permission settemp essentials.teleport.cooldown.bypass true 7d world=%{_新世界}%"
+        set {_中文名} to {遊戲世界::反向對應::%{_新世界}%}
+        send "&a✔ 已進入 &e%{_中文名}%"
+        send "&7  ▸ &f/spawn &7- 立即傳送回主世界 (無需等待)"
+        send "&7  ▸ &f/回到主世界 &7- 快速返回 (無需等待)"
+
+on teleport:
+    set {_舊世界} to "%event-world%"
+    if {_舊世界} contains "pw_":
+        # 延遲 5 ticks 讓傳送完成後再檢查
+        wait 5 ticks
+        if "%player's world%" does not contain "pw_":
+            execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+            if player's gamemode is creative:
+                set player's gamemode to adventure
