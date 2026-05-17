@@ -177,3 +177,17 @@ plugins/ProtocolLib/lastupdate
 # 玩家追蹤工具（含玩家 IP）
 # ══════════════════════════════════════════════
 小工具/player-trace-report-*.txt
+
+# Minecraft worlds
+game_*/
+pw_*/
+
+# Player data
+plugins/Multiverse-Inventories/
+
+# Generated plugin data
+plugins/Geyser-Spigot/extensions/
+plugins/VoidGen/
+
+# Temporary / backups
+*.log
