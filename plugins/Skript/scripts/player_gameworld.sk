@@ -65,8 +65,8 @@ command /玩家遊戲世界建立 <text>:
         set {玩家世界::反向對應::%{_世界名}%} to {_中文名}
         set {玩家世界::創造者::%{_世界名}%} to player's name
         set block at location(0, 64, 0, {_世界}) to bedrock
-        execute console command "mv modify set spawn 0.5,65,0.5 %{_世界名}%"
-        execute console command "mv modify set mode adventure %{_世界名}%"
+        # execute console command "mv modify %{_世界名}% set spawn 0.5,65,0.5"
+        execute console command "mv modify %{_世界名}% set gamemode adventure"
         
         # ===== 環境設定 (Multiverse 5.x + Minecraft 1.21+) =====
         # 關閉怪物與動物生成
