@@ -3,6 +3,13 @@
 # ==========================================
 #  觸發方式 1：蹲下時按 F (切換主副手)
 #  指令     ：/menu /選單
+#
+#  本版新增：
+#  - 玩家若在 pw_ 玩家遊戲世界中
+#  - 且是該世界創造者或共同編輯者
+#  - 主選單會顯示：取得小木斧、切換玩家模式 創造/冒險
+#
+#  依賴：玩家遊戲世界系統.sk 內的 pw_base()、canEdit()
 # ==========================================
 
 # ==========================================
@@ -13,11 +20,23 @@ function openMainMenu(p: player):
     set {_inv} to chest inventory with 3 rows named "主選單"
     set slot 0 of {_inv} to diamond named "&b傳送主城" with lore "&7點擊傳送到出生點"
     set slot 1 of {_inv} to white bed named "&e傳送回家" with lore "&7點擊傳送到你的床"
+
     # ===== 遊戲世界列表入口按鈕 =====
     set slot 2 of {_inv} to compass named "&a遊戲世界列表" with lore "&7查看並前往遊戲世界"
+
     # ===== 玩家遊戲世界列表入口按鈕 =====
-    set slot 3 of {_inv} to compass named "&a玩家遊戲世界列表" with lore "&7查看並前往遊戲世界"
+    set slot 3 of {_inv} to compass named "&a玩家遊戲世界列表" with lore "&7查看並前往玩家遊戲世界"
+
     set slot 4 of {_inv} to book named "&a更多功能" with lore "&7開啟功能選單"
+
+    # ===== 玩家世界編輯功能：只有創造者 / 共同編輯者，且人在該玩家世界內才顯示 =====
+    set {_目前世界} to "%world of {_p}%"
+    if {_目前世界} contains "pw_":
+        set {_基礎世界} to pw_base({_目前世界})
+        if canEdit(name of {_p}, {_基礎世界}) is true:
+            set slot 5 of {_inv} to wooden axe named "&6取得小木斧" with lore "&7WorldEdit 選取工具" and "&8限此世界創造者或共同編輯者"
+            set slot 6 of {_inv} to iron sword named "&e切換玩家模式" with lore "&7切換創造 / 冒險模式" and "&8限此世界創造者或共同編輯者"
+
     open {_inv} to {_p}
 
 function openFunctionMenu(p: player):
@@ -26,33 +45,36 @@ function openFunctionMenu(p: player):
     open {_inv} to {_p}
 
 # ==========================================
-# A-2. 新增：遊戲世界列表子選單
+# A-2. 遊戲世界列表子選單
 #   讀取「遊戲世界管理系統」的全域變數 {遊戲世界::名稱對應::*}
 #   loop-index = 中文顯示名 / loop-value = 內部世界名 (game_N)
-#   世界依序放在 slot 0,1,2... ；點擊時用 clicked slot 對回同順序的世界
 # ==========================================
 
 function openWorldListMenu(p: player):
     set {_inv} to chest inventory with 6 rows named "遊戲世界列表"
-    # 逐一列出所有遊戲世界 (最多顯示 53 個，最後 1 格保留給返回按鈕)
+
+    # 逐一列出所有遊戲世界，最多顯示 53 個，最後 1 格保留給返回按鈕
     set {_i} to 0
     loop {遊戲世界::名稱對應::*}:
         if {_i} is smaller than 53:
             set {_顯示名} to loop-index
             set slot {_i} of {_inv} to grass block named "&a%{_顯示名}%" with lore "&7點擊傳送至此世界"
             add 1 to {_i}
+
     # 返回按鈕放在最後一個世界選項後面的下一格
     set {_返回槽位} to {_i}
+
     # 完全沒有世界時，保留原本的提示位置，返回按鈕放在提示後一格
     if {_i} is 0:
         set slot 22 of {_inv} to barrier named "&c目前沒有任何遊戲世界" with lore "&7請聯絡管理員建立"
         set {_返回槽位} to 23
+
     set slot {_返回槽位} of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
     set {玩家選單GUI::世界列表返回槽位::%uuid of {_p}%} to {_返回槽位}
     open {_inv} to {_p}
 
 # ==========================================
-# A-3. 新增：玩家遊戲世界列表子選單
+# A-3. 玩家遊戲世界列表子選單
 #   讀取「玩家遊戲世界系統」的全域變數 {玩家世界::名稱對應::*}
 #   loop-index = 中文顯示名 / loop-value = 內部世界名 (pw_N)
 #   點擊世界時執行：/玩家遊戲世界列表 <世界名稱>
@@ -65,16 +87,20 @@ function openPlayerWorldGuideBook(p: player):
     set {_book} to written book named "&e玩家遊戲世界使用手冊"
     set book title of {_book} to "玩家遊戲世界使用手冊"
     set book author of {_book} to "rr901037"
-    add "&0&l玩家遊戲世界使用手冊%nl%%nl%&2/玩家遊戲世界建立 <名稱>%nl%&0建立自己的遊戲世界%nl%%nl%&2/玩家遊戲世界刪除 <名稱>%nl%&0刪除自己建立的世界%nl%%nl%&2/玩家遊戲世界個人模式%nl%&0切換玩家模式 創造/冒險%nl%&8限制建造者與共同編輯可用" to book pages of {_book}
-    add "&2/玩家遊戲世界共同編輯新增 <世界名> <玩家名>%nl%&0新增共同編輯者%nl%%nl%&2/玩家遊戲世界共同編輯移除 <世界名> <玩家名>%nl%&0移除共同編輯者%nl%%nl%&2/玩家遊戲世界共同編輯列表 <世界名>%nl%&0查看共同編輯者" to book pages of {_book}
-    add "&2//wand%nl%&0取得小木斧%nl%&8限共同編輯者或創造者可用" to book pages of {_book}
+    add "&0&l玩家遊戲世界使用手冊%nl%%nl%&2/玩家遊戲世界建立 <名稱>%nl%&0建立自己的遊戲世界%nl%%nl%&2/玩家遊戲世界刪除 <名稱>%nl%&0刪除自己建立的世界" to book pages of {_book}
+    add "&2/玩家遊戲世界列表%nl%&0查看所有玩家遊戲世界%nl%%nl%&0基岩版玩家前往請用：%nl%&2/玩家遊戲世界列表 <世界名稱>" to book pages of {_book}
+    add "&2/玩家遊戲世界列表 <名稱>%nl%&0傳送到指定玩家世界%nl%%nl%&2/玩家遊戲世界個人模式%nl%&0切換玩家模式 創造/冒險%nl%&8限制建造者與共同編輯可用" to book pages of {_book}
+    add "&2/玩家遊戲世界共同編輯新增 <世界名> <玩家名>%nl%&0新增共同編輯者%nl%%nl%&2/玩家遊戲世界共同編輯移除 <世界名> <玩家名>%nl%&0移除共同編輯者" to book pages of {_book}
+    add "&2/玩家遊戲世界共同編輯列表 <世界名>%nl%&0查看共同編輯者%nl%%nl%&2//wand%nl%&0取得小木斧%nl%&8限共同編輯者或創造者可用" to book pages of {_book}
     open book {_book} to {_p}
 
 function openPlayerWorldListMenu(p: player):
     set {_inv} to chest inventory with 6 rows named "玩家遊戲世界列表"
+
     # 第 1 格放玩家遊戲世界使用手冊，點擊後會自動打開書本
     set slot 0 of {_inv} to written book named "&e玩家遊戲世界使用手冊" with lore "&7點擊打開使用手冊"
-    # 逐一列出所有玩家遊戲世界 (slot 0 保留給使用手冊，最多顯示 52 個，最後 1 格保留給返回按鈕)
+
+    # 逐一列出所有玩家遊戲世界，slot 0 保留給使用手冊，最多顯示 52 個，最後 1 格保留給返回按鈕
     set {_i} to 1
     loop {玩家世界::名稱對應::*}:
         if {_i} is smaller than 53:
@@ -85,12 +111,15 @@ function openPlayerWorldListMenu(p: player):
             set {_人數} to {玩家世界::訪問玩家數::%{_內部名}%} ? 0
             set slot {_i} of {_inv} to grass block named "&a%{_顯示名}%" with lore "&7創造者: &b%{_創造者}% &7- 訪問: &e%{_次數}% &7次 / &e%{_人數}% &7人" and "&7點擊傳送至此玩家世界"
             add 1 to {_i}
+
     # 返回按鈕放在最後一個世界選項後面的下一格
     set {_返回槽位} to {_i}
+
     # 完全沒有世界時，放提示，返回按鈕放在提示後一格
     if {_i} is 1:
         set slot 22 of {_inv} to barrier named "&c目前沒有任何玩家遊戲世界" with lore "&7請使用 /玩家遊戲世界建立 <名稱> 建立"
         set {_返回槽位} to 23
+
     set slot {_返回槽位} of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
     set {玩家選單GUI::玩家世界列表返回槽位::%uuid of {_p}%} to {_返回槽位}
     open {_inv} to {_p}
@@ -125,21 +154,60 @@ on inventory click:
                 close player's inventory
                 send "&a[系統] 正在將你傳送到主城..." to player
                 execute player command "/spawn"
+
             else if clicked slot is 1:
                 close player's inventory
                 execute player command "/home"
+
             else if clicked slot is 2:
                 # 開啟遊戲世界列表
                 wait 1 tick
                 openWorldListMenu(player)
+
             else if clicked slot is 3:
                 # 開啟玩家遊戲世界列表
                 wait 1 tick
                 openPlayerWorldListMenu(player)
+
             else if clicked slot is 4:
                 # 更多功能
                 wait 1 tick
                 openFunctionMenu(player)
+
+            else if clicked slot is 5:
+                # 取得小木斧：再次檢查權限，避免玩家用漏洞點擊不存在的按鈕
+                set {_目前世界} to "%player's world%"
+                if {_目前世界} does not contain "pw_":
+                    close player's inventory
+                    send "&c此功能只能在玩家遊戲世界中使用！" to player
+                    stop
+
+                set {_基礎世界} to pw_base({_目前世界})
+                if canEdit(player's name, {_基礎世界}) is false:
+                    close player's inventory
+                    send "&c你不是此世界的創造者或共同編輯者！" to player
+                    stop
+
+                give 1 wooden axe named "&6WorldEdit 小木斧" to player
+                close player's inventory
+                send "&a✔ 你已取得小木斧，可用於 WorldEdit 選取範圍。" to player
+
+            else if clicked slot is 6:
+                # 切換玩家模式：再次檢查權限，並交給玩家遊戲世界系統原本的指令處理
+                set {_目前世界} to "%player's world%"
+                if {_目前世界} does not contain "pw_":
+                    close player's inventory
+                    send "&c此功能只能在玩家遊戲世界中使用！" to player
+                    stop
+
+                set {_基礎世界} to pw_base({_目前世界})
+                if canEdit(player's name, {_基礎世界}) is false:
+                    close player's inventory
+                    send "&c你不是此世界的創造者或共同編輯者！" to player
+                    stop
+
+                close player's inventory
+                execute player command "/玩家遊戲世界個人模式"
 
     # ----- 功能選單 -----
     if name of event-inventory is "功能選單":
@@ -149,7 +217,7 @@ on inventory click:
                 wait 1 tick
                 openMainMenu(player)
 
-    # ----- 遊戲世界列表 (新增) -----
+    # ----- 遊戲世界列表 -----
     if name of event-inventory is "遊戲世界列表":
         cancel event
         if clicked inventory is event-inventory:
@@ -158,19 +226,19 @@ on inventory click:
                 wait 1 tick
                 openMainMenu(player)
             else:
-                # 用「點到第幾格」對回同順序的世界清單 (與開選單時的放置順序一致)
+                # 用「點到第幾格」對回同順序的世界清單
                 set {_j} to 0
                 loop {遊戲世界::名稱對應::*}:
                     if {_j} is clicked slot:
                         set {_名稱} to loop-index
                     add 1 to {_j}
-                # 有對到世界才傳送 (空格 / 返回鍵 / 提示框都不會對到)
+
+                # 有對到世界才傳送
                 if {_名稱} is set:
                     close player's inventory
-                    # 直接執行你確認可用的指令來前往
                     execute player command "/遊戲世界列表 %{_名稱}%"
 
-    # ----- 玩家遊戲世界列表 (新增) -----
+    # ----- 玩家遊戲世界列表 -----
     if name of event-inventory is "玩家遊戲世界列表":
         cancel event
         if clicked inventory is event-inventory:
@@ -178,11 +246,13 @@ on inventory click:
                 # 返回主選單
                 wait 1 tick
                 openMainMenu(player)
+
             else if clicked slot is 0:
                 # 打開玩家遊戲世界使用手冊
                 close player's inventory
                 wait 1 tick
                 openPlayerWorldGuideBook(player)
+
             else:
                 # 用「點到第幾格」對回同順序的玩家世界清單
                 # slot 0 是說明書，所以玩家世界從 slot 1 開始
@@ -191,6 +261,7 @@ on inventory click:
                     if {_j} is clicked slot:
                         set {_名稱} to loop-index
                     add 1 to {_j}
+
                 # 有對到世界才傳送
                 if {_名稱} is set:
                     close player's inventory
