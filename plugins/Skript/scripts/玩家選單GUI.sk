@@ -7,7 +7,7 @@
 #  本版新增：
 #  - 玩家若在 pw_ 玩家遊戲世界中
 #  - 且是該世界創造者或共同編輯者
-#  - 主選單會顯示：取得小木斧、切換玩家模式 創造/冒險
+#  - 主選單會顯示：取得小木斧、切換玩家模式 創造/冒險、小木斧使用教學
 #
 #  依賴：玩家遊戲世界系統.sk 內的 pw_base()、canEdit()
 # ==========================================
@@ -36,6 +36,7 @@ function openMainMenu(p: player):
         if canEdit(name of {_p}, {_基礎世界}) is true:
             set slot 5 of {_inv} to wooden axe named "&6取得小木斧" with lore "&7WorldEdit 選取工具" and "&8限此世界創造者或共同編輯者"
             set slot 6 of {_inv} to iron sword named "&e切換玩家模式" with lore "&7切換創造 / 冒險模式" and "&8限此世界創造者或共同編輯者"
+            set slot 7 of {_inv} to written book named "&e小木斧使用教學" with lore "&7WorldEdit 木斧選區與常用指令" and "&8限可使用小木斧者查看"
 
     open {_inv} to {_p}
 
@@ -92,6 +93,44 @@ function openPlayerWorldGuideBook(p: player):
     add "&2/玩家遊戲世界列表 <名稱>%nl%&0傳送到指定玩家世界%nl%%nl%&2/玩家遊戲世界個人模式%nl%&0切換玩家模式 創造/冒險%nl%&8限制建造者與共同編輯可用" to book pages of {_book}
     add "&2/玩家遊戲世界共同編輯新增 <世界名> <玩家名>%nl%&0新增共同編輯者%nl%%nl%&2/玩家遊戲世界共同編輯移除 <世界名> <玩家名>%nl%&0移除共同編輯者" to book pages of {_book}
     add "&2/玩家遊戲世界共同編輯列表 <世界名>%nl%&0查看共同編輯者%nl%%nl%&2//wand%nl%&0取得小木斧%nl%&8限共同編輯者或創造者可用" to book pages of {_book}
+    open book {_book} to {_p}
+
+function openWorldEditGuideBook(p: player):
+    # 建立虛擬成書，不放進玩家背包，直接打開
+    set {_book} to written book named "&e小木斧使用教學"
+    set book title of {_book} to "小木斧使用教學"
+    set book author of {_book} to "rr901037"
+
+    add "&0&l小木斧使用教學%nl%%nl%&0使用方法：%nl%&0若要選取長方形區域，使用木斧對方塊按左鍵為選取 A，對方塊按右鍵為選取 B。%nl%%nl%&0A、B 兩點必須是長方形對角線上的兩點。" to book pages of {_book}
+    add "&0如果要選取立體區域，也是選取立體長方體對角線上的兩點。%nl%%nl%&8示意：%nl%&0A 點：左下前角%nl%&0B 點：右上後角%nl%%nl%&0選好後即可使用 WorldEdit 指令修改選區。" to book pages of {_book}
+    add "&0&l插件指令說明%nl%%nl%&0WorldEdit 指令大多是雙斜線：&2//%nl%%nl%&0方塊 ID 可使用 Minecraft 方塊名稱，例如：%nl%&2stone%nl%&2oak_planks%nl%&2air" to book pages of {_book}
+    add "&0&l基礎限制%nl%%nl%&2//limit <數量>%nl%&0設置一次可修改的最大方塊數量。%nl%%nl%&8建議大量操作前先確認選區大小，避免伺服器卡頓。" to book pages of {_book}
+
+    add "&0&l歷史紀錄%nl%%nl%&2//undo%nl%&0復原最後一個動作。%nl%%nl%&2//redo%nl%&0還原剛剛復原的動作。%nl%%nl%&2/clearhistory%nl%&0清除 WorldEdit 歷史紀錄。" to book pages of {_book}
+    add "&0&l選取區 1%nl%%nl%&2//sel <形狀>%nl%&0選擇選區形狀。%nl%%nl%&0常見形狀：%nl%&2cuboid &0長方形%nl%&2ellipsoid &0橢圓形%nl%&2sphere &0球形" to book pages of {_book}
+    add "&0&l選取區 2%nl%%nl%&2//pos1%nl%&0選取你站的位置為 A 點。%nl%%nl%&2//pos2%nl%&0選取你站的位置為 B 點。%nl%%nl%&2//hpos1%nl%&0選取你看著的方塊為 A 點。" to book pages of {_book}
+    add "&0&l選取區 3%nl%%nl%&2//hpos2%nl%&0選取你看著的方塊為 B 點。%nl%%nl%&2//expand vert%nl%&0把選區垂直擴大到天空與基岩。%nl%%nl%&2//size%nl%&0查看選區大小。" to book pages of {_book}
+    add "&0&l選取區 4%nl%%nl%&2//count <方塊ID>%nl%&0計算選區內指定方塊數量。%nl%%nl%&2//distr%nl%&0查看選區內各方塊分布。" to book pages of {_book}
+
+    add "&0&l修改選取區 1%nl%%nl%&2//set <方塊ID>%nl%&0將選區內所有方塊改為指定方塊。%nl%&8例：//set air 可清空選區。%nl%%nl%&2//replace <A> <B>%nl%&0用 B 替換所有 A。" to book pages of {_book}
+    add "&0&l修改選取區 2%nl%%nl%&2//overlay <方塊ID>%nl%&0在選區頂部鋪上方塊。%nl%%nl%&2//walls <方塊ID>%nl%&0建立四周牆壁。%nl%%nl%&2//outline <方塊ID>%nl%&0建立牆壁、天花板、地板。" to book pages of {_book}
+    add "&0&l修改選取區 3%nl%%nl%&2//regen%nl%&0重新生成選區。%nl%%nl%&2//move <格數> <方向> <不移動方塊ID>%nl%&0移動選區內方塊。方向與排除方塊可視情況省略。" to book pages of {_book}
+    add "&0&l修改選取區 4%nl%%nl%&2//stack <格數> <方向>%nl%&0向指定方向延伸複製選區內方塊。%nl%%nl%&8方向可不填，通常會依照你面向方向。" to book pages of {_book}
+
+    add "&0&l剪貼板%nl%%nl%&2//copy%nl%&0複製選區。%nl%%nl%&2//cut%nl%&0剪下選區。%nl%%nl%&2//paste%nl%&0貼上剪貼板內容。%nl%%nl%&2/clearclipboard%nl%&0清除剪貼板。" to book pages of {_book}
+    add "&0&l旋轉與翻轉%nl%%nl%&2//rotate <角度>%nl%&0旋轉剪貼板內容，例如 90、180。%nl%%nl%&2//flip%nl%&0翻轉剪貼板內容。%nl%%nl%&8需先 //copy，再旋轉或翻轉，最後 //paste。" to book pages of {_book}
+
+    add "&0&l創建 1%nl%%nl%&2//hcyl <方塊ID> <半徑> <高>%nl%&0創建垂直空心圓柱。%nl%%nl%&2//cyl <方塊ID> <半徑> <高>%nl%&0創建垂直實心圓柱。" to book pages of {_book}
+    add "&0&l創建 2%nl%%nl%&2//sphere <方塊ID> <半徑>%nl%&0創建實心球體。%nl%%nl%&2//hsphere <方塊ID> <半徑>%nl%&0創建空心球體。" to book pages of {_book}
+    add "&0&l創建 3%nl%%nl%&2/forestgen <大小> <類型> <密度>%nl%&0以你為中心創建森林。%nl%%nl%&2/pumpkins <大小>%nl%&0以你為中心生成南瓜森林。" to book pages of {_book}
+
+    add "&0&l其他指令 1%nl%%nl%&2//fill <方塊ID> <半徑> <深度>%nl%&0填補一個洞。%nl%%nl%&2//drain <半徑>%nl%&0移除半徑內的水或岩漿。" to book pages of {_book}
+    add "&0&l其他指令 2%nl%%nl%&2/fixwater <半徑>%nl%&0整理流水，減少亂流。%nl%%nl%&2/removeabove <大小> <高度>%nl%&0刪除你上方指定範圍方塊。%nl%%nl%&2/removebelow <大小> <高度>%nl%&0刪除你下方指定範圍方塊。" to book pages of {_book}
+    add "&0&l其他指令 3%nl%%nl%&2/snow <半徑>%nl%&0模擬降雪。%nl%%nl%&2/thaw <半徑>%nl%&0解凍。%nl%%nl%&2/remove snow <半徑>%nl%&0清除雪。%nl%%nl%&2//ex <半徑>%nl%&0滅火。" to book pages of {_book}
+    add "&0&l其他指令 4%nl%%nl%&2/butcher <半徑>%nl%&0殺死附近怪物。%nl%%nl%&2/remove <物品名稱> <半徑>%nl%&0刪除附近實體物。%nl%&8例：arrows、boats、minecarts、tnt" to book pages of {_book}
+    add "&0&l插件與指南針%nl%%nl%&2使用指南針按右鍵%nl%&0可穿牆傳送。" to book pages of {_book}
+    # add "&0&l插件與指南針%nl%%nl%&2//worldedit version%nl%&0查看 WorldEdit 版本。%nl%%nl%&2//worldedit reload%nl%&0重載 WorldEdit。%nl%%nl%&2使用指南針按右鍵%nl%&0可穿牆傳送。" to book pages of {_book}
+
     open book {_book} to {_p}
 
 function openPlayerWorldListMenu(p: player):
@@ -208,6 +247,24 @@ on inventory click:
 
                 close player's inventory
                 execute player command "/玩家遊戲世界個人模式"
+
+            else if clicked slot is 7:
+                # 小木斧使用教學：與取得小木斧使用同一組權限檢查
+                set {_目前世界} to "%player's world%"
+                if {_目前世界} does not contain "pw_":
+                    close player's inventory
+                    send "&c此功能只能在玩家遊戲世界中使用！" to player
+                    stop
+
+                set {_基礎世界} to pw_base({_目前世界})
+                if canEdit(player's name, {_基礎世界}) is false:
+                    close player's inventory
+                    send "&c你不是此世界的創造者或共同編輯者！" to player
+                    stop
+
+                close player's inventory
+                wait 1 tick
+                openWorldEditGuideBook(player)
 
     # ----- 功能選單 -----
     if name of event-inventory is "功能選單":

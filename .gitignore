@@ -190,4 +190,5 @@ plugins/Geyser-Spigot/extensions/
 plugins/VoidGen/
 
 # Temporary / backups
-*.log
+*.log廢棄sk/
+廢棄sk/

@@ -61,3 +61,13 @@ worlds:
   game_5_the_end:
     portalgoesto:
       ENDER: game_5
+  pw_11:
+    portalgoesto:
+      NETHER: pw_11_nether
+      ENDER: pw_11_the_end
+  pw_11_nether:
+    portalgoesto:
+      NETHER: pw_11
+  pw_11_the_end:
+    portalgoesto:
+      ENDER: pw_11
