@@ -17,7 +17,7 @@
 查看最近100行      sudo journalctl -u minecraft -n 100
 
 # 控制台（不需要 sudo）
-進入控制台         screen -r minecraft
+進入控制台         screen -d -r minecraft
 離開控制台         Ctrl+A 然後 D
 # 注意：確保在進入控制台前已啟動服務器
 

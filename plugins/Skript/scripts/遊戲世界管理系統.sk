@@ -1,0 +1,275 @@
+# ============================================
+# 遊戲世界管理系統 (流水號 + 中文名對應)
+# 依賴: Skript / Multiverse-Core 5.x / Multiverse-Inventories / Multiverse-NetherPortals / VoidGen
+#
+# 全域變數結構:
+#   {遊戲世界::計數器}              → 目前最大流水號
+#   {遊戲世界::名稱對應::<中文名>}   → 對應的內部世界名 (game_N) ※只存「主世界」這一格
+#   {遊戲世界::反向對應::<game_N>}  → 對應的中文顯示名         ※只存「主世界」這一格
+#
+# 每個遊戲世界實際包含三個 Multiverse 世界 (使用 MVNP 命名慣例):
+#   game_N            → 主世界  (overworld)
+#   game_N_nether     → 下界    (nether)
+#   game_N_the_end    → 終界    (the_end)
+#   三者皆為 VoidGen 空島,(0,64,0) 各放一格基岩,出生點 0.5,65,0.5
+#   傳送門以 MVNP 互相鎖定,永遠不通往主線 world_nether / world_the_end
+# ============================================
+
+
+# ============================================
+# 共用函式: 套用一個遊戲世界(任一維度)的標準設定
+#   ※ 只放「不需等待」的同步指令; 世界必須已建立並載入後才呼叫
+# ============================================
+function gw_setup(w: text):
+    set {_世界} to world {_w}
+    if {_世界} is not set:
+        stop
+    # (0,64,0) 放一格基岩
+    set block at location(0, 64, 0, {_世界}) to bedrock
+    # 出生點 + 冒險模式
+    execute console command "mv setspawn %{_w}%:0.5,65,0.5"
+    execute console command "mv modify %{_w}% set gamemode adventure"
+    # 關閉怪物與動物生成
+    execute console command "mv entity-spawn-config modify %{_w}% monster set spawn false"
+    execute console command "mv entity-spawn-config modify %{_w}% animal set spawn false"
+    # Multiverse gamerule (鎖定時間 / 天氣 / 生怪)
+    execute console command "mv gamerule set advance_time false %{_w}%"
+    execute console command "mv gamerule set advance_weather false %{_w}%"
+    execute console command "mv gamerule set spawn_mobs false %{_w}%"
+    # 強制初始狀態為白天 + 晴天
+    execute console command "execute in minecraft:%{_w}% run minecraft:weather clear"
+    execute console command "execute in minecraft:%{_w}% run minecraft:time set day"
+
+
+# 管理員 - 建立遊戲世界
+command /遊戲世界建立 <text>:
+    description: 建立新的遊戲世界 (僅限管理員)
+    permission: gameworld.admin
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法: /遊戲世界建立 <世界名稱>
+    trigger:
+        set {_中文名} to arg-1
+        if {_中文名} contains " ":
+            send "&c世界名稱不可包含空格！"
+            stop
+        # 檢查中文名是否已存在
+        if {遊戲世界::名稱對應::%{_中文名}%} is set:
+            send "&c世界 &e%{_中文名}% &c已經存在！"
+            send "&7  對應的內部世界: &f%{遊戲世界::名稱對應::%{_中文名}%}%"
+            stop
+        # 計算下一個流水號 (不直接寫入,失敗時自動取消)
+        if {遊戲世界::計數器} is not set:
+            set {遊戲世界::計數器} to 0
+        set {_流水號} to {遊戲世界::計數器} + 1
+        set {_世界名} to "game_%{_流水號}%"
+        set {_下界名} to "%{_世界名}%_nether"
+        set {_終界名} to "%{_世界名}%_the_end"
+        # 雙保險: 確認該內部名沒被佔用
+        loop all worlds:
+            if "%loop-world%" is {_世界名}:
+                send "&c❌ 內部名稱 &e%{_世界名}% &c已被佔用,請聯絡管理員。"
+                stop
+        send "&a▶ 正在建立世界 &e%{_中文名}% &7(內部名: %{_世界名}%)&a..."
+
+        # ===== 使用 VoidGen 建立三個維度的空白世界 =====
+        send "&7  ├─ 建立主世界..."
+        execute console command "mv create %{_世界名}% normal -g VoidGen"
+        wait 3 seconds
+        set {_世界} to world {_世界名}
+        if {_世界} is not set:
+            send "&c❌ 主世界建立失敗！請查看後台訊息。"
+            stop
+
+        send "&7  ├─ 建立下界..."
+        execute console command "mv create %{_下界名}% nether -g VoidGen"
+        wait 3 seconds
+        send "&7  └─ 建立終界..."
+        execute console command "mv create %{_終界名}% the_end -g VoidGen"
+        wait 3 seconds
+        if world {_下界名} is not set:
+            send "&c❌ 下界建立失敗,正在回收已建立的世界..."
+            execute console command "mv delete %{_世界名}% --remove-players"
+            wait 1 second
+            execute console command "mv confirm"
+            stop
+        if world {_終界名} is not set:
+            send "&c❌ 終界建立失敗,正在回收已建立的世界..."
+            execute console command "mv delete %{_下界名}% --remove-players"
+            wait 1 second
+            execute console command "mv confirm"
+            execute console command "mv delete %{_世界名}% --remove-players"
+            wait 1 second
+            execute console command "mv confirm"
+            stop
+
+        # ===== 三個世界都建立成功,寫入對應表 (只存主世界) =====
+        set {遊戲世界::計數器} to {_流水號}
+        set {遊戲世界::名稱對應::%{_中文名}%} to {_世界名}
+        set {遊戲世界::反向對應::%{_世界名}%} to {_中文名}
+
+        # ===== 套用三個維度的標準設定 (基岩 / 出生點 / 冒險 / 關生怪 / 鎖時間天氣) =====
+        gw_setup({_世界名})
+        gw_setup({_下界名})
+        gw_setup({_終界名})
+        wait 2 ticks
+
+        # ===== 傳送門連結 (MVNP) — 把門鎖在這套世界內部,絕不通往主線 =====
+        execute console command "mvnp link nether %{_世界名}% %{_下界名}%"
+        execute console command "mvnp link end %{_世界名}% %{_終界名}%"
+        execute console command "mvnp link nether %{_下界名}% %{_世界名}%"
+        execute console command "mvnp link end %{_終界名}% %{_世界名}%"
+        wait 2 ticks
+
+        # ===== 背包完全隔離設定 (三個維度同一群組: 彼此共享、與主線隔離) =====
+        execute console command "mvinv create-group %{_世界名}% %{_世界名}%,%{_下界名}%,%{_終界名}% all"
+        wait 5 ticks
+        execute console command "mvinv reload"
+        wait 5 ticks
+
+        send "&a✔ 世界建立完成！"
+        send "&7  ├─ 顯示名稱: &e%{_中文名}%"
+        send "&7  ├─ 主世界: &f%{_世界名}%"
+        send "&7  ├─ 下界:   &f%{_下界名}%"
+        send "&7  ├─ 終界:   &f%{_終界名}%"
+        send "&7  ├─ 模式: &f冒險  出生點: &f0.5, 65, 0.5 (基岩上)"
+        send "&7  ├─ 傳送門: &f已鎖定於本世界內部 (不通往主線)"
+        send "&7  └─ 隔離項目: &f背包 / 裝備 / 副手 / 終界箱 (三維度共用一組)"
+
+        # ===== 自動傳送過去 =====
+        if sender is a player:
+            wait 10 ticks
+            send "&b▶ 正在傳送至新世界..."
+            make sender execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
+            send "&a✔ 已抵達 &e%{_中文名}%&a！"
+
+
+# 管理員 - 刪除遊戲世界 (清除對應表並卸載三個維度)
+command /遊戲世界刪除 <text>:
+    description: 刪除遊戲世界 (僅限管理員)
+    permission: gameworld.admin
+    permission message: &c你沒有權限使用此指令！
+    trigger:
+        set {_中文名} to arg-1
+        if {遊戲世界::名稱對應::%{_中文名}%} is not set:
+            send "&c❌ 世界 &e%{_中文名}% &c不存在！"
+            stop
+        set {_世界名} to {遊戲世界::名稱對應::%{_中文名}%}
+        set {_下界名} to "%{_世界名}%_nether"
+        set {_終界名} to "%{_世界名}%_the_end"
+        send "&a▶ 正在刪除世界 &e%{_中文名}%&a..."
+
+        # ===== 步驟 1: 把三個維度內的所有玩家踢回主世界 =====
+        loop all players:
+            set {_pw} to "%loop-player's world%"
+            if {_pw} is {_世界名} or {_下界名} or {_終界名}:
+                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.timer.bypass world=%{_pw}%"
+                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_pw}%"
+                set loop-player's gamemode to adventure
+                execute console command "spawn %loop-player%"
+                send "&e你所在的世界 &c%{_中文名}% &e已被刪除,已將你傳送回主世界。" to loop-player
+        wait 10 ticks
+
+        # ===== 步驟 2: 解除傳送門連結 =====
+        execute console command "mvnp unlink nether %{_世界名}%"
+        execute console command "mvnp unlink end %{_世界名}%"
+        execute console command "mvnp unlink nether %{_下界名}%"
+        execute console command "mvnp unlink end %{_終界名}%"
+
+        # ===== 步驟 3: 移出背包群組 =====
+        execute console command "mvinv delete-group %{_世界名}%"
+
+        # ===== 步驟 4: 依序刪除三個世界 (每次 delete 需 confirm) =====
+        execute console command "mv delete %{_終界名}% --remove-players"
+        wait 1 second
+        execute console command "mv confirm"
+        wait 1 second
+        execute console command "mv delete %{_下界名}% --remove-players"
+        wait 1 second
+        execute console command "mv confirm"
+        wait 1 second
+        execute console command "mv delete %{_世界名}% --remove-players"
+        wait 1 second
+        execute console command "mv confirm"
+        wait 1 second
+
+        # 清除對應表
+        delete {遊戲世界::名稱對應::%{_中文名}%}
+        delete {遊戲世界::反向對應::%{_世界名}%}
+        send "&a✔ 已刪除世界 &e%{_中文名}% &7(主世界/下界/終界 共三個維度)"
+
+
+# 一般玩家 - 列表/傳送
+command /遊戲世界列表 [<text>]:
+    description: 查看遊戲世界列表並傳送
+    trigger:
+        if arg-1 is set:
+            # 傳送模式 - 從對應表查找 (一律傳送到主世界)
+            if {遊戲世界::名稱對應::%arg-1%} is not set:
+                send "&c❌ 世界 &e%arg-1% &c不存在！"
+                send "&7  使用 &f/遊戲世界列表 &7查看可用世界。"
+                stop
+            set {_世界名} to {遊戲世界::名稱對應::%arg-1%}
+            set {_世界} to world {_世界名}
+            if {_世界} is not set:
+                send "&c❌ 世界資料異常,請聯絡管理員！"
+                send "&7  對應名稱: %{_世界名}% (未載入)"
+                stop
+            make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
+            set player's gamemode to adventure
+            send "&a✔ 已傳送至 &e%arg-1%&a！"
+            send "&7(你在此世界的背包、裝備、副手、終界箱皆為獨立)"
+        else:
+            # 列表模式 - 遍歷對應表 (只列出主世界)
+            set {_有世界} to false
+            send "&6&m&r &e遊戲世界列表 &6&m"
+            loop {遊戲世界::名稱對應::*}:
+                set {_顯示名} to loop-index
+                set {_內部名} to loop-value
+                send formatted "&e ▸ &e%{_顯示名}%<command:/遊戲世界列表 %{_顯示名}%>&7[&b傳送&7]<reset>"
+                set {_有世界} to true
+            if {_有世界} is false:
+                send "&c目前沒有任何遊戲世界！"
+
+
+# ===== 玩家切換遊戲世界時自動配發/收回繞過權限 =====
+# 註: game_N_nether / game_N_the_end 也都 contains "game_",因此此處同樣會處理到
+on world change:
+    set {_新世界} to "%player's world%"
+    set {_舊世界} to "%event-world%"
+    # 離開遊戲世界(任一維度) - 撤銷該世界的繞過權限
+    if {_舊世界} contains "game_":
+        execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+    # 進入遊戲世界(任一維度) - 給予繞過 /spawn 等待的權限
+    if {_新世界} contains "game_":
+        execute console command "lp user %player% permission settemp essentials.teleport.timer.bypass true 7d world=%{_新世界}%"
+        execute console command "lp user %player% permission settemp essentials.teleport.cooldown.bypass true 7d world=%{_新世界}%"
+        # 取得基礎世界名 (去掉維度後綴) 以查回中文名
+        set {_基礎} to {_新世界}
+        replace "_nether" with "" in {_基礎}
+        replace "_the_end" with "" in {_基礎}
+        set {_中文名} to {遊戲世界::反向對應::%{_基礎}%}
+        # 只有進入主世界維度時顯示完整歡迎訊息,避免跨維度時洗版
+        if {_新世界} is {_基礎}:
+            send "&a✔ 已進入 &e%{_中文名}%"
+            send "&7  ▸ &f/spawn &7- 立即傳送回主世界 (無需等待)"
+            send "&7  ▸ &f/回到主世界 &7- 快速返回 (無需等待)"
+        else if {_新世界} ends with "_nether":
+            send "&a✔ 已進入 &e%{_中文名}% &7的下界"
+        else if {_新世界} ends with "_the_end":
+            send "&a✔ 已進入 &e%{_中文名}% &7的終界"
+
+
+on teleport:
+    set {_舊世界} to "%event-world%"
+    if {_舊世界} contains "pw_":
+        # 延遲 5 ticks 讓傳送完成後再檢查
+        wait 5 ticks
+        if "%player's world%" does not contain "pw_":
+            execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+            if player's gamemode is creative:
+                set player's gamemode to adventure

@@ -1,0 +1,368 @@
+# ============================================
+# 玩家遊戲世界系統 (一般玩家可用)
+#
+# 全域變數結構:
+#   {玩家世界::計數器}                          → 流水號計數器
+#   {玩家世界::名稱對應::<中文名>}              → 內部名 (pw_N)
+#   {玩家世界::反向對應::<pw_N>}                → 中文名
+#   {玩家世界::創造者::<pw_N>}                  → 創造者玩家名
+#   {玩家世界::共同編輯者::<pw_N>::<玩家名>}    → true (是共同編輯者)
+#   {玩家世界::訪問次數::<pw_N>}                → 累計訪問次數
+#   {玩家世界::訪問玩家::<pw_N>::<玩家名>}      → true (該玩家曾訪問過)
+#   {玩家世界::訪問玩家數::<pw_N>}              → 不重複訪問人數
+# ============================================
+
+options:
+    每人世界上限: 0
+
+function canEdit(p: text, w: text) :: boolean:
+    if {玩家世界::創造者::%{_w}%} is {_p}:
+        return true
+    if {玩家世界::共同編輯者::%{_w}%::%{_p}%} is true:
+        return true
+    return false
+
+function countWorlds(p: text) :: number:
+    set {_n} to 0
+    loop {玩家世界::創造者::*}:
+        if loop-value is {_p}:
+            add 1 to {_n}
+    return {_n}
+
+# ===== 建立玩家遊戲世界 =====
+command /玩家遊戲世界建立 <text>:
+    description: 建立你自己的遊戲世界
+    executable by: players
+    trigger:
+        set {_中文名} to arg-1
+        if {_中文名} contains " ":
+            send "&c世界名稱不可包含空格！"
+            stop
+        # 檢查上限
+        if {@每人世界上限} is not 0:
+            set {_已有} to countWorlds(player's name)
+            if {_已有} is greater than or equal to {@每人世界上限}:
+                set {_上限文字} to "{@每人世界上限}"
+                send "&c你已建立 &e%{_已有}% &c個世界,達到上限 &e%{_上限文字}%&c！"
+                send "&7請先用 &f/玩家遊戲世界刪除 <名稱> &7刪除舊世界。"
+                stop
+        if {玩家世界::名稱對應::%{_中文名}%} is set:
+            send "&c世界 &e%{_中文名}% &c已經存在！"
+            stop
+        if {玩家世界::計數器} is not set:
+            set {玩家世界::計數器} to 0
+        set {_流水號} to {玩家世界::計數器} + 1
+        set {_世界名} to "pw_%{_流水號}%"
+        send "&a▶ 正在建立 &e%{_中文名}% &7(內部名: %{_世界名}%)&a..."
+        execute console command "mv create %{_世界名}% normal -g VoidGen"
+        wait 3 seconds
+        set {_世界} to world {_世界名}
+        if {_世界} is not set:
+            send "&c❌ 建立失敗！"
+            stop
+        set {玩家世界::計數器} to {_流水號}
+        set {玩家世界::名稱對應::%{_中文名}%} to {_世界名}
+        set {玩家世界::反向對應::%{_世界名}%} to {_中文名}
+        set {玩家世界::創造者::%{_世界名}%} to player's name
+        set block at location(0, 64, 0, {_世界}) to bedrock
+        execute console command "mv setspawn %{_世界名}%:0.5,65,0.5"
+        execute console command "mv modify %{_世界名}% set gamemode adventure"
+        
+        # ===== 環境設定 (Multiverse 5.x + Minecraft 1.21+) =====
+        # 關閉怪物與動物生成
+        execute console command "mv entity-spawn-config modify %{_世界名}% monster set spawn false"
+        execute console command "mv entity-spawn-config modify %{_世界名}% animal set spawn false"
+        wait 2 ticks
+        # Multiverse gamerule (鎖定時間與天氣不流動)
+        execute console command "mv gamerule set advance_time false %{_世界名}%"
+        execute console command "mv gamerule set advance_weather false %{_世界名}%"
+        execute console command "mv gamerule set spawn_mobs false %{_世界名}%"
+        wait 2 ticks
+        # 強制初始狀態為白天 + 晴天 (因為 advance_* false 只鎖目前狀態,不會自動改成晴天/白天)
+        execute console command "execute in minecraft:%{_世界名}% run weather clear"
+        execute console command "execute in minecraft:%{_世界名}% run time set day"
+        
+        # ===== 背包完全隔離設定 =====
+        wait 2 ticks
+        execute console command "mvinv addworld %{_世界名}% %{_世界名}%"
+        wait 5 ticks
+        execute console command "mvinv modify add inventory_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv modify add armor_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv modify add ender_chest_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv modify add off_hand_contents %{_世界名}%"
+        wait 2 ticks
+        execute console command "mvinv reload"
+        wait 5 ticks
+        send "&a✔ 世界建立完成！"
+        send "&7  ├─ 名稱: &e%{_中文名}% &7(內部: %{_世界名}%)"
+        send "&7  ├─ 創造者: &b%player%"
+        send "&7  └─ 你在此世界可使用: &f/玩家遊戲世界模式 &7、&f小木斧"
+        send "&b▶ 正在傳送..."
+        make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
+
+# ===== 刪除玩家遊戲世界 =====
+command /玩家遊戲世界刪除 <text>:
+    description: 刪除你自己的遊戲世界
+    executable by: players
+    trigger:
+        set {_中文名} to arg-1
+        set {_世界名} to {玩家世界::名稱對應::%{_中文名}%}
+        if {_世界名} is not set:
+            send "&c世界 &e%{_中文名}% &c不存在！"
+            stop
+        if {玩家世界::創造者::%{_世界名}%} is not player's name:
+            if player does not have permission "gameworld.admin":
+                send "&c你不是此世界的創造者,無法刪除！"
+                stop
+        send "&a▶ 正在刪除世界 &e%{_中文名}%&a..."
+        # ===== 步驟 1: 把世界內所有玩家踢回主世界 =====
+        set {_主世界} to world "world"
+        loop all players:
+            if "%loop-player's world%" is {_世界名}:
+                # 撤銷該世界的所有權限
+                execute console command "lp user %loop-player% permission unsettemp worldedit.* world=%{_世界名}%"
+                execute console command "lp user %loop-player% permission unsettemp multiverse.bypass.gamemode.%{_世界名}% world=%{_世界名}%"
+                execute console command "lp user %loop-player% permission unsettemp minecraft.command.gamemode world=%{_世界名}%"
+                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.timer.bypass world=%{_世界名}%"
+                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_世界名}%"
+                # 重設模式並傳送
+                set loop-player's gamemode to adventure
+                execute console command "spawn %loop-player%"
+                send "&e你所在的世界 &c%{_中文名}% &e已被刪除,已將你傳送回主世界。" to loop-player
+        wait 10 ticks
+        # ===== 步驟 2: 刪除世界 (附帶 --remove-players 雙保險) =====
+        execute console command "mvinv rmworld %{_世界名}% %{_世界名}%"
+        execute console command "mv delete %{_世界名}% --remove-players"
+        wait 2 seconds
+        execute console command "mv confirm"
+        wait 1 second
+        # ===== 步驟 3: 清除對應表 =====
+        delete {玩家世界::名稱對應::%{_中文名}%}
+        delete {玩家世界::反向對應::%{_世界名}%}
+        delete {玩家世界::創造者::%{_世界名}%}
+        delete {玩家世界::共同編輯者::%{_世界名}%::*}
+        delete {玩家世界::訪問次數::%{_世界名}%}
+        delete {玩家世界::訪問玩家::%{_世界名}%::*}
+        delete {玩家世界::訪問玩家數::%{_世界名}%}
+        send "&a✔ 已刪除世界 &e%{_中文名}%"
+        
+
+# ===== 列表 / 傳送 =====
+command /玩家遊戲世界列表 [<text>]:
+    description: 查看玩家遊戲世界列表並傳送
+    trigger:
+        if arg-1 is set:
+            set {_世界名} to {玩家世界::名稱對應::%arg-1%}
+            if {_世界名} is not set:
+                send "&c❌ 世界 &e%arg-1% &c不存在！"
+                stop
+            set {_世界} to world {_世界名}
+            if {_世界} is not set:
+                send "&c❌ 世界資料異常！"
+                stop
+            make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
+            send "&a✔ 已傳送至 &e%arg-1%&a！"
+        else:
+            # ===== 列表模式 - 按訪問次數由高至低排序 =====
+            # 1. 把所有世界依「訪問次數-中文名」打包成字串
+            delete {_排序清單::*}
+            loop {玩家世界::名稱對應::*}:
+                set {_顯示名} to loop-index
+                set {_內部名} to loop-value
+                # 補零讓數字字串比較等同數字比較 (最多支援 10^10 次訪問)
+                set {_次數} to {玩家世界::訪問次數::%{_內部名}%} ? 0
+                set {_補零次數} to "%{_次數}%"
+                loop 10 times:
+                    if length of {_補零次數} < 10:
+                        set {_補零次數} to "0%{_補零次數}%"
+                # key = "補零次數|世界名" 用於排序
+                set {_key} to "%{_補零次數}%|%{_顯示名}%"
+                set {_排序清單::%{_key}%} to {_內部名}
+            # 2. 顯示
+            set {_有世界} to false
+            send "&6&m──────&r &e玩家遊戲世界列表 &7(訪問熱度排序) &6&m──────"
+            # 由大到小排序遍歷
+            # 把所有 key 收集成 list 並反轉
+            set {_keys::*} to indexes of {_排序清單::*}
+            loop reversed {_keys::*}:
+                set {_key} to loop-value
+                set {_內部名} to {_排序清單::%{_key}%}
+                set {_中文名} to {玩家世界::反向對應::%{_內部名}%}
+                set {_創造者} to {玩家世界::創造者::%{_內部名}%}
+                set {_次數} to {玩家世界::訪問次數::%{_內部名}%} ? 0
+                set {_人數} to {玩家世界::訪問玩家數::%{_內部名}%} ? 0
+                send formatted "&e ▸ &a%{_中文名}%<command:/玩家遊戲世界列表 %{_中文名}%>&7[&b傳送&7]<reset> &7- 創造者: &b%{_創造者}% &7- 訪問: &e%{_次數}% &7次 / &e%{_人數}% &7人"
+                set {_有世界} to true
+            if {_有世界} is false:
+                send "&c目前沒有任何玩家遊戲世界！"
+            send "&7使用 &f/玩家遊戲世界建立 <名稱> &7建立你的世界"
+            send "&6&m────────────────────────────"
+
+# ===== 切換創造/冒險模式 =====
+command /玩家遊戲世界個人模式:
+    description: 在你的世界中個人切換創造/冒險模式
+    executable by: players
+    trigger:
+        set {_世界名} to "%player's world%"
+        if {_世界名} does not start with "pw_":
+            send "&c此指令只能在玩家遊戲世界中使用！"
+            stop
+        if canEdit(player's name, {_世界名}) is false:
+            send "&c你沒有共同編輯此世界的權限！"
+            stop
+        if player's gamemode is adventure:
+            set player's gamemode to creative
+            send "&a✔ 已切換為 &e創造模式"
+        else:
+            set player's gamemode to adventure
+            send "&a✔ 已切換為 &e冒險模式"
+
+# ===== 新增共同共同編輯者 =====
+command /玩家遊戲世界共同編輯新增 <text> <text>:
+    description: 為你的世界新增共同編輯者
+    usage: &c/玩家遊戲世界共同編輯新增 <世界名> <玩家名>
+    executable by: players
+    trigger:
+        set {_中文名} to arg-1
+        set {_目標} to arg-2
+        set {_世界名} to {玩家世界::名稱對應::%{_中文名}%}
+        if {_世界名} is not set:
+            send "&c世界 &e%{_中文名}% &c不存在！"
+            stop
+        if {玩家世界::創造者::%{_世界名}%} is not player's name:
+            send "&c只有創造者才能管理共同編輯者！"
+            stop
+        if {_目標} is player's name:
+            send "&c你已經是創造者,不能把自己加為共同編輯者！"
+            stop
+        if {玩家世界::共同編輯者::%{_世界名}%::%{_目標}%} is true:
+            send "&e%{_目標}% &c已經是此世界的共同編輯者！"
+            stop
+        set {玩家世界::共同編輯者::%{_世界名}%::%{_目標}%} to true
+        send "&a✔ 已新增 &e%{_目標}% &a為 &e%{_中文名}% &a的共同編輯者！"
+        # 如果該玩家在線且正在該世界中,立刻發放權限
+        loop all players:
+            if loop-player's name is {_目標}:
+                send "&a你已被 &b%player% &a加為 &e%{_中文名}% &a的共同編輯者!" to loop-player
+                if "%loop-player's world%" is {_世界名}:
+                    execute console command "lp user %{_目標}% permission settemp worldedit.* true 7d world=%{_世界名}%"
+                    execute console command "lp user %{_目標}% permission settemp multiverse.bypass.gamemode.%{_世界名}% true 7d world=%{_世界名}%"
+                    execute console command "lp user %{_目標}% permission settemp minecraft.command.gamemode true 7d world=%{_世界名}%"
+# ===== 移除共同編輯者 =====
+command /玩家遊戲世界共同編輯移除 <text> <text>:
+    description: 從你的世界移除共同編輯者
+    usage: &c/玩家遊戲世界共同編輯移除 <世界名> <玩家名>
+    executable by: players
+    trigger:
+        set {_中文名} to arg-1
+        set {_目標} to arg-2
+        set {_世界名} to {玩家世界::名稱對應::%{_中文名}%}
+        if {_世界名} is not set:
+            send "&c世界 &e%{_中文名}% &c不存在！"
+            stop
+        if {玩家世界::創造者::%{_世界名}%} is not player's name:
+            send "&c只有創造者才能管理共同編輯者！"
+            stop
+        if {玩家世界::共同編輯者::%{_世界名}%::%{_目標}%} is not set:
+            send "&e%{_目標}% &c不是此世界的共同編輯者！"
+            stop
+        delete {玩家世界::共同編輯者::%{_世界名}%::%{_目標}%}
+        send "&a✔ 已將 &e%{_目標}% &a從 &e%{_中文名}% &a的共同編輯者中移除！"
+        loop all players:
+            if loop-player's name is {_目標}:
+                execute console command "lp user %{_目標}% permission unsettemp worldedit.* world=%{_世界名}%"
+                execute console command "lp user %{_目標}% permission unsettemp multiverse.bypass.gamemode.%{_世界名}% world=%{_世界名}%"
+                execute console command "lp user %{_目標}% permission unsettemp minecraft.command.gamemode world=%{_世界名}%"
+                if "%loop-player's world%" is {_世界名}:
+                    set loop-player's gamemode to adventure
+                    # execute console command "mv tp %{_目標}% world"
+                    send "&c你已被移除共同編輯權限" to loop-player
+
+# ===== 查看共同編輯者列表 =====
+command /玩家遊戲世界共同編輯列表 <text>:
+    description: 查看世界的共同編輯者列表
+    trigger:
+        set {_中文名} to arg-1
+        set {_世界名} to {玩家世界::名稱對應::%{_中文名}%}
+        if {_世界名} is not set:
+            send "&c世界 &e%{_中文名}% &c不存在！"
+            stop
+        send "&6&m──&r &e%{_中文名}% &7的共同編輯者 &6&m──"
+        send "&7創造者: &b%{玩家世界::創造者::%{_世界名}%}%"
+        set {_有共同編輯者} to false
+        loop {玩家世界::共同編輯者::%{_世界名}%::*}:
+            send "&7共同編輯者: &a%loop-index%"
+            set {_有共同編輯者} to true
+        if {_有共同編輯者} is false:
+            send "&7(目前沒有共同編輯者)"
+        send "&6&m──────────────────"
+
+
+# ===== 玩家切換世界時自動配發/收回權限 (使用 LuckPerms) =====
+on world change:
+    set {_新世界} to "%player's world%"
+    set {_舊世界} to "%event-world%"
+    # 離開玩家世界 - 撤銷該世界的權限,強制回冒險模式
+    if {_舊世界} contains "pw_":
+        execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
+        execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+        execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+        execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+        if player's gamemode is creative:
+            set player's gamemode to adventure
+    # 進入玩家世界
+    if {_新世界} contains "pw_":
+        # ===== 訪問人數統計 (排除創造者與共同編輯者) =====
+        if {玩家世界::創造者::%{_新世界}%} is not player's name:
+            if {玩家世界::共同編輯者::%{_新世界}%::%player%} is not set:
+                if {玩家世界::訪問次數::%{_新世界}%} is not set:
+                    set {玩家世界::訪問次數::%{_新世界}%} to 0
+                add 1 to {玩家世界::訪問次數::%{_新世界}%}
+                if {玩家世界::訪問玩家::%{_新世界}%::%player%} is not set:
+                    set {玩家世界::訪問玩家::%{_新世界}%::%player%} to true
+                    if {玩家世界::訪問玩家數::%{_新世界}%} is not set:
+                        set {玩家世界::訪問玩家數::%{_新世界}%} to 0
+                    add 1 to {玩家世界::訪問玩家數::%{_新世界}%}
+        # ===== 所有人 (含訪客) 都可繞過 /spawn 30 秒等待 =====
+        execute console command "lp user %player% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
+        set {_中文名} to {玩家世界::反向對應::%{_新世界}%}
+        # 創造者
+        if {玩家世界::創造者::%{_新世界}%} is player's name:
+            execute console command "lp user %player% permission settemp worldedit.* true 7d world=%{_新世界}%"
+            execute console command "lp user %player% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 7d world=%{_新世界}%"
+            execute console command "lp user %player% permission settemp minecraft.command.gamemode true 7d world=%{_新世界}%"
+            send "&a✔ 歡迎回來,這裡是你建立的 &e%{_中文名}%"
+            send "&7  ▸ &f/玩家遊戲世界個人模式 &7- 切換創造/冒險"
+            send "&7  ▸ &f小木斧 &7- WorldEdit 區域選擇 (僅限此世界)"
+        # 共同編輯者
+        else if {玩家世界::共同編輯者::%{_新世界}%::%player%} is true:
+            execute console command "lp user %player% permission settemp worldedit.* true 7d world=%{_新世界}%"
+            execute console command "lp user %player% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 7d world=%{_新世界}%"
+            execute console command "lp user %player% permission settemp minecraft.command.gamemode true 7d world=%{_新世界}%"
+            send "&a✔ 你是 &e%{_中文名}% &a的共同編輯者"
+            send "&7  ▸ &f/玩家遊戲世界個人模式 &7- 切換創造/冒險"
+            send "&7  ▸ &f小木斧 &7- WorldEdit 區域選擇 (僅限此世界)"
+        # 訪客
+        else:
+            set player's gamemode to adventure
+            send "&7你正在參觀 &e%{_中文名}%&7,由 &b%{玩家世界::創造者::%{_新世界}%}% &7建立"
+
+on teleport:
+    set {_舊世界} to "%event-world%"
+    if {_舊世界} contains "pw_":
+        # 延遲 5 ticks 讓傳送完成後再檢查
+        wait 5 ticks
+        if "%player's world%" does not contain "pw_":
+            execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+            if player's gamemode is creative:
+                set player's gamemode to adventure
+                

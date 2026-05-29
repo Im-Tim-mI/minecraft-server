@@ -48,7 +48,7 @@ command /遊戲世界建立 <text>:
         set {遊戲世界::反向對應::%{_世界名}%} to {_中文名}
         # 在 (0, 64, 0) 放一格基岩
         set block at location(0, 64, 0, {_世界}) to bedrock
-        # execute console command "mv modify %{_世界名}% set spawn 0.5,65,0.5"
+        execute console command "mv setspawn %{_世界名}%:0.5,65,0.5"
         execute console command "mv modify %{_世界名}% set gamemode adventure"
         
         # ===== 環境設定 (Multiverse 5.x + Minecraft 1.21+) =====
@@ -89,7 +89,7 @@ command /遊戲世界建立 <text>:
         if sender is a player:
             wait 10 ticks
             send "&b▶ 正在傳送至新世界..."
-            teleport sender to spawn of {_世界}
+            make sender execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
             send "&a✔ 已抵達 &e%{_中文名}%&a！"
 
 # 管理員 - 刪除遊戲世界 (清除對應表並卸載世界)
@@ -141,7 +141,7 @@ command /遊戲世界列表 [<text>]:
                 send "&c❌ 世界資料異常,請聯絡管理員！"
                 send "&7  對應名稱: %{_世界名}% (未載入)"
                 stop
-            teleport player to spawn of {_世界}
+            make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
             set player's gamemode to adventure
             send "&a✔ 已傳送至 &e%arg-1%&a！"
             send "&7(你在此世界的背包、裝備、副手、終界箱皆為獨立)"

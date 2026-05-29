@@ -1,0 +1,185 @@
+# ============================================
+# 世界補齊工具 (一次性 / 維護用,僅限管理員) — 自給自足版
+#
+#   /遊戲世界補齊 <中文名|全部>      → 管理員世界 (game_N)
+#   /玩家遊戲世界補齊 <中文名|全部>  → 玩家世界   (pw_N)
+#
+# 本檔自帶 bq_setup 函式 (無延遲,可安全在迴圈中呼叫),
+# 不依賴其他腳本的 gw_setup / pw_setup。
+# 每建立一個維度都會驗證並回報,可重複執行 (已存在自動跳過)。
+#
+# 若「終界」一直建立失敗,先在後台打 /mv env 看你的版本吃 end 還是 the_end,
+# 不對的話把本檔中的 nether 那行下面的 "end" 換成 "the_end"。
+# ============================================
+
+# 套用單一維度的標準設定 (僅同步指令,無 wait,可在迴圈內安全呼叫)
+function bq_setup(w: text):
+    set {_世界} to world {_w}
+    if {_世界} is not set:
+        stop
+    set block at location(0, 64, 0, {_世界}) to bedrock
+    execute console command "mv setspawn %{_w}%:0.5,65,0.5"
+    execute console command "mv modify %{_w}% set gamemode adventure"
+    execute console command "mv entity-spawn-config modify %{_w}% monster set spawn false"
+    execute console command "mv entity-spawn-config modify %{_w}% animal set spawn false"
+    execute console command "mv gamerule set advance_time false %{_w}%"
+    execute console command "mv gamerule set advance_weather false %{_w}%"
+    execute console command "mv gamerule set spawn_mobs false %{_w}%"
+    execute console command "execute in minecraft:%{_w}% run minecraft:weather clear"
+    execute console command "execute in minecraft:%{_w}% run minecraft:time set day"
+
+
+# ===== 管理員世界 (game_N) 補齊 =====
+command /遊戲世界補齊 <text>:
+    description: 為舊有管理員遊戲世界補上下界/終界 (僅限管理員)
+    permission: gameworld.admin
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法: /遊戲世界補齊 <中文名|全部>
+    trigger:
+        delete {_清單::*}
+        if arg-1 is "全部" or "all":
+            loop {遊戲世界::名稱對應::*}:
+                add loop-value to {_清單::*}
+        else if {遊戲世界::名稱對應::%arg-1%} is set:
+            add {遊戲世界::名稱對應::%arg-1%} to {_清單::*}
+        else:
+            send "&c❌ 世界 &e%arg-1% &c不存在！(用 &f/遊戲世界列表 &c查看)"
+            stop
+        if {_清單::*} is not set:
+            send "&c目前沒有任何已登記的管理員遊戲世界。"
+            stop
+        send "&a▶ 準備補齊 &e%size of {_清單::*}%&a 個管理員世界..."
+
+        loop {_清單::*}:
+            set {_世界名} to loop-value
+            set {_下界名} to "%{_世界名}%_nether"
+            set {_終界名} to "%{_世界名}%_the_end"
+            set {_中文名} to {遊戲世界::反向對應::%{_世界名}%}
+            send "&a▶ 補齊 &e%{_中文名}% &7(%{_世界名}%)&a..."
+
+            if world {_世界名} is not set:
+                send "&e  ⚠ 主世界 &f%{_世界名}% &e未載入,先嘗試載入..."
+                execute console command "mv load %{_世界名}%"
+                wait 2 seconds
+
+            # 下界
+            if world {_下界名} is not set:
+                send "&7  ├─ 建立下界 %{_下界名}%..."
+                execute console command "mv create %{_下界名}% nether -g VoidGen"
+                wait 3 seconds
+                if world {_下界名} is not set:
+                    send "&c  ❌ 下界建立失敗！請看後台是否有 mv create 的錯誤訊息。"
+                    send "&7     (常見原因: VoidGen 未安裝 / 環境參數不符 / 名稱被占用)"
+                    stop
+            else:
+                send "&7  ├─ 下界已存在,略過"
+
+            # 終界 (若失敗,試試把 end 改成 the_end)
+            if world {_終界名} is not set:
+                send "&7  ├─ 建立終界 %{_終界名}%..."
+                execute console command "mv create %{_終界名}% the_end -g VoidGen"
+                wait 3 seconds
+                if world {_終界名} is not set:
+                    send "&c  ❌ 終界建立失敗！後台訊息常見是「無效環境」。"
+                    send "&7     請打 &f/mv env &7確認終界要用 end 還是 the_end,再改本檔。"
+                    stop
+            else:
+                send "&7  ├─ 終界已存在,略過"
+
+            bq_setup({_世界名})
+            bq_setup({_下界名})
+            bq_setup({_終界名})
+            wait 2 ticks
+
+            execute console command "mvnp link nether %{_世界名}% %{_下界名}%"
+            execute console command "mvnp link end %{_世界名}% %{_終界名}%"
+            execute console command "mvnp link nether %{_下界名}% %{_世界名}%"
+            execute console command "mvnp link end %{_終界名}% %{_世界名}%"
+            wait 2 ticks
+
+            execute console command "mvinv create-group %{_世界名}% %{_世界名}%,%{_下界名}%,%{_終界名}% all"
+            execute console command "mvinv add-worlds %{_世界名}% %{_世界名}%,%{_下界名}%,%{_終界名}%"
+            execute console command "mvinv add-shares %{_世界名}% all"
+            wait 2 ticks
+            send "&7  └─ &a✔ %{_中文名}% 完成"
+
+        execute console command "mvinv reload"
+        wait 5 ticks
+        send "&a✔ 管理員世界補齊作業完成！"
+
+
+# ===== 玩家世界 (pw_N) 補齊 =====
+command /玩家遊戲世界補齊 <text>:
+    description: 為舊有玩家遊戲世界補上下界/終界 (僅限管理員)
+    permission: gameworld.admin
+    permission message: &c你沒有權限使用此指令！
+    usage: &c用法: /玩家遊戲世界補齊 <中文名|全部>
+    trigger:
+        delete {_清單::*}
+        if arg-1 is "全部" or "all":
+            loop {玩家世界::名稱對應::*}:
+                add loop-value to {_清單::*}
+        else if {玩家世界::名稱對應::%arg-1%} is set:
+            add {玩家世界::名稱對應::%arg-1%} to {_清單::*}
+        else:
+            send "&c❌ 世界 &e%arg-1% &c不存在！(用 &f/玩家遊戲世界列表 &c查看)"
+            stop
+        if {_清單::*} is not set:
+            send "&c目前沒有任何已登記的玩家遊戲世界。"
+            stop
+        send "&a▶ 準備補齊 &e%size of {_清單::*}%&a 個玩家世界..."
+
+        loop {_清單::*}:
+            set {_世界名} to loop-value
+            set {_下界名} to "%{_世界名}%_nether"
+            set {_終界名} to "%{_世界名}%_the_end"
+            set {_中文名} to {玩家世界::反向對應::%{_世界名}%}
+            send "&a▶ 補齊 &e%{_中文名}% &7(%{_世界名}%)&a..."
+
+            if world {_世界名} is not set:
+                send "&e  ⚠ 主世界 &f%{_世界名}% &e未載入,先嘗試載入..."
+                execute console command "mv load %{_世界名}%"
+                wait 2 seconds
+
+            if world {_下界名} is not set:
+                send "&7  ├─ 建立下界 %{_下界名}%..."
+                execute console command "mv create %{_下界名}% nether -g VoidGen"
+                wait 3 seconds
+                if world {_下界名} is not set:
+                    send "&c  ❌ 下界建立失敗！請看後台是否有 mv create 的錯誤訊息。"
+                    send "&7     (常見原因: VoidGen 未安裝 / 環境參數不符 / 名稱被占用)"
+                    stop
+            else:
+                send "&7  ├─ 下界已存在,略過"
+
+            if world {_終界名} is not set:
+                send "&7  ├─ 建立終界 %{_終界名}%..."
+                execute console command "mv create %{_終界名}% the_end -g VoidGen"
+                wait 3 seconds
+                if world {_終界名} is not set:
+                    send "&c  ❌ 終界建立失敗！後台訊息常見是「無效環境」。"
+                    send "&7     請打 &f/mv env &7確認終界要用 end 還是 the_end,再改本檔。"
+                    stop
+            else:
+                send "&7  ├─ 終界已存在,略過"
+
+            bq_setup({_世界名})
+            bq_setup({_下界名})
+            bq_setup({_終界名})
+            wait 2 ticks
+
+            execute console command "mvnp link nether %{_世界名}% %{_下界名}%"
+            execute console command "mvnp link end %{_世界名}% %{_終界名}%"
+            execute console command "mvnp link nether %{_下界名}% %{_世界名}%"
+            execute console command "mvnp link end %{_終界名}% %{_世界名}%"
+            wait 2 ticks
+
+            execute console command "mvinv create-group %{_世界名}% %{_世界名}%,%{_下界名}%,%{_終界名}% all"
+            execute console command "mvinv add-worlds %{_世界名}% %{_世界名}%,%{_下界名}%,%{_終界名}%"
+            execute console command "mvinv add-shares %{_世界名}% all"
+            wait 2 ticks
+            send "&7  └─ &a✔ %{_中文名}% 完成"
+
+        execute console command "mvinv reload"
+        wait 5 ticks
+        send "&a✔ 玩家世界補齊作業完成！"

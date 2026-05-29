@@ -1,0 +1,63 @@
+bounceback: true
+teleport_entities: true
+send_no_destination_message: true
+send_disabled_portal_message: true
+end_platform_drop_blocks: true
+portal-auto-link-when:
+  nether:
+    prefix: ''
+    suffix: _nether
+  end:
+    prefix: ''
+    suffix: _the_end
+worlds:
+  pw_10:
+    portalgoesto:
+      NETHER: pw_10_nether
+      ENDER: pw_10_the_end
+  pw_10_nether:
+    portalgoesto:
+      NETHER: pw_10
+  pw_10_the_end:
+    portalgoesto:
+      ENDER: pw_10
+  game_3:
+    portalgoesto:
+      NETHER: game_3_nether
+      ENDER: game_3_the_end
+  game_3_nether:
+    portalgoesto:
+      NETHER: game_3
+  game_3_the_end:
+    portalgoesto:
+      ENDER: game_3
+  game_8:
+    portalgoesto:
+      NETHER: game_8_nether
+      ENDER: game_8_the_end
+  game_8_nether:
+    portalgoesto:
+      NETHER: game_8
+  game_8_the_end:
+    portalgoesto:
+      ENDER: game_8
+  game_7:
+    portalgoesto:
+      NETHER: game_7_nether
+      ENDER: game_7_the_end
+  game_7_nether:
+    portalgoesto:
+      NETHER: game_7
+  game_7_the_end:
+    portalgoesto:
+      ENDER: game_7
+  game_5:
+    portalgoesto:
+      NETHER: game_5_nether
+      ENDER: game_5_the_end
+  game_5_nether:
+    portalgoesto:
+      NETHER: game_5
+  game_5_the_end:
+    portalgoesto:
+      ENDER: game_5
