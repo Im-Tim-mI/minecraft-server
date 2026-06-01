@@ -214,9 +214,9 @@ command /遊戲世界列表 [<text>]:
                 send "&c❌ 世界資料異常,請聯絡管理員！"
                 send "&7  對應名稱: %{_世界名}% (未載入)"
                 stop
-            make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
+            make console execute command "tppos %player's name% 0.5 65 0.5 0 0 %{_世界名}%"
             set player's gamemode to adventure
-            send "&a✔ 已傳送至 &e%arg-1%&a！"
+            send "&a✔ 正在傳送至 &e%arg-1%&a！"
             send "&7(你在此世界的背包、裝備、副手、終界箱皆為獨立)"
         else:
             # 列表模式 - 遍歷對應表 (只列出主世界)
@@ -238,12 +238,17 @@ on world change:
     set {_舊世界} to "%event-world%"
     # 離開遊戲世界(任一維度) - 撤銷該世界的繞過權限
     if {_舊世界} contains "game_":
-        execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-        execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+        #清除去除等待時間的代碼
+        execute console command "lp user %player's name% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
     # 進入遊戲世界(任一維度) - 給予繞過 /spawn 等待的權限
     if {_新世界} contains "game_":
-        execute console command "lp user %player% permission settemp essentials.teleport.timer.bypass true 7d world=%{_新世界}%"
-        execute console command "lp user %player% permission settemp essentials.teleport.cooldown.bypass true 7d world=%{_新世界}%"
+        #繞過/home等待
+        execute console command "lp user %player's name% permission settemp essentials.commandcooldowns.bypass true 1d world=%{_新世界}%"
+        # 所有人(含訪客)都可繞過 /spawn 等待 (目前維度)
+        execute console command "lp user %player's name% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's name% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
         # 取得基礎世界名 (去掉維度後綴) 以查回中文名
         set {_基礎} to {_新世界}
         replace "_nether" with "" in {_基礎}
@@ -253,7 +258,6 @@ on world change:
         if {_新世界} is {_基礎}:
             send "&a✔ 已進入 &e%{_中文名}%"
             send "&7  ▸ &f/spawn &7- 立即傳送回主世界 (無需等待)"
-            send "&7  ▸ &f/回到主世界 &7- 快速返回 (無需等待)"
         else if {_新世界} ends with "_nether":
             send "&a✔ 已進入 &e%{_中文名}% &7的下界"
         else if {_新世界} ends with "_the_end":
@@ -266,10 +270,10 @@ on teleport:
         # 延遲 5 ticks 讓傳送完成後再檢查
         wait 5 ticks
         if "%player's world%" does not contain "pw_":
-            execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp worldedit.* world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
             if player's gamemode is creative:
                 set player's gamemode to adventure

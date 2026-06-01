@@ -71,3 +71,13 @@ worlds:
   pw_11_the_end:
     portalgoesto:
       ENDER: pw_11
+  game_9:
+    portalgoesto:
+      NETHER: game_9_nether
+      ENDER: game_9_the_end
+  game_9_nether:
+    portalgoesto:
+      NETHER: game_9
+  game_9_the_end:
+    portalgoesto:
+      ENDER: game_9

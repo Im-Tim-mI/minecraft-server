@@ -149,10 +149,10 @@ command /玩家遊戲世界建立 <text>:
         send "&a✔ 世界建立完成！"
         send "&7  ├─ 名稱: &e%{_中文名}% &7(內部: %{_世界名}%)"
         send "&7  ├─ 維度: &f主世界 / 下界 / 終界 (各一格空島)"
-        send "&7  ├─ 創造者: &b%player%"
+        send "&7  ├─ 創造者: &b%player's name%"
         send "&7  └─ 你在此世界可使用: &f/玩家遊戲世界個人模式 &7、&f小木斧"
         send "&b▶ 正在傳送..."
-        make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
+        make console execute command "tppos %player's name% 0.5 65 0.5 0 0 %{_世界名}%"
 
 # ===== 刪除玩家遊戲世界 =====
 command /玩家遊戲世界刪除 <text>:
@@ -228,8 +228,8 @@ command /玩家遊戲世界列表 [<text>]:
             if {_世界} is not set:
                 send "&c❌ 世界資料異常！"
                 stop
-            make player execute command "tppos 0.5 65 0.5 0 0 %{_世界名}%"
-            send "&a✔ 已傳送至 &e%arg-1%&a！"
+            make console execute command "tppos %player's name% 0.5 65 0.5 0 0 %{_世界名}%"
+            send "&a✔ 正在傳送至 &e%arg-1%&a！"
         else:
             # ===== 列表模式 - 按訪問次數由高至低排序 =====
             delete {_排序清單::*}
@@ -308,12 +308,12 @@ command /玩家遊戲世界共同編輯新增 <text> <text>:
         # (其他維度會在他切換過去時由 on world change 自動補上)
         loop all players:
             if loop-player's name is {_目標}:
-                send "&a你已被 &b%player% &a加為 &e%{_中文名}% &a的共同編輯者!" to loop-player
+                send "&a你已被 &b%player's name% &a加為 &e%{_中文名}% &a的共同編輯者!" to loop-player
                 set {_目標世界} to "%loop-player's world%"
                 if pw_base({_目標世界}) is {_世界名}:
-                    execute console command "lp user %{_目標}% permission settemp worldedit.* true 7d world=%{_目標世界}%"
-                    execute console command "lp user %{_目標}% permission settemp multiverse.bypass.gamemode.%{_目標世界}% true 7d world=%{_目標世界}%"
-                    execute console command "lp user %{_目標}% permission settemp minecraft.command.gamemode true 7d world=%{_目標世界}%"
+                    execute console command "lp user %{_目標}% permission settemp worldedit.* true 1d world=%{_目標世界}%"
+                    execute console command "lp user %{_目標}% permission settemp multiverse.bypass.gamemode.%{_目標世界}% true 1d world=%{_目標世界}%"
+                    execute console command "lp user %{_目標}% permission settemp minecraft.command.gamemode true 1d world=%{_目標世界}%"
 
 # ===== 移除共同編輯者 =====
 command /玩家遊戲世界共同編輯移除 <text> <text>:
@@ -380,11 +380,13 @@ on world change:
     set {_舊世界} to "%event-world%"
     # 離開玩家世界(任一維度) - 撤銷該維度權限
     if {_舊世界} contains "pw_":
-        execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
-        execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
-        execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
-        execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-        execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp worldedit.* world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+        #清除去除等待時間的代碼
+        execute console command "lp user %player's name% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
         # 只有「真正離開」玩家世界(去到非 pw_ 世界)才強制回冒險; 維度間移動保留模式
         if {_新世界} does not contain "pw_":
             if player's gamemode is creative:
@@ -394,35 +396,37 @@ on world change:
         # 還原主世界名,用於身份判斷與統計
         set {_基礎} to pw_base({_新世界})
         set {_中文名} to {玩家世界::反向對應::%{_基礎}%}
+        #繞過/home等待
+        execute console command "lp user %player's name% permission settemp essentials.commandcooldowns.bypass true 1d world=%{_新世界}%"
         # 所有人(含訪客)都可繞過 /spawn 等待 (目前維度)
-        execute console command "lp user %player% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
-        execute console command "lp user %player% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's name% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's name% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
         # 訪問統計: 只在進入「主世界維度」時計算,避免跨維度重複 (排除創造者與共同編輯者)
         if {_新世界} is {_基礎}:
             if {玩家世界::創造者::%{_基礎}%} is not player's name:
-                if {玩家世界::共同編輯者::%{_基礎}%::%player%} is not set:
+                if {玩家世界::共同編輯者::%{_基礎}%::%player's name%} is not set:
                     if {玩家世界::訪問次數::%{_基礎}%} is not set:
                         set {玩家世界::訪問次數::%{_基礎}%} to 0
                     add 1 to {玩家世界::訪問次數::%{_基礎}%}
-                    if {玩家世界::訪問玩家::%{_基礎}%::%player%} is not set:
-                        set {玩家世界::訪問玩家::%{_基礎}%::%player%} to true
+                    if {玩家世界::訪問玩家::%{_基礎}%::%player's name%} is not set:
+                        set {玩家世界::訪問玩家::%{_基礎}%::%player's name%} to true
                         if {玩家世界::訪問玩家數::%{_基礎}%} is not set:
                             set {玩家世界::訪問玩家數::%{_基礎}%} to 0
                         add 1 to {玩家世界::訪問玩家數::%{_基礎}%}
         # 創造者 - 授予「目前維度」編輯權
         if {玩家世界::創造者::%{_基礎}%} is player's name:
-            execute console command "lp user %player% permission settemp worldedit.* true 7d world=%{_新世界}%"
-            execute console command "lp user %player% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 7d world=%{_新世界}%"
-            execute console command "lp user %player% permission settemp minecraft.command.gamemode true 7d world=%{_新世界}%"
+            execute console command "lp user %player's name% permission settemp worldedit.* true 1d world=%{_新世界}%"
+            execute console command "lp user %player's name% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 1d world=%{_新世界}%"
+            execute console command "lp user %player's name% permission settemp minecraft.command.gamemode true 1d world=%{_新世界}%"
             if {_新世界} is {_基礎}:
                 send "&a✔ 歡迎回來,這裡是你建立的 &e%{_中文名}%"
                 send "&7  ▸ &f/玩家遊戲世界個人模式 &7- 切換創造/冒險"
                 send "&7  ▸ &f小木斧 &7- WorldEdit 區域選擇 (僅限此世界)"
         # 共同編輯者 - 授予「目前維度」編輯權
-        else if {玩家世界::共同編輯者::%{_基礎}%::%player%} is true:
-            execute console command "lp user %player% permission settemp worldedit.* true 7d world=%{_新世界}%"
-            execute console command "lp user %player% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 7d world=%{_新世界}%"
-            execute console command "lp user %player% permission settemp minecraft.command.gamemode true 7d world=%{_新世界}%"
+        else if {玩家世界::共同編輯者::%{_基礎}%::%player's name%} is true:
+            execute console command "lp user %player's name% permission settemp worldedit.* true 1d world=%{_新世界}%"
+            execute console command "lp user %player's name% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 1d world=%{_新世界}%"
+            execute console command "lp user %player's name% permission settemp minecraft.command.gamemode true 1d world=%{_新世界}%"
             if {_新世界} is {_基礎}:
                 send "&a✔ 你是 &e%{_中文名}% &a的共同編輯者"
                 send "&7  ▸ &f/玩家遊戲世界個人模式 &7- 切換創造/冒險"
@@ -439,10 +443,12 @@ on teleport:
         # 延遲 5 ticks 讓傳送完成後再檢查
         wait 5 ticks
         if "%player's world%" does not contain "pw_":
-            execute console command "lp user %player% permission unsettemp worldedit.* world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-            execute console command "lp user %player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp worldedit.* world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            #清除去除等待時間的代碼
+            execute console command "lp user %player's name% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
             if player's gamemode is creative:
                 set player's gamemode to adventure

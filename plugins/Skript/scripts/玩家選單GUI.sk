@@ -18,8 +18,8 @@
 
 function openMainMenu(p: player):
     set {_inv} to chest inventory with 3 rows named "主選單"
-    set slot 0 of {_inv} to diamond named "&b傳送主城" with lore "&7點擊傳送到出生點"
-    set slot 1 of {_inv} to white bed named "&e傳送回家" with lore "&7點擊傳送到你的床"
+    set slot 0 of {_inv} to diamond named "&b傳送主城" with lore "&7移動物品傳送到出生點"
+    set slot 1 of {_inv} to white bed named "&e傳送回家" with lore "&7移動物品傳送到你的床"
 
     # ===== 遊戲世界列表入口按鈕 =====
     set slot 2 of {_inv} to compass named "&a遊戲世界列表" with lore "&7查看並前往遊戲世界"
@@ -59,7 +59,7 @@ function openWorldListMenu(p: player):
     loop {遊戲世界::名稱對應::*}:
         if {_i} is smaller than 53:
             set {_顯示名} to loop-index
-            set slot {_i} of {_inv} to grass block named "&a%{_顯示名}%" with lore "&7點擊傳送至此世界"
+            set slot {_i} of {_inv} to grass block named "&a%{_顯示名}%" with lore "&7移動物品傳送至此世界"
             add 1 to {_i}
 
     # 返回按鈕放在最後一個世界選項後面的下一格
@@ -137,7 +137,7 @@ function openPlayerWorldListMenu(p: player):
     set {_inv} to chest inventory with 6 rows named "玩家遊戲世界列表"
 
     # 第 1 格放玩家遊戲世界使用手冊，點擊後會自動打開書本
-    set slot 0 of {_inv} to written book named "&e玩家遊戲世界使用手冊" with lore "&7點擊打開使用手冊"
+    set slot 0 of {_inv} to written book named "&e玩家遊戲世界使用手冊" with lore "&7移動物品打開使用手冊"
 
     # 逐一列出所有玩家遊戲世界，slot 0 保留給使用手冊，最多顯示 52 個，最後 1 格保留給返回按鈕
     set {_i} to 1
@@ -148,7 +148,7 @@ function openPlayerWorldListMenu(p: player):
             set {_創造者} to {玩家世界::創造者::%{_內部名}%} ? "未知"
             set {_次數} to {玩家世界::訪問次數::%{_內部名}%} ? 0
             set {_人數} to {玩家世界::訪問玩家數::%{_內部名}%} ? 0
-            set slot {_i} of {_inv} to grass block named "&a%{_顯示名}%" with lore "&7創造者: &b%{_創造者}% &7- 訪問: &e%{_次數}% &7次 / &e%{_人數}% &7人" and "&7點擊傳送至此玩家世界"
+            set slot {_i} of {_inv} to grass block named "&a%{_顯示名}%" with lore "&7創造者: &b%{_創造者}% &7- 訪問: &e%{_次數}% &7次 / &e%{_人數}% &7人" and "&7移動物品傳送至此玩家世界"
             add 1 to {_i}
 
     # 返回按鈕放在最後一個世界選項後面的下一格

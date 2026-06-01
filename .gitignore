@@ -192,3 +192,5 @@ plugins/VoidGen/
 # Temporary / backups
 *.log廢棄sk/
 廢棄sk/
+
+/plugins/EssentialsGeoIP/
