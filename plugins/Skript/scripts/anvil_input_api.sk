@@ -1,0 +1,175 @@
+# ==========================================================
+#  鐵砧輸入框 (Anvil Text Input) — 純 Skript 版 (v5)
+#
+#  需求:Skript 2.6+ / skript-reflect / Paper 1.20+
+#
+#  ★ 跨腳本使用方式 ★
+#    1) 在「任何」腳本呼叫(函式是全域的):
+#         openAnvilInput(player, "識別字串")
+#         openAnvilInput(player, "識別字串", "預設文字")
+#         openAnvilInput(player, "識別字串", "預設文字", "&9自訂標題")
+#
+#    2) 在「任何」腳本監聽結果(玩家確認輸入後觸發):
+#         on anvil input:
+#             if anvilId(player) is "識別字串":
+#                 set {_text} to anvilText(player)   # ← 讀出玩家輸入的文字
+#                 send "你輸入了:%{_text}%" to player
+#
+#    也可直接讀全域變數:anvilText(玩家) / anvilId(玩家)
+#
+#  其他特性:標題覆寫、讓玩家取得紙再刪除、開啟+1等級/未命名-1、空白白框。
+# ==========================================================
+
+import:
+    org.bukkit.Material
+    org.bukkit.inventory.ItemStack
+    net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+
+
+# ====== 自訂事件定義:其他腳本可用 on anvil input: 監聽 ======
+event "anvil input":
+    pattern: anvil input
+    event-values: player
+
+
+# ====== 讀取函式:給其他腳本呼叫,讀出玩家最後輸入的文字 / 識別字串 ======
+function anvilText(p: player) :: text:
+    return {anvilinput.text::%{_p}'s uuid%}
+
+function anvilId(p: player) :: text:
+    return {anvilinput.id::%{_p}'s uuid%}
+
+
+# ==========================================================
+#  開啟鐵砧輸入框
+# ==========================================================
+function openAnvilInput(p: player, id: text, default: text = "", title: text = ""):
+    set {_uuid} to "%{_p}'s uuid%"
+    set {anvilinput::%{_uuid}%} to {_id}
+    delete {anvilnamed::%{_uuid}%}
+
+    if {_title} is not "":
+        set {anviltitle::%{_uuid}%} to {_title}
+    else:
+        delete {anviltitle::%{_uuid}%}
+
+    if {anvilreopen::%{_uuid}%} is not set:
+        if {_p}'s gamemode is not creative:
+            set {_p}'s level to {_p}'s level + 1
+
+    set {_view} to {_p}.openAnvil({_p}.getLocation(), true)
+    set {_top} to {_view}.getTopInventory()
+
+    set {_left} to new ItemStack(Material.valueOf("PAPER"))
+    set {_meta} to {_left}.getItemMeta()
+    if {_default} is "":
+        {_meta}.setDisplayName(" ")
+    else:
+        {_meta}.setDisplayName(colored {_default})
+    {_left}.setItemMeta({_meta})
+    {_top}.setItem(0, {_left})
+
+    delete {anvilreopen::%{_uuid}%}
+
+
+# 改開啟中鐵砧標題(保留目前文字重開)
+function setAnvilTitle(p: player, title: text):
+    set {_uuid} to "%{_p}'s uuid%"
+    {anvilinput::%{_uuid}%} is set
+    set {_id} to {anvilinput::%{_uuid}%}
+    set {_text} to {_p}.getOpenInventory().getTopInventory().getRenameText()
+    set {anvilreopen::%{_uuid}%} to true
+    openAnvilInput({_p}, {_id}, {_text} ? "", {_title})
+
+
+# 開視窗當下覆寫標題
+on inventory open:
+    {anvilinput::%player's uuid%} is set
+    {anviltitle::%player's uuid%} is set
+    set {_comp} to LegacyComponentSerializer.legacyAmpersand().deserialize({anviltitle::%player's uuid%})
+    event.titleOverride({_comp})
+
+
+# 點擊:點輸出格且有打字 → 放行取得紙,隔 1 tick 刪除,並觸發 anvil input 事件
+on inventory click:
+    {anvilinput::%player's uuid%} is set
+    set {_slot} to event.getRawSlot()
+
+    if {_slot} is not 2:
+        cancel event
+        stop
+
+    if event.isShiftClick() is true:
+        cancel event
+        stop
+
+    set {_text} to event.getView().getTopInventory().getRenameText()
+    if {_text} is not set:
+        cancel event
+        stop
+    set {_text} to {_text}.trim()
+    if {_text} is "":
+        cancel event
+        stop
+
+    set {anvilnamed::%player's uuid%} to true
+    set {_id} to {anvilinput::%player's uuid%}
+    delete {anvilinput::%player's uuid%}
+    set {_p} to player
+
+    wait 1 tick
+    set {_uuid} to "%{_p}'s uuid%"
+    set {_view} to {_p}.getOpenInventory()
+    {_view}.getTopInventory().clear()
+    {_p}.setItemOnCursor(new ItemStack(Material.valueOf("AIR")))
+    {_p}.closeInventory()
+    delete {anvilnamed::%{_uuid}%}
+    delete {anviltitle::%{_uuid}%}
+
+    # ★ 存結果到全域變數,供 anvilText()/anvilId() 讀取
+    set {anvilinput.text::%{_uuid}%} to {_text}
+    set {anvilinput.id::%{_uuid}%} to {_id}
+
+    # ★ 觸發自訂事件,通知所有監聽的腳本
+    #   values 必須是「列表變數」,索引用型別名稱(player)當 key
+    delete {_vals::*}
+    set {_vals::player} to {_p}
+    set {_evt} to a new custom event "anvil input" with values {_vals::*}
+    call {_evt}
+
+
+on inventory drag:
+    {anvilinput::%player's uuid%} is set
+    cancel event
+
+
+on inventory close:
+    {anvilinput::%player's uuid%} is set
+    event.getView().getTopInventory().clear()
+
+    if {anvilreopen::%player's uuid%} is set:
+        stop
+
+    if {anvilnamed::%player's uuid%} is not set:
+        if player's gamemode is not creative:
+            if player's level is greater than or equal to 1:
+                set player's level to player's level - 1
+
+    delete {anvilinput::%player's uuid%}
+    delete {anvilnamed::%player's uuid%}
+    delete {anviltitle::%player's uuid%}
+
+
+# ==========================================================
+#  範例監聽(可刪;示範其他腳本怎麼接收結果)
+# ==========================================================
+on anvil input:
+    if anvilId(player) is "demo":
+        set {_text} to anvilText(player)
+        send "&a你輸入的文字是:&f%{_text}%" to player
+
+
+# 測試指令
+command /anvilinput:
+    trigger:
+        openAnvilInput(player, "demo", "", "請輸入文字")
