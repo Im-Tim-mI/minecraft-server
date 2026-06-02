@@ -1,109 +1,171 @@
 # ==========================================================
-#  鐵砧輸入框 (Anvil Text Input) — 純 Skript 版 (v2)
-#  以 skript-reflect 開鐵砧,並用「原生 Skript 事件」鎖定點擊,
-#  不需要安裝 Skript-AnvilGUI 外掛。
-#
-#  需求:
-#    - Skript 2.6+
-#    - skript-reflect
-#    - Paper 1.14+ (使用 player.openAnvil(),Spigot 沒有此 API)
-#
-#  特點:
-#    - 輸入框預設空白白框(不顯示「紙」)
-#    - 玩家「絕對」拿不到那張佔位紙:
-#        * 所有點擊(含 Shift / 數字鍵 / 雙擊)用原生事件 cancel
-#        * 拖曳用原生事件 cancel
-#        * 關閉時清空鐵砧,避免關閉瞬間把物品退回玩家
-#    - 讀取文字、判斷輸出格都改用「原生事件 + reflect 的 event 運算式」,
-#      這比 reflect 自訂事件可靠,保證會觸發。
-#
-#  用法:
-#    openAnvilInput(玩家, "識別字串")              → 空白輸入框
-#    openAnvilInput(玩家, "識別字串", "預設文字")    → 帶預設文字
-#    結果送到 onAnvilInput(玩家, 識別字串, 文字)。
+#  鐵砧輸入框 (Anvil Text Input) — 純 Skript 版
+#  修改版：
+#    1. 開啟鐵砧時先給玩家 +1 等級
+#    2. 玩家成功命名/點擊輸出格時，不再手動扣等級
+#       因為鐵砧本身會消耗 1 等，最後等級等於原本等級
+#    3. 玩家沒有命名就關閉鐵砧時，扣回開啟時補的 1 等
+#    4. 允許玩家拿紙，但下一 tick 自動刪除本腳本佔位紙
 # ==========================================================
 
 import:
     org.bukkit.Material
     org.bukkit.inventory.ItemStack
-    org.bukkit.event.inventory.PrepareAnvilEvent
+
+options:
+    anvil-paper-marker: &0ANVIL_INPUT_PLACEHOLDER
+
+
+# ==========================================================
+#  刪除玩家身上 / 滑鼠游標上的「本腳本佔位紙」
+#  用 lore 標記，只刪除本腳本產生的紙，避免誤刪玩家普通紙。
+# ==========================================================
+function deleteAnvilInputPaper(p: player):
+    remove all paper with lore "{@anvil-paper-marker}" from {_p}'s inventory
+
+    set {_cursor} to {_p}.getItemOnCursor()
+    if {_cursor} is set:
+        if {_cursor} is paper:
+            if lore of {_cursor} contains "{@anvil-paper-marker}":
+                {_p}.setItemOnCursor(new ItemStack(Material.valueOf("AIR")))
+
+
+# ==========================================================
+#  刪除鐵砧介面內的「本腳本佔位紙」
+# ==========================================================
+function deleteAnvilInputPaperFromTop(inv: object):
+    set {_air} to new ItemStack(Material.valueOf("AIR"))
+
+    loop 0, 1 and 2:
+        set {_item} to {_inv}.getItem(loop-value)
+        if {_item} is set:
+            if {_item} is paper:
+                if lore of {_item} contains "{@anvil-paper-marker}":
+                    {_inv}.setItem(loop-value, {_air})
+
+
+# ==========================================================
+#  扣回開啟鐵砧時補給玩家的 1 等
+# ==========================================================
+function refundAnvilInputLevel(p: player):
+    if {anvilinput-levelboost::%{_p}'s uuid%} is set:
+        if {_p}'s level is greater than 0:
+            remove 1 from {_p}'s level
+        delete {anvilinput-levelboost::%{_p}'s uuid%}
 
 
 # ==========================================================
 #  開啟鐵砧輸入框
 # ==========================================================
 function openAnvilInput(p: player, id: text, default: text = ""):
-    # 記錄這名玩家正在使用本腳本的鐵砧(用原生 uuid,確保與事件端格式一致)
     set {anvilinput::%{_p}'s uuid%} to {_id}
 
-    # 用 Paper API 直接開鐵砧介面(無需實體鐵砧方塊)
+    # 先給玩家 +1 等，讓 0 等級玩家也能拿出命名結果。
+    # 成功命名時，鐵砧會自己扣掉這 1 等；沒命名就關閉時，本腳本會扣回。
+    if {anvilinput-levelboost::%{_p}'s uuid%} is not set:
+        add 1 to {_p}'s level
+        set {anvilinput-levelboost::%{_p}'s uuid%} to true
+
     set {_view} to {_p}.openAnvil({_p}.getLocation(), true)
     set {_top} to {_view}.getTopInventory()
 
-    # 左格放一張紙當佔位物,它的「顯示名稱」= 輸入框預設字
-    #   - 空白:設成單一空格 " " → 白框、看起來無字(不會顯示物品名「紙」)
-    #   - 有預設字:套用顏色代碼
-    set {_left} to new ItemStack(Material.valueOf("PAPER"))
-    set {_meta} to {_left}.getItemMeta()
+    # 左格放一張帶有隱藏標記 lore 的紙
     if {_default} is "":
-        {_meta}.setDisplayName(" ")
+        set {_left} to paper named " " with lore "{@anvil-paper-marker}"
     else:
-        {_meta}.setDisplayName(colored {_default})
-    {_left}.setItemMeta({_meta})
+        set {_left} to paper named colored {_default} with lore "{@anvil-paper-marker}"
+
     {_top}.setItem(0, {_left})
 
 
 # ==========================================================
-#  維修花費歸零(reflect 自訂事件;非必要,純粹讓沒等級的玩家也能用)
+#  命名花費設定
+#  注意：on anvil prepare 事件沒有直接的 player，所以要從 event view 取得玩家。
 # ==========================================================
-on PrepareAnvilEvent:
-    set {_uuid} to "%event.getView().getPlayer().getUniqueId()%"
-    {anvilinput::%{_uuid}%} is set
-    event.getInventory().setRepairCost(0)
+on anvil prepare:
+    set {_p} to event.getView().getPlayer()
+    if {_p} is not a player:
+        stop
+
+    {anvilinput::%{_p}'s uuid%} is set
+
+    # 這裡不要設成 0。
+    # 設成 1 是為了讓「開啟時補的 1 等」在成功命名時被鐵砧消耗掉，達成玩家原本等級不變。
+    set repair cost of event-inventory to 1
+    # 若你的 Skript 較舊、沒有 repair cost 運算式，改用：
+    # event.getInventory().setRepairCost(1)
 
 
 # ==========================================================
-#  點擊 → 原生事件,一律取消(玩家拿不到任何物品);點輸出格(raw slot 2)才確認
+#  點擊：不 cancel，允許玩家拿紙；拿到後下一 tick 刪除佔位紙
+#  點輸出格 raw slot 2，而且輸出格真的有物品時，才視為成功命名
 # ==========================================================
 on inventory click:
-    {anvilinput::%player's uuid%} is set     # 只處理本腳本開的鐵砧
-    cancel event                              # 全部點擊都鎖:點取/Shift/數字鍵/雙擊都拿不走
+    {anvilinput::%player's uuid%} is set
 
-    # 透過 reflect 的 event 運算式取得原始點擊格與輸入文字
-    event.getRawSlot() is 2                   # 2 = 輸出格,不是就到此為止
+    if event.getRawSlot() is 2:
+        set {_clicked} to event.getCurrentItem()
+        if {_clicked} is set:
+            if {_clicked} is not air:
+                set {_text} to event.getView().getTopInventory().getRenameText()
+                if {_text} is set:
+                    set {_text} to {_text}.trim()
+                else:
+                    set {_text} to ""
 
-    set {_text} to event.getView().getTopInventory().getRenameText()
-    if {_text} is set:
-        set {_text} to {_text}.trim()         # 去掉前後空白(含預設那個空格)
-    else:
-        set {_text} to ""
+                set {_id} to {anvilinput::%player's uuid%}
 
-    set {_id} to {anvilinput::%player's uuid%}
-    delete {anvilinput::%player's uuid%}      # 先清追蹤再關閉,避免重複觸發
-    close player's inventory
+                # 成功命名：不要手動扣等級，因為鐵砧會自己消耗 1 等。
+                # 只刪除追蹤，避免 close 事件又把等級扣回去。
+                delete {anvilinput-levelboost::%player's uuid%}
+                delete {anvilinput::%player's uuid%}
 
-    onAnvilInput(player, {_id}, {_text})
+                set {_top} to event.getView().getTopInventory()
+                wait 1 tick
+                deleteAnvilInputPaperFromTop({_top})
+                deleteAnvilInputPaper(player)
+                close player's inventory
+
+                onAnvilInput(player, {_id}, {_text})
+                stop
+
+    set {_top} to event.getView().getTopInventory()
+    wait 1 tick
+    deleteAnvilInputPaperFromTop({_top})
+    deleteAnvilInputPaper(player)
 
 
 # ==========================================================
-#  拖曳 → 原生事件,一律取消(防止把紙拖進背包)
+#  拖曳：不 cancel，允許拖曳；拖曳完成後下一 tick 刪除佔位紙
 # ==========================================================
 on inventory drag:
     {anvilinput::%player's uuid%} is set
-    cancel event
+
+    set {_top} to event.getView().getTopInventory()
+    wait 1 tick
+    deleteAnvilInputPaperFromTop({_top})
+    deleteAnvilInputPaper(player)
 
 
 # ==========================================================
-#  關閉 → 清空鐵砧(收回紙,避免關閉瞬間退回玩家),再清除追蹤
+#  關閉：
+#    - 如果沒有成功命名，就扣回開啟時補的 1 等
+#    - 只刪除本腳本佔位紙，不 clear 整個鐵砧，避免誤刪玩家其他物品
 # ==========================================================
 on inventory close:
     {anvilinput::%player's uuid%} is set
-    event.getView().getTopInventory().clear()
+
+    set {_top} to event.getView().getTopInventory()
+    deleteAnvilInputPaperFromTop({_top})
+    wait 1 tick
+    deleteAnvilInputPaper(player)
+
+    refundAnvilInputLevel(player)
     delete {anvilinput::%player's uuid%}
 
 
 # ==========================================================
-#  結果處理:玩家確認輸入後進到這裡,依 id 分支
+#  結果處理：玩家確認輸入後進到這裡，依 id 分支
 # ==========================================================
 function onAnvilInput(p: player, id: text, text: text):
     if {_id} is "demo":
@@ -116,8 +178,9 @@ function onAnvilInput(p: player, id: text, text: text):
 
 
 # ==========================================================
-#  測試指令:/anvilinput  (空白輸入框)
+#  測試指令：/anvilinput
 # ==========================================================
-command /anvilinput:
+# command /anvilinput:
+command /a:
     trigger:
         openAnvilInput(player, "demo")
