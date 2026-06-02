@@ -1,0 +1,417 @@
+# The skript depends on plugins:
+# Skript
+# Skript-Reflect
+# Floodgate
+# and you don't need Floodgate-Skript any more
+
+import:
+    org.bukkit.Bukkit
+    org.bukkit.entity.Player
+
+    org.geysermc.floodgate.api.FloodgateApi
+    org.geysermc.cumulus.form.SimpleForm
+    org.geysermc.cumulus.form.ModalForm
+    org.geysermc.cumulus.form.CustomForm
+    org.geysermc.cumulus.form.util.FormBuilder
+    org.geysermc.cumulus.util.FormImage
+    org.geysermc.cumulus.util.FormImage$Type
+    
+    java.util.function.BiConsumer
+    java.util.function.Consumer
+    
+
+on load:
+    delete {floodgateApiCache::*}
+    set {_floodgate_skript} to Bukkit.getPluginManager().getPlugin("Floodgate-Skript")
+    if {_floodgate_skript} is set:
+        send "&cYou don't need Floodgate-Skript any more" to console
+    loop all players:
+        setFloodgateData(loop-player)
+    
+on unload:
+    delete {floodgateApiCache::*}
+    
+function saveFloodgatePlayerInfo(p: player, type: string, info: string):
+    set {floodgateApiCache::%{_p}'s uuid%::%{_type}%} to {_info}
+
+on connect with priority lowest:
+    set {_p} to player
+    setFloodgateData({_p})
+
+function setFloodgateData(p: player):
+    set {_fp} to FloodgateApi.getInstance().getPlayer({_p}.getUniqueId())
+    if {_fp} is set:
+        set {_locate} to {_fp}.getLanguageCode()
+        set {_device} to {_fp}.getDeviceOs().toString()
+        set {_version} to {_fp}.getVersion()
+        set {_ui} to {_fp}.getUiProfile().toString()
+        set {floodgateApiCache::%{_p}'s uuid%::bedrock} to true
+    else:
+        set {_locate} to "Java"
+        set {_version} to "Java"
+        set {_device} to "Java"
+        set {_ui} to "JAVA"
+        
+    saveFloodgatePlayerInfo({_p}, "ui", {_ui})
+    saveFloodgatePlayerInfo({_p}, "locate", {_locate})
+    saveFloodgatePlayerInfo({_p}, "device", {_device})
+    saveFloodgatePlayerInfo({_p}, "version", {_version})
+    
+
+condition %player% (1¦is|2¦is(n't| not)) [from] floodgate:
+    check:
+        set {_p} to expr-1
+        if mark is 1:
+            if {floodgateApiCache::%{_p}'s uuid%::bedrock} is true:
+                continue
+        else if mark is 2:
+            if {floodgateApiCache::%{_p}'s uuid%::bedrock} isn't true:
+                continue
+                
+                
+expression [the] [bedrock] (locale|language) of [the] [floodgate] %player%:
+    return type: string
+    get:
+        set {_p} to expr-1
+        return {floodgateApiCache::%uuid of {_p}%::locate}
+        
+expression [the] [bedrock] (platform|device) of [the] [floodgate] %player%:
+    return type: string
+    get: 
+        set {_p} to expr-1
+        return {floodgateApiCache::%uuid of {_p}%::device}
+        
+expression [the] [bedrock] version of [the] [floodgate] %player%:
+    return type: string
+    get:
+        set {_p} to expr-1
+        return {floodgateApiCache::%uuid of {_p}%::version}
+        
+expression [the] [bedrock] ui [profile] of [the] [floodgate] %player%:
+    return type: string
+    get:
+        set {_p} to expr-1
+        return {floodgateApiCache::%uuid of {_p}%::ui}
+        
+ 
+on quit:
+    delete {floodgateApiCache::%player's uuid%::*}
+        
+
+
+
+
+expression [clicked] button id of %object%:
+    return type: number
+    get:
+        return expr-1.clickedButtonId()
+        
+
+custom event "close form":
+    pattern: form close
+    event-values: player
+
+
+custom event "submit custom form":
+    pattern: submit custom form
+    event-values: player
+
+
+custom event "click button of form":
+    pattern: click form button
+    event-values: player
+
+
+expression [the] simple form with title %string%:
+    return type: object
+    get: 
+        set {_F} to SimpleForm.builder().title(expr-1)
+        return {_F}
+        
+expression [the] custom form with title %string%:
+    return type: object
+    get: 
+        set {_F} to CustomForm.builder().title(expr-1)
+        return {_F}
+        
+
+expression [the] modal form with title %string% and button[s] %string% %string%:
+    return type: object
+    get: 
+        set {_F} to ModalForm.builder().title(expr-1)    
+        {_F}.button1(expr-2).button2(expr-3)
+        return {_F}
+
+
+
+expression [the] dropdown [component] display[s] %string% with [the] option[s] %strings%:
+    return type: strings
+    get: 
+        set {_a::*} to expr-2
+        set {_s::1} to "dropdown"
+        set {_s::2} to expr-1
+        set {_s::3} to join {_a::*} by "[;;]"
+        return {_s::*}
+
+
+expression [the] toggle [component] display[s] %string%[ with( | state )%-boolean%]:
+    return type: strings
+    get:
+        set {_s::1} to "toggle"
+        set {_s::2} to expr-1
+        if expr-2 is set:
+            set {_s::3} to "%expr-2%"
+        return {_s::*}
+
+
+expression [the] input [component] display[s] %string% with placeholder %string% and (text|default text) %string%:
+    return type: strings
+    get:
+        set {_s::1} to "input"
+        set {_s::2} to expr-1
+        set {_s::3} to expr-2  
+        set {_s::4} to expr-3
+        return {_s::*}
+
+expression [the] slider component display[s] %string% with min[imum] [value] %number%(,| ,|, )max[imum] [value] %number%(,| ,|, )step %number%(,| ,|, )default [value] %number%:
+    return type: strings
+    get:
+        set {_s::1} to "slider"
+        set {_s::2} to expr-1
+        set {_s::3} to "%expr-2%"
+        set {_s::4} to "%expr-3%"
+        set {_s::5} to "%expr-4%"
+        set {_s::6} to "%expr-5%"
+        return {_s::*}
+        
+
+expression [the] step slider display[s] %string% default step %number% with steps %strings%:
+    return type: objects
+    get:
+        set {_steps::*} to expr-3
+        set {_s::1} to "step_slider"
+        set {_s::2} to expr-1
+        set {_s::3} to expr-2
+        set {_s::4} to join {_steps::*} by "[;;]"
+        return {_s::*}
+
+
+expression input component [with] id %number% of [response ]%object%:
+    return type: string
+    get:
+        set {_r} to expr-2.asInput(expr-1)
+        return {_r}
+
+
+expression toggle component [with] id %number% of [response] %object%:
+    return type: boolean
+    get:
+        set {_r} to expr-2.asToggle(expr-1)
+        return {_r}
+
+
+expression slider component [with] id %number% of [response] %object%:
+    return type: number
+    get:
+        set {_r} to expr-2.asSlider(expr-1)
+        return {_r}
+    
+
+expression step slide[r] component [with] id %number% of [response] %object%:
+    return type: number
+    get:
+        set {_r} to expr-2.asStepSlider(expr-1)
+        return {_r}
+
+
+expression dropdown component [with] id %number% of [response] %object%:
+    return type: number
+    get:
+        set {_r} to expr-2.asDropdown(expr-1)
+        return {_r}
+
+
+expression form title of [response] %object%:
+    return type: string
+    get:
+        set {_r} to expr-1.title()
+        return {_r}
+
+
+expression component [with] id %number% of [response] %object%:
+    return type: object
+    get:
+        
+        return expr-2.valueAt(expr-1)
+
+
+effect add %objects% to form %object%:
+    trigger:
+        set {_a::*} to expr-1
+        if {_a::1} is "dropdown":
+            set {_opt::*} to split {_a::3} by "[;;]"
+            expr-2.dropdown({_a::2}, [{_opt::*}])
+        else if {_a::1} is "input":
+            expr-2.input({_a::2}, {_a::3}, {_a::4})
+        else if {_a::1} is "toggle":
+            if {_a::3} is set:
+                set {_boolean} to {_a::3} parsed as boolean
+            else:
+                set {_boolean} to false
+            expr-2.toggle({_a::2}, {_boolean})
+        else if {_a::1} is "slider":
+            set {_min} to {_a::3} parsed as number
+            set {_max} to {_a::4} parsed as number
+            set {_step} to {_a::5} parsed as number
+            set {_default} to {_a::6} parsed as number
+            expr-2.slider({_a::2}, {_min}, {_max}, {_step}, {_default})
+        else if {_a::1} is "step_slider":
+            set {_steps::*} to {_a::4} split by "[;;]"
+            expr-2.stepSlider({_a::2}, {_a::3}, [{_steps::*} as String])
+        else if {_a::1} is "path_icon":
+            expr-2.iconPath({_a::2})
+        else if {_a::1} is "url_icon":
+            expr-2.iconUrl({_a::2})
+        else: 
+            set {_s::*} to split {_a::1} by "[;;]"
+            if {_s::1} is "url":
+                expr-2.button({_s::2}, Type.URL, {_s::3})
+            else if {_s::1} is "path":
+                expr-2.button({_s::2}, Type.PATH, {_s::3})
+            else if {_s::1} is "none":
+                expr-2.button({_s::2})
+            else if {_s::1} is "content":
+                expr-2.content({_s::2})
+            else if {_s::1} is "label":
+                expr-2.label({_s::2})
+
+
+
+expression [the] [form] content %string%:
+    return type: string
+    get:
+        set {_b} to "content[;;]%expr-1%"
+        return {_b}
+expression [the] button display %string%[ with (path icon %-string%|url icon %-string%)]:
+    return type: string
+    get:
+        if expr-2 is set:
+            set {_b} to "path[;;]%expr-1%[;;]%expr-2%"
+        else if expr-3 is set:
+            set {_b} to "url[;;]%expr-1%[;;]%expr-3%"
+        else:
+            set {_b} to "none[;;]%expr-1%"
+        return {_b}
+        
+expression [the] label %string%:
+    return type: string
+    get:
+        set {_r} to "label[;;]%expr-1%"
+        return {_r}
+
+expression [the] (1¦path|2¦url) icon %string%:
+    return type: strings
+    get:
+        if mark is 1:
+            set {_v::1} to "path_icon"
+        else if mark is 2:
+            set {_v::1} to "url_icon"
+        set {_v::2} to expr-1
+        return {_v::*}
+
+effect send[-| ]form %object%[ with id %-string%] to %player%:
+    trigger:
+        set {_F} to expr-1.build()
+        
+        if expr-2 is set:
+            if {_F} is instance of SimpleForm:
+                setListenerOnForm(expr-3, expr-1, expr-2, 1)
+            else if {_F} is instance of ModalForm:
+                setListenerOnForm(expr-3, expr-1, expr-2, 2)
+            else if {_F} is instance of CustomForm:
+                setListenerOnForm(expr-3, expr-1, expr-2, 3)
+        FloodgateApi.getInstance().getPlayer(expr-3.getUniqueId()).sendForm({_F})
+        
+
+
+expression (1¦valid|2¦invaild|3¦closed) result handler of %object%:
+    return type: object
+    set:
+        if mark is 1:
+            expr-1.validResultHandler(change value)
+        else if mark is 2:
+            expr-1.closedOrInvalidResultHandler(change value)
+        else:
+            expr-1.closedResultHandler(change value)
+    get:
+        if mark is 1:
+            return expr-1.validResultHandler()
+        else if mark is 2:
+            return expr-1.closedOrInvalidResultHandler()
+        else:
+            return expr-1.closedResultHandler()
+
+expression section handler %section%:
+    return type: object
+    get:
+        set {_functions::accept} to expr-1
+        return new proxy instance of BiConsumer using {_functions::*}
+
+expression function handler %text%:
+    return type: object
+    get:
+        set {_functions::accept} to function reference expr-1
+        return new proxy instance of BiConsumer using {_functions::*}
+    
+    
+    
+effect [send] transfer %player% to address %string% and port %number%:
+    trigger:
+        set {_uuid} to expr-1.getUniqueId()
+        set {_address} to expr-2
+        set {_port} to expr-3
+        FloodgateApi.getInstance().transferPlayer({_uuid}, {_address}, {_port})
+        
+        
+function setListenerOnForm(p: player, builder: object, id: text, type: number):
+
+    create section with {_proxy}, {_form}, {_r} stored in {_handler::accept}:
+        
+        
+        set {_events::player} to {_p}
+        set {_extras::form-id} to {_id}
+        set {_extras::response} to {_r}
+        
+        # simple
+        if {_type} is 1:
+            set {_extras::form-title} to {_form}.title()
+            set {_extras::button-id} to {_r}.clickedButtonId()
+            set {_extras::button-name} to {_r}.clickedButton().text()
+            call custom event "click button of form" with {_events::*} data {_extras::*}
+
+        # modal
+        else if {_type} is 2:       
+            set {_extras::button-id} to {_r}.clickedButtonId()
+            set {_extras::button-name} to {_r}.getClickedButtonText()
+            call custom event "click button of form" with {_events::*} data {_extras::*}
+
+        # custom
+        else:
+
+            set {_extras::form-title} to {_form}.title()
+            call custom event "submit custom form" with {_events::*} data {_extras::*}
+        
+    set {_proxy} to new proxy instance of BiConsumer using {_handler::*}
+    {_builder}.validResultHandler({_proxy})
+    create section with {_proxy}, {_form} stored in {_handler::accept}:
+        
+        
+        set {_events::player} to {_p}
+        set {_extras::form-id} to {_id}
+        set {_extras::form} to {_form}
+        
+        call custom event "close form" with {_events::*} data {_extras::*}
+        
+    set {_proxy} to new proxy instance of Consumer using {_handler::*}
+    {_builder}.closedResultHandler({_proxy})
+

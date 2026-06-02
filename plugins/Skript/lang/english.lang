@@ -1,7 +1,7 @@
 # Default English language file
 
 # Which version of Skript this language file was written for
-version: 2.15.2
+version: 2.15.3
 
 # What null (nothing) should show up as in a string/text
 none: <none>

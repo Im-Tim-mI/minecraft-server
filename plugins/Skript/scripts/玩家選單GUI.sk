@@ -180,6 +180,39 @@ command /選單:
     trigger:
         openMainMenu(player)
 
+command /debugpw:
+    trigger:
+        loop {玩家世界::名稱對應::*}:
+            send "%loop-index% -> %loop-value%"
+
+command /debugpw2:
+    trigger:
+        send "debugpw2 測試版本 v2 已執行"
+
+        set {_i} to 1
+        send "迴圈前 i = %{_i}%"
+
+        loop 5 times:
+            send "正在跑第 %loop-number% 次，i 目前 = %{_i}%"
+            if {_i} is smaller than 53:
+                add 1 to {_i}
+
+        send "最終 i = %{_i}%"
+
+command /t1:
+    trigger:
+        set {_i} to 1
+        add 1 to {_i}
+        send "A 純add: i = %{_i}%   (正常應為 2)"
+
+        if 1 is smaller than 53:
+            send "B 比較: 正常 (1<53 為真)"
+        else:
+            send "B 比較: 異常 (1<53 竟為假)"
+
+        set {_x} to 1
+        set {_x} to {_x} + 1
+        send "C 用加號: x = %{_x}%   (正常應為 2)"
 # ==========================================
 # C. 點擊事件處理
 # ==========================================

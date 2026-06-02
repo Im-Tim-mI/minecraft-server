@@ -1,0 +1,123 @@
+# ==========================================================
+#  鐵砧輸入框 (Anvil Text Input) — 純 Skript 版 (v2)
+#  以 skript-reflect 開鐵砧,並用「原生 Skript 事件」鎖定點擊,
+#  不需要安裝 Skript-AnvilGUI 外掛。
+#
+#  需求:
+#    - Skript 2.6+
+#    - skript-reflect
+#    - Paper 1.14+ (使用 player.openAnvil(),Spigot 沒有此 API)
+#
+#  特點:
+#    - 輸入框預設空白白框(不顯示「紙」)
+#    - 玩家「絕對」拿不到那張佔位紙:
+#        * 所有點擊(含 Shift / 數字鍵 / 雙擊)用原生事件 cancel
+#        * 拖曳用原生事件 cancel
+#        * 關閉時清空鐵砧,避免關閉瞬間把物品退回玩家
+#    - 讀取文字、判斷輸出格都改用「原生事件 + reflect 的 event 運算式」,
+#      這比 reflect 自訂事件可靠,保證會觸發。
+#
+#  用法:
+#    openAnvilInput(玩家, "識別字串")              → 空白輸入框
+#    openAnvilInput(玩家, "識別字串", "預設文字")    → 帶預設文字
+#    結果送到 onAnvilInput(玩家, 識別字串, 文字)。
+# ==========================================================
+
+import:
+    org.bukkit.Material
+    org.bukkit.inventory.ItemStack
+    org.bukkit.event.inventory.PrepareAnvilEvent
+
+
+# ==========================================================
+#  開啟鐵砧輸入框
+# ==========================================================
+function openAnvilInput(p: player, id: text, default: text = ""):
+    # 記錄這名玩家正在使用本腳本的鐵砧(用原生 uuid,確保與事件端格式一致)
+    set {anvilinput::%{_p}'s uuid%} to {_id}
+
+    # 用 Paper API 直接開鐵砧介面(無需實體鐵砧方塊)
+    set {_view} to {_p}.openAnvil({_p}.getLocation(), true)
+    set {_top} to {_view}.getTopInventory()
+
+    # 左格放一張紙當佔位物,它的「顯示名稱」= 輸入框預設字
+    #   - 空白:設成單一空格 " " → 白框、看起來無字(不會顯示物品名「紙」)
+    #   - 有預設字:套用顏色代碼
+    set {_left} to new ItemStack(Material.valueOf("PAPER"))
+    set {_meta} to {_left}.getItemMeta()
+    if {_default} is "":
+        {_meta}.setDisplayName(" ")
+    else:
+        {_meta}.setDisplayName(colored {_default})
+    {_left}.setItemMeta({_meta})
+    {_top}.setItem(0, {_left})
+
+
+# ==========================================================
+#  維修花費歸零(reflect 自訂事件;非必要,純粹讓沒等級的玩家也能用)
+# ==========================================================
+on PrepareAnvilEvent:
+    set {_uuid} to "%event.getView().getPlayer().getUniqueId()%"
+    {anvilinput::%{_uuid}%} is set
+    event.getInventory().setRepairCost(0)
+
+
+# ==========================================================
+#  點擊 → 原生事件,一律取消(玩家拿不到任何物品);點輸出格(raw slot 2)才確認
+# ==========================================================
+on inventory click:
+    {anvilinput::%player's uuid%} is set     # 只處理本腳本開的鐵砧
+    cancel event                              # 全部點擊都鎖:點取/Shift/數字鍵/雙擊都拿不走
+
+    # 透過 reflect 的 event 運算式取得原始點擊格與輸入文字
+    event.getRawSlot() is 2                   # 2 = 輸出格,不是就到此為止
+
+    set {_text} to event.getView().getTopInventory().getRenameText()
+    if {_text} is set:
+        set {_text} to {_text}.trim()         # 去掉前後空白(含預設那個空格)
+    else:
+        set {_text} to ""
+
+    set {_id} to {anvilinput::%player's uuid%}
+    delete {anvilinput::%player's uuid%}      # 先清追蹤再關閉,避免重複觸發
+    close player's inventory
+
+    onAnvilInput(player, {_id}, {_text})
+
+
+# ==========================================================
+#  拖曳 → 原生事件,一律取消(防止把紙拖進背包)
+# ==========================================================
+on inventory drag:
+    {anvilinput::%player's uuid%} is set
+    cancel event
+
+
+# ==========================================================
+#  關閉 → 清空鐵砧(收回紙,避免關閉瞬間退回玩家),再清除追蹤
+# ==========================================================
+on inventory close:
+    {anvilinput::%player's uuid%} is set
+    event.getView().getTopInventory().clear()
+    delete {anvilinput::%player's uuid%}
+
+
+# ==========================================================
+#  結果處理:玩家確認輸入後進到這裡,依 id 分支
+# ==========================================================
+function onAnvilInput(p: player, id: text, text: text):
+    if {_id} is "demo":
+        send "&a你輸入的文字是:&f%{_text}%" to {_p}
+
+    # 範例:
+    # if {_id} is "setnick":
+    #     set {nick::%{_p}'s uuid%} to {_text}
+    #     send "&a暱稱已設定為 &f%{_text}%" to {_p}
+
+
+# ==========================================================
+#  測試指令:/anvilinput  (空白輸入框)
+# ==========================================================
+command /anvilinput:
+    trigger:
+        openAnvilInput(player, "demo")
