@@ -33,7 +33,7 @@ function start_countdown_display(p: player):
     set {countdown::%{_uuid}%} to true
     set {countdown.loc::%{_uuid}%} to location of {_p}
     
-    loop 30 times:
+    loop 5 times:
         if {countdown::%{_uuid}%} is not true:
             stop
         
