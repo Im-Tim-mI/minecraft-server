@@ -1,0 +1,225 @@
+# ============================================================
+#  大富翁地圖產生器  (Monopoly Map Generator)
+#  ------------------------------------------------------------
+#  作者：為你產生 by Claude
+#  說明：在你「腳下站立的位置」當作左下角，往 +X / +Z 方向
+#        鋪出一張 11x11 格的大富翁棋盤。
+#        只放置方塊與告示牌，不修改任何遊戲機制。
+#
+#  使用方式：
+#     /dafuweng            -> 每格 5x5 (預設)
+#     /dafuweng 5          -> 每格 5x5
+#     /dafuweng 7          -> 每格 7x7 (更大張)
+#
+#  需求：伺服器安裝 Skript 外掛 (建議 2.7+ / 1.20+)
+#        放到 plugins/Skript/scripts/ 後執行  /sk reload dafuweng
+# ============================================================
+
+command /dafuweng [<integer>]:
+    description: 在你所在位置產生一張大富翁地圖
+    executable by: players
+    trigger:
+        # ---------- 1. 取得每格大小 ----------
+        if arg-1 is set:
+            set {_size} to arg-1
+        else:
+            set {_size} to 5
+        if {_size} < 3:
+            set {_size} to 3
+
+        # ---------- 2. 取得基準座標 (玩家腳下) ----------
+        set {_w} to world of player
+        set {_bx} to floor(x-coordinate of player)
+        set {_by} to (floor(y-coordinate of player)) - 1     # 地板高度
+        set {_bz} to floor(z-coordinate of player)
+        set {_span} to 11 * {_size}                            # 棋盤總邊長(方塊)
+
+        send "&e正在產生大富翁地圖… (每格 %{_size}%x%{_size}%，總大小 %{_span}%x%{_span}%)" to player
+
+        # ---------- 3. 設定 40 格的名稱與顏色 ----------
+        delete {_names::*}
+        delete {_colors::*}
+        # 角落
+        set {_names::0} to "起點"
+        set {_colors::0} to lime concrete
+        set {_names::10} to "監獄"
+        set {_colors::10} to orange concrete
+        set {_names::20} to "免費停車"
+        set {_colors::20} to yellow concrete
+        set {_names::30} to "入獄"
+        set {_colors::30} to red concrete
+        # 下排其餘
+        set {_names::1} to "基隆"
+        set {_colors::1} to brown concrete
+        set {_names::2} to "命運"
+        set {_colors::2} to purple concrete
+        set {_names::3} to "新竹"
+        set {_colors::3} to brown concrete
+        set {_names::4} to "所得稅"
+        set {_colors::4} to light gray concrete
+        set {_names::5} to "台北車站"
+        set {_colors::5} to black concrete
+        set {_names::6} to "桃園"
+        set {_colors::6} to light blue concrete
+        set {_names::7} to "機會"
+        set {_colors::7} to magenta concrete
+        set {_names::8} to "中壢"
+        set {_colors::8} to light blue concrete
+        set {_names::9} to "苗栗"
+        set {_colors::9} to light blue concrete
+        # 左排
+        set {_names::11} to "台中"
+        set {_colors::11} to pink concrete
+        set {_names::12} to "電力公司"
+        set {_colors::12} to cyan concrete
+        set {_names::13} to "彰化"
+        set {_colors::13} to pink concrete
+        set {_names::14} to "員林"
+        set {_colors::14} to pink concrete
+        set {_names::15} to "台中車站"
+        set {_colors::15} to black concrete
+        set {_names::16} to "南投"
+        set {_colors::16} to orange concrete
+        set {_names::17} to "命運"
+        set {_colors::17} to purple concrete
+        set {_names::18} to "嘉義"
+        set {_colors::18} to orange concrete
+        set {_names::19} to "雲林"
+        set {_colors::19} to orange concrete
+        # 上排
+        set {_names::21} to "台南"
+        set {_colors::21} to red concrete
+        set {_names::22} to "機會"
+        set {_colors::22} to magenta concrete
+        set {_names::23} to "永康"
+        set {_colors::23} to red concrete
+        set {_names::24} to "新營"
+        set {_colors::24} to red concrete
+        set {_names::25} to "台南車站"
+        set {_colors::25} to black concrete
+        set {_names::26} to "高雄"
+        set {_colors::26} to yellow concrete
+        set {_names::27} to "鳳山"
+        set {_colors::27} to yellow concrete
+        set {_names::28} to "自來水廠"
+        set {_colors::28} to cyan concrete
+        set {_names::29} to "屏東"
+        set {_colors::29} to yellow concrete
+        # 右排
+        set {_names::31} to "台東"
+        set {_colors::31} to green concrete
+        set {_names::32} to "命運"
+        set {_colors::32} to purple concrete
+        set {_names::33} to "花蓮"
+        set {_colors::33} to green concrete
+        set {_names::34} to "宜蘭"
+        set {_colors::34} to green concrete
+        set {_names::35} to "花蓮車站"
+        set {_colors::35} to black concrete
+        set {_names::36} to "機會"
+        set {_colors::36} to magenta concrete
+        set {_names::37} to "金門"
+        set {_colors::37} to blue concrete
+        set {_names::38} to "奢侈稅"
+        set {_colors::38} to light gray concrete
+        set {_names::39} to "馬祖"
+        set {_colors::39} to blue concrete
+
+        # ---------- 4. 鋪地板：整片白色 ----------
+        set {_ox} to 0
+        while {_ox} < {_span}:
+            set {_oz} to 0
+            while {_oz} < {_span}:
+                set {_loc} to location({_bx} + {_ox}, {_by}, {_bz} + {_oz}, {_w})
+                set block at {_loc} to white concrete
+                add 1 to {_oz}
+            add 1 to {_ox}
+
+        # ---------- 5. 兩圈白色外框 + 最外圈上方柵欄 ----------
+        # 棋盤外貼一圈白(offset -1/span)，再往外一圈白(offset -2/span+1)
+        # 柵欄蓋在最外那一圈(offset -2 / span+1)上方
+        set {_gx} to -2
+        while {_gx} <= ({_span} + 1):
+            set {_gz} to -2
+            while {_gz} <= ({_span} + 1):
+                # 判斷是否在棋盤本體範圍內(本體已鋪好，不要覆蓋)
+                set {_inside} to false
+                if {_gx} >= 0:
+                    if {_gx} < {_span}:
+                        if {_gz} >= 0:
+                            if {_gz} < {_span}:
+                                set {_inside} to true
+                if {_inside} is false:
+                    # 外框地板：白色
+                    set block at location({_bx} + {_gx}, {_by}, {_bz} + {_gz}, {_w}) to white concrete
+                    # 最外圈才放柵欄
+                    if {_gx} = -2:
+                        set block at location({_bx} + {_gx}, {_by} + 1, {_bz} + {_gz}, {_w}) to oak fence
+                    else if {_gx} = ({_span} + 1):
+                        set block at location({_bx} + {_gx}, {_by} + 1, {_bz} + {_gz}, {_w}) to oak fence
+                    else if {_gz} = -2:
+                        set block at location({_bx} + {_gx}, {_by} + 1, {_bz} + {_gz}, {_w}) to oak fence
+                    else if {_gz} = ({_span} + 1):
+                        set block at location({_bx} + {_gx}, {_by} + 1, {_bz} + {_gz}, {_w}) to oak fence
+                add 1 to {_gz}
+            add 1 to {_gx}
+
+        # ---------- 6. 產生 40 個格子 + 告示牌 ----------
+        set {_i} to 0
+        while {_i} < 40:
+            # 計算這格的 (欄, 列)
+            if {_i} <= 10:
+                set {_col} to 10 - {_i}
+                set {_row} to 10
+            else if {_i} <= 20:
+                set {_col} to 0
+                set {_row} to 20 - {_i}
+            else if {_i} <= 30:
+                set {_col} to {_i} - 20
+                set {_row} to 0
+            else:
+                set {_col} to 10
+                set {_row} to {_i} - 30
+
+            set {_x0} to {_bx} + ({_col} * {_size})
+            set {_z0} to {_bz} + ({_row} * {_size})
+
+            # 填滿這格的方塊
+            set {_a} to 0
+            while {_a} < {_size}:
+                set {_b} to 0
+                while {_b} < {_size}:
+                    set block at location({_x0} + {_a}, {_by}, {_z0} + {_b}, {_w}) to {_colors::%{_i}%}
+                    add 1 to {_b}
+                add 1 to {_a}
+
+            # 在格子中央放告示牌
+            set {_sx} to {_x0} + floor({_size} / 2)
+            set {_sz} to {_z0} + floor({_size} / 2)
+            set {_signloc} to location({_sx}, {_by} + 1, {_sz}, {_w})
+            set block at {_signloc} to oak sign
+            set line 1 of block at {_signloc} to "&8[%{_i}%]"
+            set line 2 of block at {_signloc} to "&0%{_names::%{_i}%}%"
+            set line 3 of block at {_signloc} to "&7大富翁"
+
+            add 1 to {_i}
+
+        # ---------- 7. 中央裝飾 (金磚 + 招牌) ----------
+        set {_cx} to {_bx} + floor({_span} / 2)
+        set {_cz} to {_bz} + floor({_span} / 2)
+        set {_g} to -1
+        while {_g} <= 1:
+            set {_h} to -1
+            while {_h} <= 1:
+                set block at location({_cx} + {_g}, {_by}, {_cz} + {_h}, {_w}) to gold block
+                add 1 to {_h}
+            add 1 to {_g}
+        set {_center} to location({_cx}, {_by} + 1, {_cz}, {_w})
+        set block at {_center} to oak sign
+        set line 1 of block at {_center} to "&6&l大富翁"
+        set line 2 of block at {_center} to "&eMONOPOLY"
+        set line 3 of block at {_center} to "&7創立於 1982"
+
+        # ---------- 8. 完成 ----------
+        play sound "entity.player.levelup" to player
+        send "&a大富翁地圖產生完成！共 40 格，祝你大發財運！" to player

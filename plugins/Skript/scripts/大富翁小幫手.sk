@@ -1,0 +1,357 @@
+# ============================================================
+#  大富翁小幫手  (Monopoly Helper) — 中文指令版 (前綴 大富翁_)
+#  ------------------------------------------------------------
+#  搭配大富翁地圖使用，幫大家管理現金、骰子、扣稅、抽機會/命運。
+#  ★ 所有指令僅在世界  game_12  生效 ★
+#
+#  需求：伺服器安裝 Skript 外掛 (建議 2.7+ / MC 1.20+)
+#        放到 plugins/Skript/scripts/ 後  /sk reload
+#  ※ 中文指令需要較新的 Spigot/Paper；若打不出來，每個指令都保留
+#    舊名稱與英文別名(例如 /機會、/chance)可使用。
+#
+#  ---------------- 指令一覽 ----------------
+#   一般玩家：
+#     /大富翁_骰子               擲兩顆骰子        (別名: /骰子 /roll)
+#     /大富翁_現金 [玩家]         查看現金          (別名: /現金 /money)
+#     /大富翁_排行榜             現金排行          (別名: /排行榜 /moneytop)
+#     /大富翁_付錢 <玩家> <金額>  付錢給某玩家      (別名: /付錢 /pay)
+#     /大富翁_通過起點           領過路費          (別名: /通過起點 /passgo)
+#     /大富翁_繳稅 所得稅|奢侈稅  繳稅             (別名: /繳稅 /tax)
+#     /大富翁_機會               抽一張機會        (別名: /機會 /chance)
+#     /大富翁_命運               抽一張命運        (別名: /命運 /fate)
+#     /大富翁_說明               顯示說明          (別名: /說明 /dfwhelp)
+#   管理員(OP)：
+#     /大富翁_開始遊戲 [金額]            全場發放起始資金  (別名: /開始遊戲)
+#     /大富翁_銀行 給|收|設定 <玩家> <金額>  銀行操作       (別名: /銀行 /bank)
+# ============================================================
+
+
+# ---------------- 設定值 & 卡片內容（在這裡修改） ----------------
+on load:
+    set {dfw::config::world} to "game_12"      # 適用世界
+    set {dfw::config::start} to 15000          # 起始資金
+    set {dfw::config::passgo} to 2000          # 通過起點過路費
+    set {dfw::config::tax-income} to 2000      # 所得稅
+    set {dfw::config::tax-luxury} to 1500      # 奢侈稅
+
+    # ----- 機會卡 (正數=獲得, 負數=支付, 0=純提示) -----
+    delete {dfw::chance::*}
+    delete {dfw::chanceAmt::*}
+    set {dfw::chance::1} to "銀行發放股利"
+    set {dfw::chanceAmt::1} to 1500
+    set {dfw::chance::2} to "中了統一發票頭獎"
+    set {dfw::chanceAmt::2} to 5000
+    set {dfw::chance::3} to "違規停車被開單"
+    set {dfw::chanceAmt::3} to -1000
+    set {dfw::chance::4} to "房屋需要維修"
+    set {dfw::chanceAmt::4} to -800
+    set {dfw::chance::5} to "前進到起點，領取過路費"
+    set {dfw::chanceAmt::5} to 2000
+    set {dfw::chance::6} to "搭乘高鐵付車費"
+    set {dfw::chanceAmt::6} to -600
+    set {dfw::chance::7} to "收到生日紅包"
+    set {dfw::chanceAmt::7} to 1000
+    set {dfw::chance::8} to "投資股票大賺一筆"
+    set {dfw::chanceAmt::8} to 3000
+    set {dfw::chance::9} to "補繳所得稅"
+    set {dfw::chanceAmt::9} to -2000
+    set {dfw::chance::10} to "樂透中獎"
+    set {dfw::chanceAmt::10} to 2500
+    set {dfw::chance::11} to "支付醫療費用"
+    set {dfw::chanceAmt::11} to -1200
+    set {dfw::chance::12} to "政府退稅入帳"
+    set {dfw::chanceAmt::12} to 1000
+    set {dfw::chanceCount} to 12
+
+    # ----- 命運卡 -----
+    delete {dfw::fate::*}
+    delete {dfw::fateAmt::*}
+    set {dfw::fate::1} to "祖先保佑，獲得遺產"
+    set {dfw::fateAmt::1} to 4000
+    set {dfw::fate::2} to "車禍意外，支付醫藥費"
+    set {dfw::fateAmt::2} to -1500
+    set {dfw::fate::3} to "路上撿到錢包"
+    set {dfw::fateAmt::3} to 700
+    set {dfw::fate::4} to "房屋稅到期"
+    set {dfw::fateAmt::4} to -1800
+    set {dfw::fate::5} to "工作獎金入帳"
+    set {dfw::fateAmt::5} to 2000
+    set {dfw::fate::6} to "手機掉了，買新的"
+    set {dfw::fateAmt::6} to -900
+    set {dfw::fate::7} to "直接前往監獄！(請自行移動到監獄格，不領過路費)"
+    set {dfw::fateAmt::7} to 0
+    set {dfw::fate::8} to "中了刮刮樂"
+    set {dfw::fateAmt::8} to 1500
+    set {dfw::fate::9} to "請客吃飯"
+    set {dfw::fateAmt::9} to -600
+    set {dfw::fate::10} to "路邊攤生意興隆"
+    set {dfw::fateAmt::10} to 1200
+    set {dfw::fate::11} to "繳交水電費"
+    set {dfw::fateAmt::11} to -500
+    set {dfw::fate::12} to "政府紓困補助"
+    set {dfw::fateAmt::12} to 3000
+    set {dfw::fateCount} to 12
+
+
+# ---------------- 工具函式 ----------------
+function inGame(p: player) :: boolean:
+    if "%world of {_p}%" is {dfw::config::world}:
+        return true
+    return false
+
+function bal(p: player) :: number:
+    return {dfw::money::%uuid of {_p}%} ? 0
+
+function addMoney(p: player, amt: number):
+    add {_amt} to {dfw::money::%uuid of {_p}%}
+
+function removeMoney(p: player, amt: number):
+    remove {_amt} from {dfw::money::%uuid of {_p}%}
+
+# 對 game_12 內所有玩家廣播
+function announce(msg: text):
+    loop all players:
+        if "%world of loop-player%" is {dfw::config::world}:
+            send {_msg} to loop-player
+
+
+# ---------------- 擲骰子 ----------------
+command /大富翁_骰子:
+    aliases: /骰子, /roll, /dice
+    description: 擲兩顆骰子
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        set {_d1} to a random integer between 1 and 6
+        set {_d2} to a random integer between 1 and 6
+        set {_sum} to {_d1} + {_d2}
+        announce("&6&l🎲 %player% &e擲出 &b%{_d1}% &7+ &b%{_d2}% &7= &a&l%{_sum}% &e點")
+        if {_d1} is {_d2}:
+            announce("&6✨ 雙重點數 (%{_d1}%, %{_d2}%)！可以再擲一次～")
+
+
+# ---------------- 查看現金 ----------------
+command /大富翁_現金 [<player>]:
+    aliases: /現金, /money, /balance, /cash, /錢
+    description: 查看現金
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        if arg-1 is set:
+            send "&e💰 %arg-1% 的現金：&a$%bal(arg-1)%" to player
+        else:
+            send "&e💰 你的現金：&a$%bal(player)%" to player
+
+
+# ---------------- 現金排行 (在場玩家) ----------------
+command /大富翁_排行榜:
+    aliases: /排行榜, /moneytop, /top, /排行
+    description: 現金排行
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        send "&6&l===== 大富翁現金排行 =====" to player
+        delete {_names::*}
+        delete {_vals::*}
+        set {_c} to 0
+        loop all players:
+            if "%world of loop-player%" is {dfw::config::world}:
+                add 1 to {_c}
+                set {_names::%{_c}%} to loop-player
+                set {_vals::%{_c}%} to bal(loop-player)
+        # 由大到小排序 (選擇排序)
+        set {_i} to 1
+        while {_i} < {_c}:
+            set {_j} to {_i} + 1
+            while {_j} <= {_c}:
+                if {_vals::%{_j}%} > {_vals::%{_i}%}:
+                    set {_tv} to {_vals::%{_i}%}
+                    set {_vals::%{_i}%} to {_vals::%{_j}%}
+                    set {_vals::%{_j}%} to {_tv}
+                    set {_tn} to {_names::%{_i}%}
+                    set {_names::%{_i}%} to {_names::%{_j}%}
+                    set {_names::%{_j}%} to {_tn}
+                add 1 to {_j}
+            add 1 to {_i}
+        set {_k} to 1
+        while {_k} <= {_c}:
+            send "&e#%{_k}% &f%{_names::%{_k}%}% &7- &a$%{_vals::%{_k}%}%" to player
+            add 1 to {_k}
+        if {_c} is 0:
+            send "&7目前沒有玩家在大富翁地圖內。" to player
+
+
+# ---------------- 付錢給別人 (租金/過路費) ----------------
+command /大富翁_付錢 <player> <integer>:
+    aliases: /付錢, /pay
+    description: 付錢給某玩家
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        if arg-2 <= 0:
+            send "&c金額必須大於 0！" to player
+            stop
+        if arg-1 is player:
+            send "&c不能付錢給自己！" to player
+            stop
+        if bal(player) < arg-2:
+            send "&c餘額不足！你只有 $%bal(player)%。" to player
+            stop
+        removeMoney(player, arg-2)
+        addMoney(arg-1, arg-2)
+        announce("&e💸 %player% &7付給 &e%arg-1% &a$%arg-2%")
+        send "&7你的餘額：&a$%bal(player)%" to player
+        send "&7你的餘額：&a$%bal(arg-1)%" to arg-1
+
+
+# ---------------- 通過起點 ----------------
+command /大富翁_通過起點:
+    aliases: /通過起點, /passgo, /起點
+    description: 通過起點領過路費
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        addMoney(player, {dfw::config::passgo})
+        announce("&a🏁 %player% 通過起點，領取過路費 &e$%{dfw::config::passgo}%")
+        send "&7你的餘額：&a$%bal(player)%" to player
+
+
+# ---------------- 繳稅 ----------------
+command /大富翁_繳稅 <text>:
+    aliases: /繳稅, /tax
+    description: 繳所得稅或奢侈稅
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        if arg-1 is "所得稅" or arg-1 is "income":
+            set {_amt} to {dfw::config::tax-income}
+            set {_name} to "所得稅"
+        else if arg-1 is "奢侈稅" or arg-1 is "luxury":
+            set {_amt} to {dfw::config::tax-luxury}
+            set {_name} to "奢侈稅"
+        else:
+            send "&c用法：/大富翁_繳稅 所得稅  或  /大富翁_繳稅 奢侈稅" to player
+            stop
+        removeMoney(player, {_amt})
+        announce("&c🧾 %player% 繳交 %{_name}% &e$%{_amt}%")
+        send "&7你的餘額：&a$%bal(player)%" to player
+        if bal(player) < 0:
+            send "&4⚠ 你的現金已負債 $%bal(player)%，可能要變賣資產或宣告破產！" to player
+
+
+# ---------------- 抽機會 ----------------
+command /大富翁_機會:
+    aliases: /機會, /chance
+    description: 抽一張機會卡
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        set {_n} to a random integer between 1 and {dfw::chanceCount}
+        set {_text} to {dfw::chance::%{_n}%}
+        set {_amt} to {dfw::chanceAmt::%{_n}%}
+        if {_amt} > 0:
+            addMoney(player, {_amt})
+            announce("&a&l[機會] &e%player%：%{_text}%，獲得 &a$%{_amt}%")
+        else if {_amt} < 0:
+            addMoney(player, {_amt})
+            set {_pay} to {_amt} * -1
+            announce("&c&l[機會] &e%player%：%{_text}%，支付 &c$%{_pay}%")
+        else:
+            announce("&6&l[機會] &e%player%：%{_text}%")
+        send "&7你的餘額：&a$%bal(player)%" to player
+
+
+# ---------------- 抽命運 ----------------
+command /大富翁_命運:
+    aliases: /命運, /fate, /destiny
+    description: 抽一張命運卡
+    trigger:
+        if inGame(player) is false:
+            send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
+            stop
+        set {_n} to a random integer between 1 and {dfw::fateCount}
+        set {_text} to {dfw::fate::%{_n}%}
+        set {_amt} to {dfw::fateAmt::%{_n}%}
+        if {_amt} > 0:
+            addMoney(player, {_amt})
+            announce("&b&l[命運] &e%player%：%{_text}%，獲得 &a$%{_amt}%")
+        else if {_amt} < 0:
+            addMoney(player, {_amt})
+            set {_pay} to {_amt} * -1
+            announce("&5&l[命運] &e%player%：%{_text}%，支付 &c$%{_pay}%")
+        else:
+            announce("&d&l[命運] &e%player%：%{_text}%")
+        send "&7你的餘額：&a$%bal(player)%" to player
+
+
+# ---------------- 開始遊戲 / 發放起始資金 (OP) ----------------
+command /大富翁_開始遊戲 [<integer>]:
+    aliases: /開始遊戲, /dfwstart
+    description: 全場發放起始資金
+    trigger:
+        if player is not op:
+            send "&c只有管理員(OP)可以使用此指令！" to player
+            stop
+        if arg-1 is set:
+            set {_amt} to arg-1
+        else:
+            set {_amt} to {dfw::config::start}
+        set {_c} to 0
+        loop all players:
+            if "%world of loop-player%" is {dfw::config::world}:
+                set {dfw::money::%uuid of loop-player%} to {_amt}
+                add 1 to {_c}
+        announce("&6&l🎮 大富翁開始！每位玩家獲得起始資金 &a$%{_amt}%")
+        send "&a已為 %{_c}% 位玩家發放起始資金。" to player
+
+
+# ---------------- 銀行操作 (OP) ----------------
+command /大富翁_銀行 <text> <player> <integer>:
+    aliases: /銀行, /bank
+    description: 銀行給/收/設定玩家現金
+    trigger:
+        if player is not op:
+            send "&c只有管理員(OP)可以使用此指令！" to player
+            stop
+        if arg-3 < 0:
+            send "&c金額不可為負數！" to player
+            stop
+        if arg-1 is "給" or arg-1 is "give":
+            addMoney(arg-2, arg-3)
+            announce("&a🏦 銀行發給 %arg-2% $%arg-3%")
+        else if arg-1 is "收" or arg-1 is "take":
+            removeMoney(arg-2, arg-3)
+            announce("&c🏦 銀行向 %arg-2% 收取 $%arg-3%")
+        else if arg-1 is "設定" or arg-1 is "set":
+            set {dfw::money::%uuid of arg-2%} to arg-3
+            announce("&e🏦 銀行將 %arg-2% 的現金設定為 $%arg-3%")
+        else:
+            send "&c用法：/大富翁_銀行 給|收|設定 <玩家> <金額>" to player
+            stop
+        send "&7%arg-2% 目前餘額：&a$%bal(arg-2)%" to player
+
+
+# ---------------- 說明 ----------------
+command /大富翁_說明:
+    aliases: /說明, /dfwhelp, /大富翁
+    description: 大富翁小幫手說明
+    trigger:
+        send "&6&l===== 大富翁小幫手 (game_12) =====" to player
+        send "&e/大富翁_骰子 &7- 擲兩顆骰子" to player
+        send "&e/大富翁_現金 [玩家] &7- 查看現金" to player
+        send "&e/大富翁_排行榜 &7- 現金排行" to player
+        send "&e/大富翁_付錢 <玩家> <金額> &7- 付租金/過路費" to player
+        send "&e/大富翁_通過起點 &7- 通過起點領過路費" to player
+        send "&e/大富翁_繳稅 所得稅|奢侈稅 &7- 繳稅" to player
+        send "&e/大富翁_機會 &7- 抽機會" to player
+        send "&e/大富翁_命運 &7- 抽命運" to player
+        if player is op:
+            send "&c[OP] /大富翁_開始遊戲 [金額] &7- 發放起始資金" to player
+            send "&c[OP] /大富翁_銀行 給|收|設定 <玩家> <金額>" to player

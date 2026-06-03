@@ -52,15 +52,11 @@ worlds:
     portalgoesto:
       ENDER: game_7
   game_5:
-    portalgoesto:
-      NETHER: game_5_nether
-      ENDER: game_5_the_end
+    portalgoesto: {}
   game_5_nether:
-    portalgoesto:
-      NETHER: game_5
+    portalgoesto: {}
   game_5_the_end:
-    portalgoesto:
-      ENDER: game_5
+    portalgoesto: {}
   pw_11:
     portalgoesto:
       NETHER: pw_11_nether
@@ -81,3 +77,83 @@ worlds:
   game_9_the_end:
     portalgoesto:
       ENDER: game_9
+  pw_14:
+    portalgoesto: {}
+  pw_14_nether:
+    portalgoesto: {}
+  pw_14_the_end:
+    portalgoesto: {}
+  game_10:
+    portalgoesto: {}
+  game_10_nether:
+    portalgoesto: {}
+  game_10_the_end:
+    portalgoesto: {}
+  pw_15:
+    portalgoesto: {}
+  pw_15_nether:
+    portalgoesto: {}
+  pw_15_the_end:
+    portalgoesto: {}
+  game_11:
+    portalgoesto: {}
+  game_11_nether:
+    portalgoesto: {}
+  game_11_the_end:
+    portalgoesto: {}
+  pw_16:
+    portalgoesto:
+      NETHER: pw_16_nether
+      ENDER: pw_16_the_end
+  pw_16_nether:
+    portalgoesto:
+      NETHER: pw_16
+  pw_16_the_end:
+    portalgoesto:
+      ENDER: pw_16
+  pw_17:
+    portalgoesto: {}
+  pw_17_nether:
+    portalgoesto: {}
+  pw_17_the_end:
+    portalgoesto: {}
+  pw_18:
+    portalgoesto:
+      NETHER: pw_18_nether
+      ENDER: pw_18_the_end
+  pw_18_nether:
+    portalgoesto:
+      NETHER: pw_18
+  pw_18_the_end:
+    portalgoesto:
+      ENDER: pw_18
+  game_12:
+    portalgoesto:
+      NETHER: game_12_nether
+      ENDER: game_12_the_end
+  game_12_nether:
+    portalgoesto:
+      NETHER: game_12
+  game_12_the_end:
+    portalgoesto:
+      ENDER: game_12
+  pw_19:
+    portalgoesto:
+      NETHER: pw_19_nether
+      ENDER: pw_19_the_end
+  pw_19_nether:
+    portalgoesto:
+      NETHER: pw_19
+  pw_19_the_end:
+    portalgoesto:
+      ENDER: pw_19
+  game_13:
+    portalgoesto:
+      NETHER: game_13_nether
+      ENDER: game_13_the_end
+  game_13_nether:
+    portalgoesto:
+      NETHER: game_13
+  game_13_the_end:
+    portalgoesto:
+      ENDER: game_13

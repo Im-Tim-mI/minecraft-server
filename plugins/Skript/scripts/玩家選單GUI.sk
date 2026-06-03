@@ -16,6 +16,14 @@
 # A. 選單內容
 # ==========================================
 
+# ----- 管理員判斷（依你的伺服器調整：OP 或權限節點）-----
+function isAdmin(p: player) :: boolean:
+    if {_p} is op:
+        return true
+    if {_p} has permission "menu.admin":
+        return true
+    return false
+
 function openMainMenu(p: player):
     set {_inv} to chest inventory with 3 rows named "主選單"
     set slot 0 of {_inv} to diamond named "&b傳送主城" with lore "&7移動物品傳送到出生點"
@@ -37,12 +45,43 @@ function openMainMenu(p: player):
             set slot 5 of {_inv} to wooden axe named "&6取得小木斧" with lore "&7WorldEdit 選取工具" and "&8限此世界創造者或共同編輯者"
             set slot 6 of {_inv} to iron sword named "&e切換玩家模式" with lore "&7切換創造 / 冒險模式" and "&8限此世界創造者或共同編輯者"
             set slot 7 of {_inv} to written book named "&e小木斧使用教學" with lore "&7WorldEdit 木斧選區與常用指令" and "&8限可使用小木斧者查看"
+            set slot 8 of {_inv} to tnt named "&c刪除此世界" with lore "&7刪除你目前所在的玩家遊戲世界" and "&8/玩家遊戲世界刪除 <名稱>" and "&c此操作無法復原！"
+
+    # ===== 管理員在 game_ 遊戲世界內：顯示刪除遊戲世界（自動接在最後一個項目後一格）=====
+    delete {玩家選單GUI::遊戲世界刪除槽位::%uuid of {_p}%}
+    if {_目前世界} contains "game_":
+        if isAdmin({_p}) is true:
+            # 掃描目前已放置的項目，找出最後一格的下一格
+            set {_下一格} to 0
+            set {_掃描} to 0
+            loop 27 times:
+                if slot {_掃描} of {_inv} is not air:
+                    set {_下一格} to {_掃描} + 1
+                add 1 to {_掃描}
+            set slot {_下一格} of {_inv} to tnt named "&c刪除此遊戲世界" with lore "&7刪除你目前所在的遊戲世界" and "&8/遊戲世界刪除 <名稱>" and "&c此操作無法復原！"
+            set {玩家選單GUI::遊戲世界刪除槽位::%uuid of {_p}%} to {_下一格}
 
     open {_inv} to {_p}
 
 function openFunctionMenu(p: player):
     set {_inv} to chest inventory with 3 rows named "功能選單"
     set slot 0 of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
+    open {_inv} to {_p}
+
+# ----- 刪除玩家世界確認選單（寶箱列表）-----
+function openDeleteWorldConfirm(p: player, worldname: text):
+    set {_inv} to chest inventory with 3 rows named "確認是否刪除 &c%{_worldname}% &r世界"
+    set slot 0 of {_inv} to red wool named "&c✔ 確認刪除" with lore "&7點擊後立即刪除此世界"
+    set slot 1 of {_inv} to lime wool named "&a✘ 取消" with lore "&7返回主選單，不刪除"
+    set {玩家選單GUI::待刪除世界::%uuid of {_p}%} to {_worldname}
+    open {_inv} to {_p}
+
+# ----- 刪除遊戲世界確認選單（寶箱列表，限管理員）-----
+function openDeleteGameWorldConfirm(p: player, worldname: text):
+    set {_inv} to chest inventory with 3 rows named "確認是否刪除 &c%{_worldname}% &r遊戲世界"
+    set slot 0 of {_inv} to red wool named "&c✔ 確認刪除" with lore "&7點擊後立即刪除此遊戲世界"
+    set slot 1 of {_inv} to lime wool named "&a✘ 取消" with lore "&7返回主選單，不刪除"
+    set {玩家選單GUI::待刪除遊戲世界::%uuid of {_p}%} to {_worldname}
     open {_inv} to {_p}
 
 # ==========================================
@@ -69,6 +108,17 @@ function openWorldListMenu(p: player):
     if {_i} is 0:
         set slot 22 of {_inv} to barrier named "&c目前沒有任何遊戲世界" with lore "&7請聯絡管理員建立"
         set {_返回槽位} to 23
+
+    # ===== 新增世界（僅管理員顯示）：放清單後第一格，返回放其後一格 =====
+    if isAdmin({_p}) is true:
+        set {_新增槽位} to {_返回槽位}
+        set {_返回槽位} to {_返回槽位} + 1
+        if {_返回槽位} is greater than 53:
+            set {_返回槽位} to 53
+        set slot {_新增槽位} of {_inv} to anvil named "&a➕ 新增世界" with lore "&7建立一個新的遊戲世界" and "&8/遊戲世界建立 <名稱>"
+        set {玩家選單GUI::遊戲世界新增槽位::%uuid of {_p}%} to {_新增槽位}
+    else:
+        delete {玩家選單GUI::遊戲世界新增槽位::%uuid of {_p}%}
 
     set slot {_返回槽位} of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
     set {玩家選單GUI::世界列表返回槽位::%uuid of {_p}%} to {_返回槽位}
@@ -159,8 +209,18 @@ function openPlayerWorldListMenu(p: player):
         set slot 22 of {_inv} to barrier named "&c目前沒有任何玩家遊戲世界" with lore "&7請使用 /玩家遊戲世界建立 <名稱> 建立"
         set {_返回槽位} to 23
 
+    # ===== 新增世界（清單後第一格）與 返回（其後一格）位置已對調 =====
+    set {_新增槽位} to {_返回槽位}
+    set {_返回槽位} to {_返回槽位} + 1
+    if {_返回槽位} is greater than 53:
+        set {_返回槽位} to 53
+
+    set slot {_新增槽位} of {_inv} to anvil named "&a➕ 新增世界" with lore "&7建立一個新的玩家遊戲世界" and "&8/玩家遊戲世界建立 <名稱>"
+    set {玩家選單GUI::玩家世界新增槽位::%uuid of {_p}%} to {_新增槽位}
+
     set slot {_返回槽位} of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
     set {玩家選單GUI::玩家世界列表返回槽位::%uuid of {_p}%} to {_返回槽位}
+
     open {_inv} to {_p}
 
 # ==========================================
@@ -180,39 +240,6 @@ command /選單:
     trigger:
         openMainMenu(player)
 
-command /debugpw:
-    trigger:
-        loop {玩家世界::名稱對應::*}:
-            send "%loop-index% -> %loop-value%"
-
-command /debugpw2:
-    trigger:
-        send "debugpw2 測試版本 v2 已執行"
-
-        set {_i} to 1
-        send "迴圈前 i = %{_i}%"
-
-        loop 5 times:
-            send "正在跑第 %loop-number% 次，i 目前 = %{_i}%"
-            if {_i} is smaller than 53:
-                add 1 to {_i}
-
-        send "最終 i = %{_i}%"
-
-command /t1:
-    trigger:
-        set {_i} to 1
-        add 1 to {_i}
-        send "A 純add: i = %{_i}%   (正常應為 2)"
-
-        if 1 is smaller than 53:
-            send "B 比較: 正常 (1<53 為真)"
-        else:
-            send "B 比較: 異常 (1<53 竟為假)"
-
-        set {_x} to 1
-        set {_x} to {_x} + 1
-        send "C 用加號: x = %{_x}%   (正常應為 2)"
 # ==========================================
 # C. 點擊事件處理
 # ==========================================
@@ -245,6 +272,32 @@ on inventory click:
                 # 更多功能
                 wait 1 tick
                 openFunctionMenu(player)
+
+            else if clicked slot is {玩家選單GUI::遊戲世界刪除槽位::%uuid of player%}:
+                # 刪除此遊戲世界（限管理員，按鈕位置為動態，故用記錄的槽位判斷）
+                if isAdmin(player) is false:
+                    close player's inventory
+                    send "&c你沒有權限刪除遊戲世界！" to player
+                    stop
+
+                set {_目前世界} to "%player's world%"
+                if {_目前世界} does not contain "game_":
+                    close player's inventory
+                    send "&c此功能只能在遊戲世界中使用！" to player
+                    stop
+
+                delete {_中文名}
+                loop {遊戲世界::名稱對應::*}:
+                    if loop-value is {_目前世界}:
+                        set {_中文名} to loop-index
+                if {_中文名} is not set:
+                    close player's inventory
+                    send "&c找不到此遊戲世界的名稱資料，無法刪除。" to player
+                    stop
+
+                close player's inventory
+                wait 1 tick
+                openDeleteGameWorldConfirm(player, {_中文名})
 
             else if clicked slot is 5:
                 # 取得小木斧：再次檢查權限，避免玩家用漏洞點擊不存在的按鈕
@@ -299,6 +352,29 @@ on inventory click:
                 wait 1 tick
                 openWorldEditGuideBook(player)
 
+            else if clicked slot is 8:
+                # 刪除此玩家世界（固定 slot 8）
+                set {_目前世界} to "%player's world%"
+                if {_目前世界} contains "pw_":
+                    set {_基礎世界} to pw_base({_目前世界})
+                    if canEdit(player's name, {_基礎世界}) is false:
+                        close player's inventory
+                        send "&c你不是此世界的創造者或共同編輯者！" to player
+                        stop
+
+                    delete {_中文名}
+                    loop {玩家世界::名稱對應::*}:
+                        if loop-value is {_基礎世界}:
+                            set {_中文名} to loop-index
+                    if {_中文名} is not set:
+                        close player's inventory
+                        send "&c找不到此世界的名稱資料，無法刪除。" to player
+                        stop
+
+                    close player's inventory
+                    wait 1 tick
+                    openDeleteWorldConfirm(player, {_中文名})
+
     # ----- 功能選單 -----
     if name of event-inventory is "功能選單":
         cancel event
@@ -315,6 +391,17 @@ on inventory click:
                 # 返回主選單
                 wait 1 tick
                 openMainMenu(player)
+
+            else if clicked slot is {玩家選單GUI::遊戲世界新增槽位::%uuid of player%}:
+                # 新增遊戲世界（僅管理員）：再次驗證權限後開啟鐵砧輸入
+                if isAdmin(player) is false:
+                    close player's inventory
+                    send "&c你沒有權限建立遊戲世界！" to player
+                    stop
+                close player's inventory
+                wait 1 tick
+                openAnvilInput(player, "game_create", "", "輸入遊戲世界名稱")
+
             else:
                 # 用「點到第幾格」對回同順序的世界清單
                 set {_j} to 0
@@ -343,6 +430,12 @@ on inventory click:
                 wait 1 tick
                 openPlayerWorldGuideBook(player)
 
+            else if clicked slot is {玩家選單GUI::玩家世界新增槽位::%uuid of player%}:
+                # 新增世界：開啟鐵砧輸入框，輸入完成後由「on anvil input」執行建立指令
+                close player's inventory
+                wait 1 tick
+                openAnvilInput(player, "pw_create", "", "輸入玩家遊戲世界名稱")
+
             else:
                 # 用「點到第幾格」對回同順序的玩家世界清單
                 # slot 0 是說明書，所以玩家世界從 slot 1 開始
@@ -357,6 +450,49 @@ on inventory click:
                     close player's inventory
                     execute player command "/玩家遊戲世界列表 %{_名稱}%"
 
+    # ----- 確認刪除（玩家世界 / 遊戲世界共用，標題含世界名故用 contains 判斷）-----
+    if name of event-inventory contains "確認是否刪除":
+        cancel event
+        if clicked inventory is event-inventory:
+            if clicked slot is 0:
+                # 確認刪除：依待刪除變數判斷是遊戲世界還是玩家世界
+                if {玩家選單GUI::待刪除遊戲世界::%uuid of player%} is set:
+                    set {_中文名} to {玩家選單GUI::待刪除遊戲世界::%uuid of player%}
+                    if isAdmin(player) is false:
+                        close player's inventory
+                        send "&c你沒有權限刪除遊戲世界！" to player
+                        delete {玩家選單GUI::待刪除遊戲世界::%uuid of player%}
+                        stop
+                    delete {玩家選單GUI::待刪除遊戲世界::%uuid of player%}
+                    close player's inventory
+                    send "&e正在刪除遊戲世界：&f%{_中文名}%&e..." to player
+                    execute player command "/遊戲世界刪除 %{_中文名}%"
+
+                else if {玩家選單GUI::待刪除世界::%uuid of player%} is set:
+                    set {_中文名} to {玩家選單GUI::待刪除世界::%uuid of player%}
+                    set {_基礎世界} to {玩家世界::名稱對應::%{_中文名}%}
+                    if {_基礎世界} is not set:
+                        close player's inventory
+                        send "&c找不到此世界，已取消刪除。" to player
+                        delete {玩家選單GUI::待刪除世界::%uuid of player%}
+                        stop
+                    if canEdit(player's name, {_基礎世界}) is false:
+                        close player's inventory
+                        send "&c你沒有權限刪除此世界！" to player
+                        delete {玩家選單GUI::待刪除世界::%uuid of player%}
+                        stop
+                    delete {玩家選單GUI::待刪除世界::%uuid of player%}
+                    close player's inventory
+                    send "&e正在刪除世界：&f%{_中文名}%&e..." to player
+                    execute player command "/玩家遊戲世界刪除 %{_中文名}%"
+
+            else if clicked slot is 1:
+                # 取消 → 返回主選單
+                delete {玩家選單GUI::待刪除世界::%uuid of player%}
+                delete {玩家選單GUI::待刪除遊戲世界::%uuid of player%}
+                wait 1 tick
+                openMainMenu(player)
+
 # ==========================================
 # D. 拖曳事件處理
 # ==========================================
@@ -369,3 +505,21 @@ on inventory drag:
         cancel event
     if name of event-inventory is "玩家遊戲世界列表":
         cancel event
+    if name of event-inventory contains "確認是否刪除":
+        cancel event
+
+# ==========================================
+# E. 鐵砧輸入回呼：建立玩家世界
+#   依賴 anvil_input(_api).sk 內的：
+#     openAnvilInput()、on anvil input、anvilText()、anvilId()
+#   流程：點「➕ 新增世界」→ 鐵砧輸入名稱 → 確認後執行 /玩家遊戲世界建立 <名稱>
+# ==========================================
+on anvil input:
+    set {_id} to anvilId(player)
+    set {_名稱} to anvilText(player)
+    if {_名稱} is "":
+        stop
+    if {_id} is "pw_create":
+        execute player command "/玩家遊戲世界建立 %{_名稱}%"
+    else if {_id} is "game_create":
+        execute player command "/遊戲世界建立 %{_名稱}%"

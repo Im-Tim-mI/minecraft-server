@@ -1,0 +1,128 @@
+# ============================================================
+#  跑酷地圖產生器  (Parkour Generator)
+#  從玩家所在位置開始，往「面向方向」產生一條可破關的跑酷路線。
+#  只會放置方塊，不會更動任何遊戲機制。
+#
+#  指令：
+#    /parkour            產生預設長度 (20 跳) 的跑酷
+#    /parkour <數字>     產生指定跳數的跑酷，例如 /parkour 30
+#    /parkour clear      清除上一次自己產生的跑酷
+#
+#  需求：Spigot / Paper 1.13+ 並安裝 Skript 外掛
+# ============================================================
+
+options:
+    # 路徑方塊（跳躍踏點）
+    path-block: smooth stone
+    # 起點平台方塊（綠色 = 出發點）
+    start-block: emerald block
+    # 終點平台方塊（金色 = 終點）
+    finish-block: gold block
+
+command /parkour [<text>]:
+    description: 從你所在位置產生一張跑酷地圖
+    permission: skript.parkour
+    permission message: &c你沒有使用此指令的權限。
+    trigger:
+        # ---------- 清除模式 ----------
+        if arg-1 is "clear":
+            if {parkour::%uuid of player%::blocks::*} is not set:
+                send "&e你目前沒有已產生的跑酷地圖。"
+                stop
+            loop {parkour::%uuid of player%::blocks::*}:
+                set block at loop-value to air
+            clear {parkour::%uuid of player%::blocks::*}
+            send "&a已清除你的跑酷地圖。"
+            stop
+
+        # ---------- 決定長度 ----------
+        set {_len} to 20
+        if arg-1 is set:
+            set {_len} to arg-1 parsed as integer
+        if {_len} is not set:
+            send "&c請輸入有效的數字，例如：/parkour 25"
+            stop
+        if {_len} < 1:
+            set {_len} to 1
+        if {_len} > 300:
+            set {_len} to 300
+
+        # ---------- 先清掉自己上一次產生的 ----------
+        loop {parkour::%uuid of player%::blocks::*}:
+            set block at loop-value to air
+        clear {parkour::%uuid of player%::blocks::*}
+
+        set {_w} to world of player
+
+        # ---------- 起點座標（玩家腳下那一格方塊）----------
+        set {_x} to floor(x-coordinate of location of player)
+        set {_y} to (floor(y-coordinate of location of player)) - 1
+        set {_z} to floor(z-coordinate of location of player)
+
+        # ---------- 依玩家面向決定前進方向 (fx, fz) ----------
+        set {_yaw} to yaw of player
+        while {_yaw} < 0:
+            add 360 to {_yaw}
+        while {_yaw} >= 360:
+            subtract 360 from {_yaw}
+
+        if {_yaw} is between 45 and 134.999:
+            # 面向西 (-X)
+            set {_fx} to -1
+            set {_fz} to 0
+        else if {_yaw} is between 135 and 224.999:
+            # 面向北 (-Z)
+            set {_fx} to 0
+            set {_fz} to -1
+        else if {_yaw} is between 225 and 314.999:
+            # 面向東 (+X)
+            set {_fx} to 1
+            set {_fz} to 0
+        else:
+            # 面向南 (+Z)
+            set {_fx} to 0
+            set {_fz} to 1
+
+        # 與前進方向垂直的向量 (rx, rz)，用於左右偏移
+        set {_rx} to -1 * {_fz}
+        set {_rz} to {_fx}
+
+        # ---------- 起點平台 (3x3) ----------
+        loop blocks within location({_x}-1, {_y}, {_z}-1, {_w}) and location({_x}+1, {_y}, {_z}+1, {_w}):
+            set loop-block to {@start-block}
+            add location of loop-block to {parkour::%uuid of player%::blocks::*}
+
+        # ---------- 逐跳產生路徑 ----------
+        loop {_len} times:
+            # 高度變化：-1(下) / 0(平) / 1(上)
+            set {_dy} to a random integer between -1 and 1
+            # 左右偏移：-1 / 0 / 1
+            set {_side} to a random integer between -1 and 1
+
+            if {_dy} is 1:
+                # 往上跳：距離短、盡量直線，才跳得上去
+                set {_step} to a random integer between 2 and 3
+                if {_step} is 3:
+                    set {_side} to 0
+            else:
+                # 平跳或往下跳：可以跳遠一點
+                set {_step} to a random integer between 3 and 4
+                # 最遠的跳保持直線，避免太難
+                if {_step} is 4:
+                    set {_side} to 0
+
+            set {_x} to {_x} + ({_fx} * {_step}) + ({_rx} * {_side})
+            set {_z} to {_z} + ({_fz} * {_step}) + ({_rz} * {_side})
+            set {_y} to {_y} + {_dy}
+
+            set {_p} to location({_x}, {_y}, {_z}, {_w})
+            set block at {_p} to {@path-block}
+            add {_p} to {parkour::%uuid of player%::blocks::*}
+
+        # ---------- 終點平台 (3x3) ----------
+        loop blocks within location({_x}-1, {_y}, {_z}-1, {_w}) and location({_x}+1, {_y}, {_z}+1, {_w}):
+            set loop-block to {@finish-block}
+            add location of loop-block to {parkour::%uuid of player%::blocks::*}
+
+        send "&a已從你的位置產生跑酷地圖！共 %{_len}% 跳。"
+        send "&7綠色=起點，金色=終點。清除請輸入：&f/parkour clear"

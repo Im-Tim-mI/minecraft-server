@@ -1,0 +1,159 @@
+# ============================================================
+#  飛行棋地圖產生器 v2 (中式飛行棋 / Chinese Aeroplane Chess)
+#  ----------------------------------------------------------
+#  版面：21x21 格
+#    - 四角機場(起點)：黃/綠/藍/紅，各 2x2 格 = 4x4 方塊
+#    - 外圈跑道：2 格厚的方形迴圈，四色循環
+#    - 四個起點格：紅(上) 黃(下) 綠(左) 藍(右)
+#    - 四條回家通道集中到中央終點區
+#    - 其餘鋪白色底，整張是可走的方形地板
+#
+#  每格大小預設 2 (= 每格 2x2 方塊，機場 4x4)。
+#  只放置方塊，不更動任何遊戲機制。
+#
+#  安裝：放到 plugins/Skript/scripts/flyingchess.sk
+#        再執行  /sk reload flyingchess
+#  使用：/flyingchess        (預設每格 2x2)
+#        /flyingchess 3      (每格 3x3，更大)
+#  棋盤以你的位置為西北角，鋪在腳下那一層 (y-1)。
+# ============================================================
+
+
+# ------------------------------------------------------------
+#  依棋盤格座標 (row 0~20, col 0~20) 回傳該格的方塊
+# ------------------------------------------------------------
+function fcBlock(r: number, c: number) :: itemtype:
+    # 1) 四角機場 (各 2x2 格)
+    if {_r} is between 0 and 1:
+        if {_c} is between 0 and 1:
+            return yellow concrete
+        if {_c} is between 19 and 20:
+            return green concrete
+    if {_r} is between 19 and 20:
+        if {_c} is between 0 and 1:
+            return blue concrete
+        if {_c} is between 19 and 20:
+            return red concrete
+
+    # 2) 中央終點區 3x3 (四向入口上色)
+    if {_r} is between 9 and 11:
+        if {_c} is between 9 and 11:
+            if {_r} is 9:
+                if {_c} is 10:
+                    return red concrete
+            if {_r} is 11:
+                if {_c} is 10:
+                    return yellow concrete
+            if {_r} is 10:
+                if {_c} is 9:
+                    return green concrete
+                if {_c} is 11:
+                    return blue concrete
+            return white concrete
+
+    # 3) 直向手臂：上=紅 / 下=黃 回家通道
+    if {_c} is between 9 and 11:
+        if {_r} is between 5 and 15:
+            if {_c} is 10:
+                if {_r} is between 5 and 9:
+                    return red concrete
+                if {_r} is between 11 and 15:
+                    return yellow concrete
+            return white concrete
+
+    # 4) 橫向手臂：左=綠 / 右=藍 回家通道
+    if {_r} is between 9 and 11:
+        if {_c} is between 5 and 15:
+            if {_r} is 10:
+                if {_c} is between 5 and 9:
+                    return green concrete
+                if {_c} is between 11 and 15:
+                    return blue concrete
+            return white concrete
+
+    # 5) 外圈跑道 (2 格厚的方形迴圈)
+    set {_onRing} to false
+    if {_r} is between 3 and 4:
+        if {_c} is between 3 and 17:
+            set {_onRing} to true
+    if {_r} is between 16 and 17:
+        if {_c} is between 3 and 17:
+            set {_onRing} to true
+    if {_c} is between 3 and 4:
+        if {_r} is between 3 and 17:
+            set {_onRing} to true
+    if {_c} is between 16 and 17:
+        if {_r} is between 3 and 17:
+            set {_onRing} to true
+    if {_onRing} is true:
+        # 各色起點格
+        if {_c} is 10:
+            if {_r} is between 3 and 4:
+                return red concrete
+            if {_r} is between 16 and 17:
+                return yellow concrete
+        if {_r} is 10:
+            if {_c} is between 3 and 4:
+                return green concrete
+            if {_c} is between 16 and 17:
+                return blue concrete
+        # 其餘跑道：四色循環
+        set {_s} to {_r} + {_c}
+        set {_m} to {_s} - 4 * floor({_s} / 4)
+        if {_m} is 0:
+            return red concrete
+        if {_m} is 1:
+            return green concrete
+        if {_m} is 2:
+            return yellow concrete
+        return blue concrete
+
+    # 6) 其餘 = 白色底
+    return white concrete
+
+
+# ------------------------------------------------------------
+#  指令：/flyingchess [格子大小]
+# ------------------------------------------------------------
+command /flyingchess [<integer>]:
+    description: 從你所在位置產生一張中式飛行棋地圖
+    executable by: players
+    trigger:
+        # 每格大小（1~8），預設 2 → 每格 2x2、機場 4x4
+        set {_size} to arg-1
+        if {_size} is not set:
+            set {_size} to 2
+        if {_size} is smaller than 1:
+            set {_size} to 1
+        if {_size} is larger than 8:
+            set {_size} to 8
+
+        # 以玩家位置為西北角，鋪在腳下那一層
+        set {_base} to location of player
+        set {_world} to world of player
+        set {_bx} to floor(x-coordinate of {_base})
+        set {_by} to (floor(y-coordinate of {_base})) - 1
+        set {_bz} to floor(z-coordinate of {_base})
+
+        set {_count} to 0
+        send "&a[飛行棋] 開始產生地圖（每格 %{_size}%x%{_size}%）..." to player
+
+        loop integers from 0 to 20:
+            set {_r} to loop-value-1
+            loop integers from 0 to 20:
+                set {_c} to loop-value-2
+                set {_block} to fcBlock({_r}, {_c})
+                loop integers from 0 to ({_size} - 1):
+                    set {_i} to loop-value-3
+                    loop integers from 0 to ({_size} - 1):
+                        set {_j} to loop-value-4
+                        set {_dx} to {_c} * {_size} + {_i}
+                        set {_dz} to {_r} * {_size} + {_j}
+                        set {_loc} to location({_bx} + {_dx}, {_by}, {_bz} + {_dz}, {_world})
+                        set block at {_loc} to {_block}
+                        add 1 to {_count}
+            # 每鋪完一列等一個 tick，避免瞬間卡頓
+            wait 1 tick
+
+        set {_edge} to 21 * {_size}
+        send "&a[飛行棋] 完成！共放置 %{_count}% 個方塊，地圖約 %{_edge}%x%{_edge}% 方塊。" to player
