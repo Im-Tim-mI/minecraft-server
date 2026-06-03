@@ -24,6 +24,10 @@
 
 options:
     每人世界上限: 0
+    # 基岩玩家(Floodgate)名稱前綴; 預設 "."。若你關閉了 Floodgate 前綴, 把這裡留空 (但建議至少保留 . )
+    基岩前綴: .
+    # 是否在基岩玩家進入自己世界時自動刷新指令樹 (修正 //copy 顯示未知指令)。true / false
+    啟用基岩指令刷新: true
 
 function canEdit(p: text, w: text) :: boolean:
     if {玩家世界::創造者::%{_w}%} is {_p}:
@@ -45,6 +49,52 @@ function pw_base(w: text) :: text:
     replace "_nether" with "" in {_b}
     replace "_the_end" with "" in {_b}
     return {_b}
+
+# 名稱 → UUID 解析。基岩(Floodgate)名稱含前綴(如 .Poet_Canary), LuckPerms 不接受名稱格式,
+# 必須改用 UUID。此表由 on join 維護 (見檔案下方)。查不到就回傳原名 (Java 離線玩家用名稱也能解析)。
+function uuidOf(name: text) :: text:
+    if {玩家世界::UUID::%{_name}%} is set:
+        return {玩家世界::UUID::%{_name}%}
+    return {_name}
+
+# ===== 常駐發放編輯權 (A 方案核心) =====
+# 一次寫好 worldedit + gamemode bypass 的「永久」節點, 並用 world= context 鎖在該世界三維度。
+# 因為帶 world= context, 玩家一旦離開該世界 context 立即不匹配 → 權限自動失效,
+# 不依賴任何「離開事件」去收回; 殘留節點也不會套到別的世界。
+# 所有 lp 指令一律用 UUID, 以相容 Floodgate 基岩玩家。
+function grantEdit(p: text, base: text):
+    set {_id} to uuidOf({_p})
+    # 含 "." = 尚未上線過的基岩名, 無法解析成 UUID; 跳過, 等他上線時由 on join 補發
+    if {_id} does not contain ".":
+        set {_n} to "%{_base}%"
+        set {_nether} to "%{_base}%_nether"
+        set {_end} to "%{_base}%_the_end"
+        execute console command "lp user %{_id}% permission set worldedit.* true world=%{_n}%"
+        execute console command "lp user %{_id}% permission set multiverse.bypass.gamemode.%{_n}% true world=%{_n}%"
+        execute console command "lp user %{_id}% permission set minecraft.command.gamemode true world=%{_n}%"
+        execute console command "lp user %{_id}% permission set worldedit.* true world=%{_nether}%"
+        execute console command "lp user %{_id}% permission set multiverse.bypass.gamemode.%{_nether}% true world=%{_nether}%"
+        execute console command "lp user %{_id}% permission set minecraft.command.gamemode true world=%{_nether}%"
+        execute console command "lp user %{_id}% permission set worldedit.* true world=%{_end}%"
+        execute console command "lp user %{_id}% permission set multiverse.bypass.gamemode.%{_end}% true world=%{_end}%"
+        execute console command "lp user %{_id}% permission set minecraft.command.gamemode true world=%{_end}%"
+
+# 撤銷常駐編輯權 (刪世界 / 移除共同編輯者時呼叫; 與 grantEdit 對應, 用 unset 而非 unsettemp)
+function revokeEdit(p: text, base: text):
+    set {_id} to uuidOf({_p})
+    if {_id} does not contain ".":
+        set {_n} to "%{_base}%"
+        set {_nether} to "%{_base}%_nether"
+        set {_end} to "%{_base}%_the_end"
+        execute console command "lp user %{_id}% permission unset worldedit.* world=%{_n}%"
+        execute console command "lp user %{_id}% permission unset multiverse.bypass.gamemode.%{_n}% world=%{_n}%"
+        execute console command "lp user %{_id}% permission unset minecraft.command.gamemode world=%{_n}%"
+        execute console command "lp user %{_id}% permission unset worldedit.* world=%{_nether}%"
+        execute console command "lp user %{_id}% permission unset multiverse.bypass.gamemode.%{_nether}% world=%{_nether}%"
+        execute console command "lp user %{_id}% permission unset minecraft.command.gamemode world=%{_nether}%"
+        execute console command "lp user %{_id}% permission unset worldedit.* world=%{_end}%"
+        execute console command "lp user %{_id}% permission unset multiverse.bypass.gamemode.%{_end}% world=%{_end}%"
+        execute console command "lp user %{_id}% permission unset minecraft.command.gamemode world=%{_end}%"
 
 # 套用一個維度的標準設定 (僅同步指令; 世界須已載入)
 function pw_setup(w: text):
@@ -127,6 +177,9 @@ command /玩家遊戲世界建立 <text>:
         set {玩家世界::反向對應::%{_世界名}%} to {_中文名}
         set {玩家世界::創造者::%{_世界名}%} to player's name
 
+        # ===== 常駐發放創造者編輯權 (A: 改為永久 + world context, 不再靠 world change settemp) =====
+        grantEdit(player's name, {_世界名})
+
         # ===== 套用三維度標準設定 =====
         pw_setup({_世界名})
         pw_setup({_下界名})
@@ -175,11 +228,9 @@ command /玩家遊戲世界刪除 <text>:
         loop all players:
             set {_pw} to "%loop-player's world%"
             if {_pw} is {_世界名} or {_下界名} or {_終界名}:
-                execute console command "lp user %loop-player% permission unsettemp worldedit.* world=%{_pw}%"
-                execute console command "lp user %loop-player% permission unsettemp multiverse.bypass.gamemode.%{_pw}% world=%{_pw}%"
-                execute console command "lp user %loop-player% permission unsettemp minecraft.command.gamemode world=%{_pw}%"
-                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.timer.bypass world=%{_pw}%"
-                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_pw}%"
+                # worldedit / gamemode 改為常駐節點, 由下方 revokeEdit 統一撤銷; 此處只清 essentials 暫時節點
+                execute console command "lp user %loop-player's uuid% permission unsettemp essentials.teleport.timer.bypass world=%{_pw}%"
+                execute console command "lp user %loop-player's uuid% permission unsettemp essentials.teleport.cooldown.bypass world=%{_pw}%"
                 set loop-player's gamemode to adventure
                 execute console command "spawn %loop-player%"
                 send "&e你所在的世界 &c%{_中文名}% &e已被刪除,已將你傳送回主世界。" to loop-player
@@ -205,6 +256,10 @@ command /玩家遊戲世界刪除 <text>:
         execute console command "mv confirm"
         wait 1 second
         # ===== 步驟 5: 清除對應表 =====
+        # 先撤銷創造者與所有共同編輯者的常駐編輯權 (A: 對應 grantEdit), 必須趕在刪除變數前取得名單
+        revokeEdit({玩家世界::創造者::%{_世界名}%}, {_世界名})
+        loop {玩家世界::共同編輯者::%{_世界名}%::*}:
+            revokeEdit(loop-index, {_世界名})
         delete {玩家世界::名稱對應::%{_中文名}%}
         delete {玩家世界::反向對應::%{_世界名}%}
         delete {玩家世界::創造者::%{_世界名}%}
@@ -303,17 +358,24 @@ command /玩家遊戲世界共同編輯新增 <text> <text>:
             send "&e%{_目標}% &c已經是此世界的共同編輯者！"
             stop
         set {玩家世界::共同編輯者::%{_世界名}%::%{_目標}%} to true
+        # A: 直接常駐發放編輯權 (三維度), 不論對方在不在線; 帶 world context, 不在此世界時自動失效
+        grantEdit({_目標}, {_世界名})
         send "&a✔ 已新增 &e%{_目標}% &a為 &e%{_中文名}% &a的共同編輯者！"
-        # 若該玩家在線且正在此世界(任一維度)中,立刻發放「目前維度」的編輯權
-        # (其他維度會在他切換過去時由 on world change 自動補上)
+        # 若該玩家在線, 通知他; 若他正好在此世界(任一維度)且為基岩玩家, 順手刷新指令樹
         loop all players:
             if loop-player's name is {_目標}:
                 send "&a你已被 &b%player's name% &a加為 &e%{_中文名}% &a的共同編輯者!" to loop-player
                 set {_目標世界} to "%loop-player's world%"
                 if pw_base({_目標世界}) is {_世界名}:
-                    execute console command "lp user %{_目標}% permission settemp worldedit.* true 1d world=%{_目標世界}%"
-                    execute console command "lp user %{_目標}% permission settemp multiverse.bypass.gamemode.%{_目標世界}% true 1d world=%{_目標世界}%"
-                    execute console command "lp user %{_目標}% permission settemp minecraft.command.gamemode true 1d world=%{_目標世界}%"
+                    if {@啟用基岩指令刷新} is true:
+                        if loop-player's name starts with "{@基岩前綴}":
+                            set {_原模式} to loop-player's gamemode
+                            if loop-player's gamemode is creative:
+                                set loop-player's gamemode to adventure
+                            else:
+                                set loop-player's gamemode to creative
+                            wait 2 ticks
+                            set loop-player's gamemode to {_原模式}
 
 # ===== 移除共同編輯者 =====
 command /玩家遊戲世界共同編輯移除 <text> <text>:
@@ -336,19 +398,11 @@ command /玩家遊戲世界共同編輯移除 <text> <text>:
         set {_下界名} to "%{_世界名}%_nether"
         set {_終界名} to "%{_世界名}%_the_end"
         delete {玩家世界::共同編輯者::%{_世界名}%::%{_目標}%}
+        # A: 無條件撤銷常駐編輯權 (三維度), 離線玩家也照樣撤銷
+        revokeEdit({_目標}, {_世界名})
         send "&a✔ 已將 &e%{_目標}% &a從 &e%{_中文名}% &a的共同編輯者中移除！"
         loop all players:
             if loop-player's name is {_目標}:
-                # 三個維度的編輯權全部撤銷
-                execute console command "lp user %{_目標}% permission unsettemp worldedit.* world=%{_世界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp multiverse.bypass.gamemode.%{_世界名}% world=%{_世界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp minecraft.command.gamemode world=%{_世界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp worldedit.* world=%{_下界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp multiverse.bypass.gamemode.%{_下界名}% world=%{_下界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp minecraft.command.gamemode world=%{_下界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp worldedit.* world=%{_終界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp multiverse.bypass.gamemode.%{_終界名}% world=%{_終界名}%"
-                execute console command "lp user %{_目標}% permission unsettemp minecraft.command.gamemode world=%{_終界名}%"
                 set {_目標世界} to "%loop-player's world%"
                 if pw_base({_目標世界}) is {_世界名}:
                     set loop-player's gamemode to adventure
@@ -380,13 +434,11 @@ on world change:
     set {_舊世界} to "%event-world%"
     # 離開玩家世界(任一維度) - 撤銷該維度權限
     if {_舊世界} contains "pw_":
-        execute console command "lp user %player's name% permission unsettemp worldedit.* world=%{_舊世界}%"
-        execute console command "lp user %player's name% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
-        execute console command "lp user %player's name% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+        # worldedit / gamemode 為常駐 + world context, 離開後 context 不匹配即自動失效, 無需在此撤銷
         #清除去除等待時間的代碼
-        execute console command "lp user %player's name% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
-        execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-        execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's uuid% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
         # 只有「真正離開」玩家世界(去到非 pw_ 世界)才強制回冒險; 維度間移動保留模式
         if {_新世界} does not contain "pw_":
             if player's gamemode is creative:
@@ -397,10 +449,10 @@ on world change:
         set {_基礎} to pw_base({_新世界})
         set {_中文名} to {玩家世界::反向對應::%{_基礎}%}
         #繞過/home等待
-        execute console command "lp user %player's name% permission settemp essentials.commandcooldowns.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's uuid% permission settemp essentials.commandcooldowns.bypass true 1d world=%{_新世界}%"
         # 所有人(含訪客)都可繞過 /spawn 等待 (目前維度)
-        execute console command "lp user %player's name% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
-        execute console command "lp user %player's name% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's uuid% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's uuid% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
         # 訪問統計: 只在進入「主世界維度」時計算,避免跨維度重複 (排除創造者與共同編輯者)
         if {_新世界} is {_基礎}:
             if {玩家世界::創造者::%{_基礎}%} is not player's name:
@@ -413,20 +465,18 @@ on world change:
                         if {玩家世界::訪問玩家數::%{_基礎}%} is not set:
                             set {玩家世界::訪問玩家數::%{_基礎}%} to 0
                         add 1 to {玩家世界::訪問玩家數::%{_基礎}%}
-        # 創造者 - 授予「目前維度」編輯權
+        # 身份判斷 (編輯權已是常駐節點, 這裡不再 settemp; 只負責歡迎訊息與訪客模式)
+        set {_可編輯} to false
+        # 創造者
         if {玩家世界::創造者::%{_基礎}%} is player's name:
-            execute console command "lp user %player's name% permission settemp worldedit.* true 1d world=%{_新世界}%"
-            execute console command "lp user %player's name% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 1d world=%{_新世界}%"
-            execute console command "lp user %player's name% permission settemp minecraft.command.gamemode true 1d world=%{_新世界}%"
+            set {_可編輯} to true
             if {_新世界} is {_基礎}:
                 send "&a✔ 歡迎回來,這裡是你建立的 &e%{_中文名}%"
                 send "&7  ▸ &f/玩家遊戲世界個人模式 &7- 切換創造/冒險"
                 send "&7  ▸ &f小木斧 &7- WorldEdit 區域選擇 (僅限此世界)"
-        # 共同編輯者 - 授予「目前維度」編輯權
+        # 共同編輯者
         else if {玩家世界::共同編輯者::%{_基礎}%::%player's name%} is true:
-            execute console command "lp user %player's name% permission settemp worldedit.* true 1d world=%{_新世界}%"
-            execute console command "lp user %player's name% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 1d world=%{_新世界}%"
-            execute console command "lp user %player's name% permission settemp minecraft.command.gamemode true 1d world=%{_新世界}%"
+            set {_可編輯} to true
             if {_新世界} is {_基礎}:
                 send "&a✔ 你是 &e%{_中文名}% &a的共同編輯者"
                 send "&7  ▸ &f/玩家遊戲世界個人模式 &7- 切換創造/冒險"
@@ -436,6 +486,29 @@ on world change:
             set player's gamemode to adventure
             if {_新世界} is {_基礎}:
                 send "&7你正在參觀 &e%{_中文名}%&7,由 &b%{玩家世界::創造者::%{_基礎}%}% &7建立"
+        # ===== 進入自己/共編世界 → 直接用 UUID 發編輯權 (本維度, settemp) =====
+        # 用 %player's uuid% 直發 (與已驗證可用的 essentials bypass 同一條路徑), 不經過名稱→UUID 對照表,
+        # 因此對基岩玩家一定生效。常駐 grantEdit 仍在(建立/共編/登入時預設), 此處為每次進入的可靠保險。
+        # 排在 B 刷新之前: 先發權限, 再刷新指令樹, 這樣基岩重送的指令樹才會包含 //copy 等。
+        if {_可編輯} is true:
+            execute console command "lp user %player's uuid% permission settemp worldedit.* true 1d world=%{_新世界}%"
+            execute console command "lp user %player's uuid% permission settemp multiverse.bypass.gamemode.%{_新世界}% true 1d world=%{_新世界}%"
+            execute console command "lp user %player's uuid% permission settemp minecraft.command.gamemode true 1d world=%{_新世界}%"
+        # ===== B: 基岩玩家(Floodgate)強制刷新指令樹 =====
+        # 權限發完後, 短暫切換遊戲模式逼 Geyser 重送指令樹, 讓 //copy 等出現在基岩指令列表。
+        # 只對「有編輯權的基岩玩家」做, 訪客不受影響。
+        if {@啟用基岩指令刷新} is true:
+            if {_可編輯} is true:
+                if player's name starts with "{@基岩前綴}":
+                    set {_原模式} to player's gamemode
+                    wait 12 ticks
+                    if "%player's world%" contains "pw_":
+                        if player's gamemode is creative:
+                            set player's gamemode to adventure
+                        else:
+                            set player's gamemode to creative
+                        wait 2 ticks
+                        set player's gamemode to {_原模式}
 
 on teleport:
     set {_舊世界} to "%event-world%"
@@ -443,12 +516,137 @@ on teleport:
         # 延遲 5 ticks 讓傳送完成後再檢查
         wait 5 ticks
         if "%player's world%" does not contain "pw_":
-            execute console command "lp user %player's name% permission unsettemp worldedit.* world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            # worldedit / gamemode 為常駐 + world context, 離開後自動失效, 無需撤銷
             #清除去除等待時間的代碼
-            execute console command "lp user %player's name% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
             if player's gamemode is creative:
                 set player's gamemode to adventure
+
+# ===== 登入: 維護 UUID 對照表 + 補發常駐編輯權 =====
+# 1) 記錄玩家名稱→UUID (Floodgate 基岩名含 ".", lp 只認 UUID, 全靠這張表)
+# 2) 掃過所有世界, 確保本玩家對其「創造 / 共同編輯」的世界都有常駐編輯權
+#    這同時涵蓋了: 升級遷移、離線時被加為共編者、Floodgate UUID 對照建立
+on join:
+    set {玩家世界::UUID::%player's name%} to "%player's uuid%"
+    loop {玩家世界::創造者::*}:
+        set {_w} to loop-index
+        if loop-value is player's name:
+            grantEdit(player's name, {_w})
+        else if {玩家世界::共同編輯者::%{_w}%::%player's name%} is true:
+            grantEdit(player's name, {_w})
+
+# ===== 手動刷新指令樹 (B 的後備手段) =====
+# 若基岩玩家進世界後 //copy 仍顯示未知指令, 自己跑這個指令逼客戶端重新整理。
+command /玩家遊戲世界刷新指令:
+    description: 若小木斧指令在基岩版顯示未知,用此重新整理指令列表
+    executable by: players
+    trigger:
+        if "%player's world%" does not contain "pw_":
+            send "&c此指令只能在玩家遊戲世界中使用！"
+            stop
+        set {_原模式} to player's gamemode
+        if player's gamemode is creative:
+            set player's gamemode to adventure
+        else:
+            set player's gamemode to creative
+        wait 2 ticks
+        set player's gamemode to {_原模式}
+        send "&a✔ 已重新整理指令列表,請再試一次小木斧指令 (例如 &f//copy&a)"
+        send "&7若仍顯示未知, 請退出重新連線一次。"
+
+# ===== 一次性遷移指令 (僅管理員) =====
+# 從舊版(靠 world change 臨時發權)升級到本版(常駐發權)後, 跑一次這個指令,
+# 替「所有已存在世界」的創造者與共同編輯者補發常駐編輯權。跑完即可。
+command /玩家遊戲世界重建權限:
+    description: 升級後一次性: 替所有現存世界的創造者/共同編輯者補發常駐編輯權
+    permission: gameworld.admin
+    executable by: players
+    trigger:
+        # 先記錄所有「目前在線」玩家的 UUID, 讓在線者不必重連即可被補發 (離線者於下次登入自動補)
+        loop all players:
+            set {玩家世界::UUID::%loop-player's name%} to "%loop-player's uuid%"
+        set {_數量} to 0
+        loop {玩家世界::創造者::*}:
+            set {_世界名} to loop-index
+            set {_創造者} to loop-value
+            grantEdit({_創造者}, {_世界名})
+            add 1 to {_數量}
+            loop {玩家世界::共同編輯者::%{_世界名}%::*}:
+                grantEdit(loop-index-2, {_世界名})
+        send "&a✔ 已替 &e%{_數量}% &a個世界重建創造者與共同編輯者的常駐編輯權。"
+        send "&7尚未登入過的玩家會在下次上線時自動補發。"
+        send "&7基岩玩家如仍顯示未知指令, 進世界後用 &f/玩家遊戲世界刷新指令&7。"
+
+# ===== 基岩版 WorldEdit 指令橋接 (/wd) =====
+# 基岩(Geyser)無法表示以 "//" 開頭的 WorldEdit 指令(指令名實際含 "/"),
+# 所以 //wand //copy 等在基岩端一定顯示「未知或不完整的指令」——這是 Geyser 協定限制,
+# 非權限問題(權限已用 UUID + world context 正確發放)。重連 / 刷新指令樹都救不了。
+# 解法: 用一個普通名稱的指令, 由伺服器在後端代玩家執行 "//xxx", 完全繞過基岩指令樹。
+#   /wd wand        → //wand
+#   /wd copy        → //copy
+#   /wd paste       → //paste
+#   /wd set stone   → //set stone
+#   /wd pos1        → //pos1
+# Java 與基岩都可用。若 /wd 與其他插件衝突, 改下方指令名即可。
+command /wd [<text>]:
+    description: 代打 WorldEdit (//) 指令; 基岩版專用, 例如 /wd copy
+    usage: &e用法: &f/wd <WorldEdit指令>  &7例如 /wd wand、/wd copy
+    executable by: players
+    trigger:
+        if arg-1 is not set:
+            send "&e用法: &f/wd <WorldEdit 指令>"
+            send "&7例如  &f/wd wand  &7、&f/wd copy  &7、&f/wd paste  &7、&f/wd set stone"
+            send "&7(等同於在 Java 版輸入 &f//wand&7、&f//copy&7 ...)"
+            stop
+        # 由伺服器代玩家在後端執行, 不經過基岩指令樹; 權限與選區照玩家本人計算
+        make player execute command "//%arg-1%"
+
+# ===== 診斷指令: 檢查目前世界的編輯權狀態 =====
+# 玩家站在自己世界裡跑這個, 會直接顯示「實際生效」的 worldedit 權限 (已含 world context)。
+# 這能一刀切開兩種可能: 權限沒生效 (要修發放/wildcard) vs 權限有了但 Geyser 沒吃到指令樹。
+command /玩家遊戲世界檢查:
+    description: 診斷你在目前世界的 WorldEdit 編輯權狀態 (同時印到伺服器終端)
+    executable by: players
+    trigger:
+        delete {_報告::*}
+        set {_w} to "%player's world%"
+        set {_base} to pw_base({_w})
+        add "===== 編輯權診斷 =====" to {_報告::*}
+        add "名稱: %player's name%" to {_報告::*}
+        add "UUID: %player's uuid%" to {_報告::*}
+        add "目前世界: %{_w}% (主世界名 %{_base}%)" to {_報告::*}
+        if {_w} contains "pw_":
+            add "世界中文名: %{玩家世界::反向對應::%{_base}%}%" to {_報告::*}
+            add "創造者: %{玩家世界::創造者::%{_base}%}%" to {_報告::*}
+            if {玩家世界::創造者::%{_base}%} is player's name:
+                add "身分: 創造者 (應有編輯權)" to {_報告::*}
+            else if {玩家世界::共同編輯者::%{_base}%::%player's name%} is true:
+                add "身分: 共同編輯者 (應有編輯權)" to {_報告::*}
+            else:
+                add "身分: 訪客 (本來就沒有編輯權, 屬正常)" to {_報告::*}
+            add "----- 實際生效的 WorldEdit 權限 -----" to {_報告::*}
+            if player has permission "worldedit.wand":
+                add "worldedit.wand           = 有 (true)" to {_報告::*}
+            else:
+                add "worldedit.wand           = 沒有 (false)" to {_報告::*}
+            if player has permission "worldedit.clipboard.copy":
+                add "worldedit.clipboard.copy = 有 (true)" to {_報告::*}
+            else:
+                add "worldedit.clipboard.copy = 沒有 (false)" to {_報告::*}
+            if player has permission "worldedit.region.set":
+                add "worldedit.region.set     = 有 (true)" to {_報告::*}
+            else:
+                add "worldedit.region.set     = 沒有 (false)" to {_報告::*}
+            if player has permission "worldedit.*":
+                add "worldedit.* (萬用)        = 有 (true)" to {_報告::*}
+            else:
+                add "worldedit.* (萬用)        = 沒有 (false)" to {_報告::*}
+        else:
+            add "你不在玩家遊戲世界中, 無法判斷編輯權。" to {_報告::*}
+        add "===== 診斷結束 =====" to {_報告::*}
+        # 同時輸出到玩家畫面與伺服器終端 (終端方便複製)
+        loop {_報告::*}:
+            send "&7%loop-value%" to player
+            send "[編輯權診斷] %loop-value%" to console

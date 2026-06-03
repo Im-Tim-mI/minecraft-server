@@ -153,3 +153,13 @@ worlds:
   game_13_the_end:
     portalgoesto:
       ENDER: game_13
+  pw_20:
+    portalgoesto:
+      NETHER: pw_20_nether
+      ENDER: pw_20_the_end
+  pw_20_nether:
+    portalgoesto:
+      NETHER: pw_20
+  pw_20_the_end:
+    portalgoesto:
+      ENDER: pw_20

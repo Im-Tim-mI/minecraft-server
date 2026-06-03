@@ -162,8 +162,8 @@ command /遊戲世界刪除 <text>:
         loop all players:
             set {_pw} to "%loop-player's world%"
             if {_pw} is {_世界名} or {_下界名} or {_終界名}:
-                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.timer.bypass world=%{_pw}%"
-                execute console command "lp user %loop-player% permission unsettemp essentials.teleport.cooldown.bypass world=%{_pw}%"
+                execute console command "lp user %loop-player's uuid% permission unsettemp essentials.teleport.timer.bypass world=%{_pw}%"
+                execute console command "lp user %loop-player's uuid% permission unsettemp essentials.teleport.cooldown.bypass world=%{_pw}%"
                 set loop-player's gamemode to adventure
                 execute console command "spawn %loop-player%"
                 send "&e你所在的世界 &c%{_中文名}% &e已被刪除,已將你傳送回主世界。" to loop-player
@@ -239,16 +239,16 @@ on world change:
     # 離開遊戲世界(任一維度) - 撤銷該世界的繞過權限
     if {_舊世界} contains "game_":
         #清除去除等待時間的代碼
-        execute console command "lp user %player's name% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
-        execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-        execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's uuid% permission unsettemp essentials.commandcooldowns.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+        execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
     # 進入遊戲世界(任一維度) - 給予繞過 /spawn 等待的權限
     if {_新世界} contains "game_":
         #繞過/home等待
-        execute console command "lp user %player's name% permission settemp essentials.commandcooldowns.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's uuid% permission settemp essentials.commandcooldowns.bypass true 1d world=%{_新世界}%"
         # 所有人(含訪客)都可繞過 /spawn 等待 (目前維度)
-        execute console command "lp user %player's name% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
-        execute console command "lp user %player's name% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's uuid% permission settemp essentials.teleport.timer.bypass true 1d world=%{_新世界}%"
+        execute console command "lp user %player's uuid% permission settemp essentials.teleport.cooldown.bypass true 1d world=%{_新世界}%"
         # 取得基礎世界名 (去掉維度後綴) 以查回中文名
         set {_基礎} to {_新世界}
         replace "_nether" with "" in {_基礎}
@@ -266,14 +266,14 @@ on world change:
 
 on teleport:
     set {_舊世界} to "%event-world%"
-    if {_舊世界} contains "pw_":
+    if {_舊世界} contains "game_":
         # 延遲 5 ticks 讓傳送完成後再檢查
         wait 5 ticks
-        if "%player's world%" does not contain "pw_":
-            execute console command "lp user %player's name% permission unsettemp worldedit.* world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
-            execute console command "lp user %player's name% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
+        if "%player's world%" does not contain "game_":
+            execute console command "lp user %player's uuid% permission unsettemp worldedit.* world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp multiverse.bypass.gamemode.%{_舊世界}% world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp minecraft.command.gamemode world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.timer.bypass world=%{_舊世界}%"
+            execute console command "lp user %player's uuid% permission unsettemp essentials.teleport.cooldown.bypass world=%{_舊世界}%"
             if player's gamemode is creative:
                 set player's gamemode to adventure
