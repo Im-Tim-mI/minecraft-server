@@ -61,11 +61,21 @@ function openMainMenu(p: player):
             set slot {_下一格} of {_inv} to tnt named "&c刪除此遊戲世界" with lore "&7刪除你目前所在的遊戲世界" and "&8/遊戲世界刪除 <名稱>" and "&c此操作無法復原！"
             set {玩家選單GUI::遊戲世界刪除槽位::%uuid of {_p}%} to {_下一格}
 
+    # ===== 大富翁選單入口：只要在 game_12 世界，所有玩家都看得到 =====
+    delete {玩家選單GUI::大富翁選單槽位::%uuid of {_p}%}
+    if {_目前世界} is "game_12":
+        set slot 22 of {_inv} to gold block named "&6&l🎲 大富翁選單" with lore "&7擲骰、現金、繳稅、機會、命運..." and "&8僅限大富翁地圖 game_12"
+        set {玩家選單GUI::大富翁選單槽位::%uuid of {_p}%} to 22
+
     open {_inv} to {_p}
 
 function openFunctionMenu(p: player):
     set {_inv} to chest inventory with 3 rows named "功能選單"
-    set slot 0 of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
+    set slot 0 of {_inv} to paper named "&e一顆骰字" with lore "&7點擊執行 /一顆骰字"
+    set slot 1 of {_inv} to paper named "&e二顆骰字" with lore "&7點擊執行 /二顆骰字"
+    set slot 2 of {_inv} to paper named "&e三顆骰字" with lore "&7點擊執行 /三顆骰字"
+    set slot 3 of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
+
     open {_inv} to {_p}
 
 # ----- 刪除玩家世界確認選單（寶箱列表）-----
@@ -299,6 +309,11 @@ on inventory click:
                 wait 1 tick
                 openDeleteGameWorldConfirm(player, {_中文名})
 
+            else if clicked slot is {玩家選單GUI::大富翁選單槽位::%uuid of player%}:
+                # 開啟大富翁選單(僅 game_12，所有玩家可用)
+                wait 1 tick
+                openMonopolyMenu(player)
+
             else if clicked slot is 5:
                 # 取得小木斧：再次檢查權限，避免玩家用漏洞點擊不存在的按鈕
                 set {_目前世界} to "%player's world%"
@@ -380,6 +395,18 @@ on inventory click:
         cancel event
         if clicked inventory is event-inventory:
             if clicked slot is 0:
+                close player's inventory
+                execute player command "/一顆骰字"
+
+            else if clicked slot is 1:
+                close player's inventory
+                execute player command "/二顆骰字"
+
+            else if clicked slot is 2:
+                close player's inventory
+                execute player command "/三顆骰字"
+
+            else if clicked slot is 3:
                 wait 1 tick
                 openMainMenu(player)
 
@@ -523,3 +550,212 @@ on anvil input:
         execute player command "/玩家遊戲世界建立 %{_名稱}%"
     else if {_id} is "game_create":
         execute player command "/遊戲世界建立 %{_名稱}%"
+
+# ==========================================
+# F. 大富翁選單（搭配 大富翁小幫手.sk，僅 game_12）
+#    所有玩家皆可使用；開始遊戲 / 銀行 僅管理員顯示與可用
+#    按鈕實際執行對應指令(使用英文別名，避免中文指令相容性問題)
+# ==========================================
+
+function openMonopolyMenu(p: player):
+    set {_inv} to chest inventory with 3 rows named "大富翁選單"
+    # 第一排：基本動作
+    set slot 0 of {_inv} to snowball named "&b🎲 擲骰子" with lore "&7擲兩顆骰子"
+    set slot 1 of {_inv} to gold ingot named "&e💰 查看現金" with lore "&7查看自己目前的現金"
+    set slot 2 of {_inv} to paper named "&a🏆 現金排行榜" with lore "&7查看在場玩家現金排行"
+    set slot 3 of {_inv} to lime concrete named "&a🏁 通過起點" with lore "&7領取過路費"
+    set slot 4 of {_inv} to gold nugget named "&e💸 付錢給玩家" with lore "&7付租金/過路費給其他玩家"
+    # 第二排：稅 / 機會 / 命運 / 說明
+    set slot 9 of {_inv} to iron ingot named "&c🧾 繳所得稅" with lore "&7繳交所得稅"
+    set slot 10 of {_inv} to diamond named "&b💎 繳奢侈稅" with lore "&7繳交奢侈稅"
+    set slot 11 of {_inv} to chest named "&6❓ 抽機會" with lore "&7抽一張機會卡"
+    set slot 12 of {_inv} to ender chest named "&5❗ 抽命運" with lore "&7抽一張命運卡"
+    set slot 13 of {_inv} to book named "&f📖 指令說明" with lore "&7顯示所有大富翁指令"
+    # 第三排：管理員功能
+    if isAdmin({_p}) is true:
+        set slot 18 of {_inv} to emerald block named "&a🎮 開始遊戲" with lore "&7發放起始資金給全場玩家" and "&8限管理員"
+        set slot 19 of {_inv} to gold block named "&6🏦 銀行操作" with lore "&7給/收/設定玩家現金" and "&8限管理員"
+    # 返回
+    set slot 26 of {_inv} to red stained glass pane named "&c返回" with lore "&7回到主選單"
+    open {_inv} to {_p}
+
+# ----- 銀行子選單（限管理員）-----
+function openDfwBankMenu(p: player):
+    set {_inv} to chest inventory with 3 rows named "大富翁銀行"
+    set slot 0 of {_inv} to lime concrete named "&a給玩家錢" with lore "&7銀行發錢給某玩家"
+    set slot 1 of {_inv} to red concrete named "&c向玩家收錢" with lore "&7銀行向某玩家收錢"
+    set slot 2 of {_inv} to yellow concrete named "&e設定玩家金額" with lore "&7直接設定某玩家現金"
+    set slot 8 of {_inv} to red stained glass pane named "&c返回" with lore "&7回到大富翁選單"
+    open {_inv} to {_p}
+
+# ----- 選擇玩家子選單（付錢 / 銀行 共用）-----
+#   purpose: "pay" / "bank_give" / "bank_take" / "bank_set"
+function openDfwPlayerPick(p: player, purpose: text):
+    set {_inv} to chest inventory with 6 rows named "大富翁選擇玩家"
+    set {dfw::gui::purpose::%uuid of {_p}%} to {_purpose}
+    delete {dfw::gui::picklist::%uuid of {_p}%::*}
+    set {_i} to 0
+    loop all players:
+        if "%world of loop-player%" is "game_12":
+            set {_skip} to false
+            if {_purpose} is "pay":
+                if loop-player is {_p}:
+                    set {_skip} to true
+            if {_skip} is false:
+                if {_i} is smaller than 53:
+                    set slot {_i} of {_inv} to name tag named "&a%loop-player%" with lore "&7點擊選擇此玩家"
+                    set {dfw::gui::picklist::%uuid of {_p}%::%{_i}%} to "%loop-player%"
+                    add 1 to {_i}
+    set {_ret} to {_i}
+    if {_ret} is 0:
+        set slot 22 of {_inv} to barrier named "&c目前沒有其他在場玩家"
+        set {_ret} to 23
+    if {_ret} is greater than 53:
+        set {_ret} to 53
+    set slot {_ret} of {_inv} to red stained glass pane named "&c返回" with lore "&7回到大富翁選單"
+    set {dfw::gui::pickreturn::%uuid of {_p}%} to {_ret}
+    open {_inv} to {_p}
+
+# ==========================================
+# F-2. 大富翁選單點擊事件
+# ==========================================
+on inventory click:
+    # ----- 大富翁選單 -----
+    if name of event-inventory is "大富翁選單":
+        cancel event
+        if clicked inventory is event-inventory:
+            if "%player's world%" is not "game_12":
+                close player's inventory
+                send "&c此選單僅能在大富翁地圖(game_12)使用！" to player
+                stop
+            if clicked slot is 0:
+                close player's inventory
+                execute player command "/roll"
+            else if clicked slot is 1:
+                close player's inventory
+                execute player command "/money"
+            else if clicked slot is 2:
+                close player's inventory
+                execute player command "/moneytop"
+            else if clicked slot is 3:
+                close player's inventory
+                execute player command "/passgo"
+            else if clicked slot is 4:
+                wait 1 tick
+                openDfwPlayerPick(player, "pay")
+            else if clicked slot is 9:
+                close player's inventory
+                execute player command "/tax income"
+            else if clicked slot is 10:
+                close player's inventory
+                execute player command "/tax luxury"
+            else if clicked slot is 11:
+                close player's inventory
+                execute player command "/chance"
+            else if clicked slot is 12:
+                close player's inventory
+                execute player command "/fate"
+            else if clicked slot is 13:
+                close player's inventory
+                execute player command "/dfwhelp"
+            else if clicked slot is 18:
+                if isAdmin(player) is false:
+                    close player's inventory
+                    send "&c只有管理員可以使用此功能！" to player
+                    stop
+                close player's inventory
+                execute player command "/dfwstart"
+            else if clicked slot is 19:
+                if isAdmin(player) is false:
+                    close player's inventory
+                    send "&c只有管理員可以使用此功能！" to player
+                    stop
+                wait 1 tick
+                openDfwBankMenu(player)
+            else if clicked slot is 26:
+                wait 1 tick
+                openMainMenu(player)
+
+    # ----- 大富翁銀行 -----
+    if name of event-inventory is "大富翁銀行":
+        cancel event
+        if clicked inventory is event-inventory:
+            if isAdmin(player) is false:
+                close player's inventory
+                send "&c只有管理員可以使用銀行功能！" to player
+                stop
+            if clicked slot is 0:
+                wait 1 tick
+                openDfwPlayerPick(player, "bank_give")
+            else if clicked slot is 1:
+                wait 1 tick
+                openDfwPlayerPick(player, "bank_take")
+            else if clicked slot is 2:
+                wait 1 tick
+                openDfwPlayerPick(player, "bank_set")
+            else if clicked slot is 8:
+                wait 1 tick
+                openMonopolyMenu(player)
+
+    # ----- 大富翁選擇玩家 -----
+    if name of event-inventory is "大富翁選擇玩家":
+        cancel event
+        if clicked inventory is event-inventory:
+            if clicked slot is {dfw::gui::pickreturn::%uuid of player%}:
+                wait 1 tick
+                openMonopolyMenu(player)
+            else:
+                set {_target} to {dfw::gui::picklist::%uuid of player%::%clicked slot%}
+                if {_target} is set:
+                    set {_purpose} to {dfw::gui::purpose::%uuid of player%}
+                    close player's inventory
+                    wait 1 tick
+                    if {_purpose} is "pay":
+                        openAnvilInput(player, "dfw_pay:%{_target}%", "", "輸入要付給 %{_target}% 的金額")
+                    else if {_purpose} is "bank_give":
+                        openAnvilInput(player, "dfw_bank:give:%{_target}%", "", "給 %{_target}% 多少錢")
+                    else if {_purpose} is "bank_take":
+                        openAnvilInput(player, "dfw_bank:take:%{_target}%", "", "向 %{_target}% 收多少錢")
+                    else if {_purpose} is "bank_set":
+                        openAnvilInput(player, "dfw_bank:set:%{_target}%", "", "把 %{_target}% 的現金設定為")
+
+# ==========================================
+# F-3. 大富翁選單拖曳事件（一律取消）
+# ==========================================
+on inventory drag:
+    if name of event-inventory is "大富翁選單":
+        cancel event
+    if name of event-inventory is "大富翁銀行":
+        cancel event
+    if name of event-inventory is "大富翁選擇玩家":
+        cancel event
+
+# ==========================================
+# F-4. 大富翁鐵砧輸入回呼（付錢 / 銀行金額）
+#   依賴 anvil_input(_api).sk 的 openAnvilInput / on anvil input / anvilId / anvilText
+# ==========================================
+on anvil input:
+    set {_id} to anvilId(player)
+    set {_text} to anvilText(player)
+    if {_id} contains "dfw_pay:":
+        set {_parts::*} to {_id} split at ":"
+        set {_target} to {_parts::2}
+        set {_n} to {_text} parsed as integer
+        if {_n} is not set:
+            send "&c金額必須是數字！" to player
+            stop
+        execute player command "/pay %{_target}% %{_n}%"
+    else if {_id} contains "dfw_bank:":
+        set {_parts::*} to {_id} split at ":"
+        set {_action} to {_parts::2}
+        set {_target} to {_parts::3}
+        set {_n} to {_text} parsed as integer
+        if {_n} is not set:
+            send "&c金額必須是數字！" to player
+            stop
+        if {_action} is "give":
+            execute player command "/bank give %{_target}% %{_n}%"
+        else if {_action} is "take":
+            execute player command "/bank take %{_target}% %{_n}%"
+        else if {_action} is "set":
+            execute player command "/bank set %{_target}% %{_n}%"

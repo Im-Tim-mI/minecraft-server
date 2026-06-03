@@ -1,0 +1,24 @@
+# ========================================
+#  擲骰系統 (1~6) - 全域聊天室廣播
+#  所有玩家皆可使用
+# ========================================
+
+command /一顆骰字:
+    trigger:
+        set {_d1} to a random integer between 1 and 6
+        broadcast "&e%player's name% &f第一顆:&a%{_d1}%"
+
+command /二顆骰字:
+    trigger:
+        set {_d1} to a random integer between 1 and 6
+        set {_d2} to a random integer between 1 and 6
+        set {_sum} to {_d1} + {_d2}
+        broadcast "&e%player's name% &f第一顆:&a%{_d1}% &f第二顆:&a%{_d2}% &f共骰到:&6%{_sum}%"
+
+command /三顆骰字:
+    trigger:
+        set {_d1} to a random integer between 1 and 6
+        set {_d2} to a random integer between 1 and 6
+        set {_d3} to a random integer between 1 and 6
+        set {_sum} to {_d1} + {_d2} + {_d3}
+        broadcast "&e%player's name% &f第一顆:&a%{_d1}% &f第二顆:&a%{_d2}% &f第三顆:&a%{_d3}% &f共骰到:&6%{_sum}%"

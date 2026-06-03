@@ -139,8 +139,8 @@ command /大富翁_現金 [<player>]:
         if inGame(player) is false:
             send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
             stop
-        if arg-1 is set:
-            send "&e💰 %arg-1% 的現金：&a$%bal(arg-1)%" to player
+        if argument 1 is set:
+            send "&e💰 %argument 1% 的現金：&a$%bal(argument 1)%" to player
         else:
             send "&e💰 你的現金：&a$%bal(player)%" to player
 
@@ -192,20 +192,20 @@ command /大富翁_付錢 <player> <integer>:
         if inGame(player) is false:
             send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
             stop
-        if arg-2 <= 0:
+        if argument 2 <= 0:
             send "&c金額必須大於 0！" to player
             stop
-        if arg-1 is player:
+        if argument 1 is player:
             send "&c不能付錢給自己！" to player
             stop
-        if bal(player) < arg-2:
+        if bal(player) < argument 2:
             send "&c餘額不足！你只有 $%bal(player)%。" to player
             stop
-        removeMoney(player, arg-2)
-        addMoney(arg-1, arg-2)
-        announce("&e💸 %player% &7付給 &e%arg-1% &a$%arg-2%")
+        removeMoney(player, argument 2)
+        addMoney(argument 1, argument 2)
+        announce("&e💸 %player% &7付給 &e%argument 1% &a$%argument 2%")
         send "&7你的餘額：&a$%bal(player)%" to player
-        send "&7你的餘額：&a$%bal(arg-1)%" to arg-1
+        send "&7你的餘額：&a$%bal(argument 1)%" to argument 1
 
 
 # ---------------- 通過起點 ----------------
@@ -229,10 +229,16 @@ command /大富翁_繳稅 <text>:
         if inGame(player) is false:
             send "&c此指令僅能在大富翁地圖(game_12)使用！" to player
             stop
-        if arg-1 is "所得稅" or arg-1 is "income":
+        if argument 1 is "所得稅":
             set {_amt} to {dfw::config::tax-income}
             set {_name} to "所得稅"
-        else if arg-1 is "奢侈稅" or arg-1 is "luxury":
+        else if argument 1 is "income":
+            set {_amt} to {dfw::config::tax-income}
+            set {_name} to "所得稅"
+        else if argument 1 is "奢侈稅":
+            set {_amt} to {dfw::config::tax-luxury}
+            set {_name} to "奢侈稅"
+        else if argument 1 is "luxury":
             set {_amt} to {dfw::config::tax-luxury}
             set {_name} to "奢侈稅"
         else:
@@ -299,8 +305,8 @@ command /大富翁_開始遊戲 [<integer>]:
         if player is not op:
             send "&c只有管理員(OP)可以使用此指令！" to player
             stop
-        if arg-1 is set:
-            set {_amt} to arg-1
+        if argument 1 is set:
+            set {_amt} to argument 1
         else:
             set {_amt} to {dfw::config::start}
         set {_c} to 0
@@ -320,22 +326,31 @@ command /大富翁_銀行 <text> <player> <integer>:
         if player is not op:
             send "&c只有管理員(OP)可以使用此指令！" to player
             stop
-        if arg-3 < 0:
+        if argument 3 < 0:
             send "&c金額不可為負數！" to player
             stop
-        if arg-1 is "給" or arg-1 is "give":
-            addMoney(arg-2, arg-3)
-            announce("&a🏦 銀行發給 %arg-2% $%arg-3%")
-        else if arg-1 is "收" or arg-1 is "take":
-            removeMoney(arg-2, arg-3)
-            announce("&c🏦 銀行向 %arg-2% 收取 $%arg-3%")
-        else if arg-1 is "設定" or arg-1 is "set":
-            set {dfw::money::%uuid of arg-2%} to arg-3
-            announce("&e🏦 銀行將 %arg-2% 的現金設定為 $%arg-3%")
+        if argument 1 is "給":
+            addMoney(argument 2, argument 3)
+            announce("&a🏦 銀行發給 %argument 2% $%argument 3%")
+        else if argument 1 is "give":
+            addMoney(argument 2, argument 3)
+            announce("&a🏦 銀行發給 %argument 2% $%argument 3%")
+        else if argument 1 is "收":
+            removeMoney(argument 2, argument 3)
+            announce("&c🏦 銀行向 %argument 2% 收取 $%argument 3%")
+        else if argument 1 is "take":
+            removeMoney(argument 2, argument 3)
+            announce("&c🏦 銀行向 %argument 2% 收取 $%argument 3%")
+        else if argument 1 is "設定":
+            set {dfw::money::%uuid of argument 2%} to argument 3
+            announce("&e🏦 銀行將 %argument 2% 的現金設定為 $%argument 3%")
+        else if argument 1 is "set":
+            set {dfw::money::%uuid of argument 2%} to argument 3
+            announce("&e🏦 銀行將 %argument 2% 的現金設定為 $%argument 3%")
         else:
             send "&c用法：/大富翁_銀行 給|收|設定 <玩家> <金額>" to player
             stop
-        send "&7%arg-2% 目前餘額：&a$%bal(arg-2)%" to player
+        send "&7%argument 2% 目前餘額：&a$%bal(argument 2)%" to player
 
 
 # ---------------- 說明 ----------------
